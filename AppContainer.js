@@ -159,7 +159,7 @@ const AppContainer = () => {
 function App() {
     return (
         <Provider store={store}>
-        <AppContainer />
+            <AppContainer />
         </Provider>
     );
 }
