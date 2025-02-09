@@ -62,7 +62,7 @@ export const addUser = createAsyncThunk(
 )
 
 export const loadUsers = createAsyncThunk(
-  'chat/loadUsers',
+  'app/loadUsers',
   async (users) => {
     return [...users];
   }
@@ -102,12 +102,12 @@ export const fetchListThunk = createAsyncThunk(
 
     if (!querySnapshot.empty) {
       // Map each document to an object with its data and ID
-      const listItems = querySnapshot.docs.map(doc => ({
+      const listBoards = querySnapshot.docs.map(doc => ({
         ...doc.data(),
         key: doc.id
       }));
-      // Return the list of contacts as `listItems`
-      return listItems;
+      // Return the list of contacts as `listBoards`
+      return listBoards;
     } else {
       // Return an empty array if no documents found
       return []; 
@@ -144,16 +144,15 @@ export const deleteThunk = createAsyncThunk(
 
 // ---------------------- Slice Template!!! ------------------------
 const userSlice = createSlice({
-  name: 'lists',
+  name: 'user',
   initialState: {
-    currentUser: {},
-    initItem: "",
-    listItems: [],
+    currentUser: {displayName: "jack", email: "", key: ""},
+    listBoards: [],
   },
   reducers: {
     selectItem: (state, action) => {
       const key = action.payload;
-      state.selectedItem = key !== -1 ? state.listItems.find(item => item.key === key) : initItem;
+      state.selectedItem = key !== -1 ? state.listBoards.find(item => item.key === key) : initItem;
     },
   },
   extraReducers: (builder) => {
@@ -163,20 +162,20 @@ const userSlice = createSlice({
       })
       .addCase(addThunk.fulfilled, (state, action) => {
         const { key, item } = action.payload;
-        state.listItems.push({...item, key:key});
+        state.listBoards.push({...item, key:key});
       })
       .addCase(updateThunk.fulfilled, (state, action) => {
         const {key, updatedItem} = action.payload;
-        state.listItems = state.listItems.map(item => item.key === key ? { ...updatedItem, key:key } : item);
+        state.listBoards = state.listBoards.map(item => item.key === key ? { ...updatedItem, key:key } : item);
       })
-      .addCase(deleteContactThunk.fulfilled, (state, action) => {
+      .addCase(deleteThunk.fulfilled, (state, action) => {
         const key = action.payload;
-        state.listItems = state.listItems.filter(item => item.key !== key);
+        state.listBoards = state.listBoards.filter(item => item.key !== key);
       })
       .addCase(fetchListThunk.fulfilled, (state, action) => {
-        state.listItems = action.payload; // Set listItems from Firebase
-        if (state.listItems.length >= 1 && Array.isArray(state.listItems[0].groups)) {
-          const g = state.listItems[0].groups.map(
+        state.listBoards = action.payload; // Set listBoards from Firebase
+        if (state.listBoards.length >= 1 && Array.isArray(state.listBoards[0].groups)) {
+          const g = state.listBoards[0].groups.map(
             item => ({...item,isAssigned: false})
           )
           state.newContact = {...initContact, groups:g};
@@ -187,6 +186,4 @@ const userSlice = createSlice({
   },
 });
 
-export { addUser, setUser };
-export const { selectItem } = userSlice.actions;
 export default userSlice.reducer;
