@@ -9,12 +9,36 @@ import userSlice from './Reducer';
 
 
 import HomeScreen from './screens/HomeScreen';
+import CommunicationStyleScreen from './screens/CommunicationStyleScreen';
+import PersonalInformationScreen from './screens/PersonalInformationScreen';
 
 const store = configureStore({
     reducer: {
         user: userSlice,
     },
 });
+
+// Onboarding Stack
+const OnboardingStack = (props) => {
+    const Stack = createNativeStackNavigator();
+    const { navigation, route } = props;
+    const dispatch = useDispatch();
+
+    return (
+        <Stack.Navigator initialRouteName='PersonalInformationScreen' screenOptions={{ 
+            headerShown: true, 
+            headerTitle: '',
+            headerStyle: {
+                backgroundColor: '#F9F9F9',
+                shadowOpacity: 0,
+                elevation: 0
+            },
+        }}>
+            <Stack.Screen name='CommunicationStyleScreen' component={CommunicationStyleScreen}/>
+            <Stack.Screen name='PersonalInformationScreen' component={PersonalInformationScreen}/>
+        </Stack.Navigator>
+    )
+}
 
 // Home Tab Stack
 const HomeTabStack = (props) => {
@@ -99,10 +123,23 @@ const DynamicTabsNavigator = () => {
 
   return (
     <Tabs.Navigator
+        // Change Initial Route Here
+        
+        // initialRouteName='Onboarding'
         screenOptions={{
             headerShown: false,
         }}
     >
+     {/* Uncomment this to add Onboarding Tab -- use for modifications to the screens */}
+        {/* <Tabs.Screen
+            name="Onboarding"
+            component={OnboardingStack}
+            options={{
+                tabBarIcon: ({ color, size }) => (
+                    <Icon name="user" type="font-awesome" color={color} size={size} />
+                ),
+            }}
+        /> */}
         <Tabs.Screen
             name="Home"
             component={HomeTabStack}
