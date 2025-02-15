@@ -9,8 +9,8 @@ import userSlice from './Reducer';
 
 
 import HomeScreen from './screens/HomeScreen';
-import CommunicationStyleScreen from './screens/CommunicationStyleScreen';
-import PersonalInformationScreen from './screens/PersonalInformationScreen';
+import CommunicationStyleScreen from './screens/Onboarding_Screens/CommunicationStyleScreen';
+import PersonalInformationScreen from './screens/Onboarding_Screens/PersonalInformationScreen';
 
 const store = configureStore({
     reducer: {
