@@ -22,7 +22,7 @@ export const subscribeToUserUpdates = (dispatch) => {
   if (snapshotUnsubscribe) {
     snapshotUnsubscribe();
   }
-  snapshotUnsubscribe = onSnapshot(collection(db, 'users'), usersSnapshot => {
+  snapshotUnsubscribe = onSnapshot(collection(db, 'peadbo'), usersSnapshot => {
     const updatedUsers = usersSnapshot.docs.map(uSnap => {
       return uSnap.data();
     });
@@ -33,7 +33,7 @@ export const subscribeToUserUpdates = (dispatch) => {
 export const setUser = createAsyncThunk(
   'add/setUser',
   async (authUser) => {
-    const userSnap = await getDoc(doc(db, 'users', authUser.uid));
+    const userSnap = await getDoc(doc(db, 'peadbo', authUser.uid));
     const user = userSnap.data();
     return user;
   }
@@ -49,8 +49,8 @@ export const addUser = createAsyncThunk(
       key: user.uid
     };
     // add the new user to the firebase
-    await setDoc(doc(db, 'users', user.uid), userToAdd);
-    const userDocRef = doc(db, 'users', user.uid);
+    await setDoc(doc(db, 'peadbo', user.uid), userToAdd);
+    const userDocRef = doc(db, 'peadbo', user.uid);
 
     // Add a document to the subcollection
     // const subcollectionRef = collection(userDocRef, 'image');
@@ -76,7 +76,7 @@ export const fetchUserImagesThunk = createAsyncThunk(
   async (id) => {
     try {
       // Reference to the user's document
-      const userDocRef = doc(db, 'users', id);
+      const userDocRef = doc(db, 'peadbo', id);
       // Reference to the user's 'image' subcollection
       const imageCollectionRef = collection(userDocRef, 'image');
       // Fetch all documents from the 'image' subcollection
