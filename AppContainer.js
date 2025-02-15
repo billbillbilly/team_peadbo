@@ -12,11 +12,44 @@ import HomeScreen from './screens/HomeScreen';
 import CommunicationStyleScreen from './screens/Onboarding_Screens/CommunicationStyleScreen';
 import PersonalInformationScreen from './screens/Onboarding_Screens/PersonalInformationScreen';
 
+import AdvisorSelectionScreen from './screens/Board_Creation_Screens/AdvisorSelectionScreen';
+import BoardDetailsScreen from './screens/Board_Creation_Screens/BoardDetailsScreen';
+import FocusScreen from './screens/Board_Creation_Screens/FocusScreen';
+import CreateInvitationScreen from './screens/Board_Creation_Screens/CreateInvitationScreen';
+import TimeAvailabilityScreen from './screens/Board_Creation_Screens/TimeAvailabilityScreen';
+
+
 const store = configureStore({
     reducer: {
         user: userSlice,
     },
 });
+
+const BoardCreationStack = (props) => {
+    const Stack = createNativeStackNavigator();
+    const { navigation, route } = props;
+    const dispatch = useDispatch();
+
+    return (
+        <Stack.Navigator initialRouteName='AdvisorSelectionScreen' screenOptions={{ 
+            headerShown: true, 
+            headerTitle: '',
+            headerStyle: {
+                backgroundColor: '#F9F9F9',
+                shadowOpacity: 0,
+                elevation: 0
+            },
+        }}>
+            <Stack.Screen name='AdvisorSelectionScreen' component={AdvisorSelectionScreen}/>
+            <Stack.Screen name='BoardDetailsScreen' component={BoardDetailsScreen}/>
+            <Stack.Screen name='FocusScreen' component={FocusScreen}/>
+            <Stack.Screen name='CreateInvitationScreen' component={CreateInvitationScreen}/>
+            <Stack.Screen name='TimeAvailabilityScreen' component={TimeAvailabilityScreen}/>
+        </Stack.Navigator>
+    )
+}
+
+
 
 // Onboarding Stack
 const OnboardingStack = (props) => {
@@ -126,6 +159,7 @@ const DynamicTabsNavigator = () => {
         // Change Initial Route Here
         
         // initialRouteName='Onboarding'
+        // initialRouteName='BoardCreation'
         screenOptions={{
             headerShown: false,
         }}
@@ -137,6 +171,17 @@ const DynamicTabsNavigator = () => {
             options={{
                 tabBarIcon: ({ color, size }) => (
                     <Icon name="user" type="font-awesome" color={color} size={size} />
+                ),
+            }}
+        /> */}
+
+        {/* Uncomment this to add Board Creation Tab -- use for modifications to the screens */}
+        {/* <Tabs.Screen
+            name="BoardCreation"
+            component={BoardCreationStack}
+            options={{
+                tabBarIcon: ({ color, size }) => (
+                    <Icon name="list" type="font-awesome" color={color} size={size} />
                 ),
             }}
         /> */}
