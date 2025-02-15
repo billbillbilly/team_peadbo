@@ -17,7 +17,7 @@ import BoardDetailsScreen from './screens/Board_Creation_Screens/BoardDetailsScr
 import FocusScreen from './screens/Board_Creation_Screens/FocusScreen';
 import CreateInvitationScreen from './screens/Board_Creation_Screens/CreateInvitationScreen';
 import TimeAvailabilityScreen from './screens/Board_Creation_Screens/TimeAvailabilityScreen';
-
+import Review from './screens/Board_Creation_Screens/ReviewScreen';
 
 const store = configureStore({
     reducer: {
@@ -45,6 +45,7 @@ const BoardCreationStack = (props) => {
             <Stack.Screen name='FocusScreen' component={FocusScreen}/>
             <Stack.Screen name='CreateInvitationScreen' component={CreateInvitationScreen}/>
             <Stack.Screen name='TimeAvailabilityScreen' component={TimeAvailabilityScreen}/>
+            <Stack.Screen name='ReviewScreen' component={Review}/>
         </Stack.Navigator>
     )
 }
