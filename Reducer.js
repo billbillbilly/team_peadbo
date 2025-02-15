@@ -1,19 +1,19 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-// import { initializeApp, getApps } from 'firebase/app';
-// import { setDoc, getDocs, addDoc, doc, getFirestore, collection, onSnapshot, getDoc, deleteDoc, updateDoc, query, where } from 'firebase/firestore';
-// import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-// import { firebaseConfig } from "./Secrets";
+import { initializeApp, getApps } from 'firebase/app';
+import { setDoc, getDocs, addDoc, doc, getFirestore, collection, onSnapshot, getDoc, deleteDoc, updateDoc, query, where } from 'firebase/firestore';
+import { getStorage, ref, deleteObject } from 'firebase/storage';
+import { firebaseConfig } from "./Secrets";
 
 // ---------------------- Set up firebase ------------------------
-// let app;
-// const apps = getApps();
-// if (apps.length == 0) {
-//   app = initializeApp(firebaseConfig);
-// } else {
-//   app = apps[0];
-// }
-// const db = getFirestore(app);
-// const storage = getStorage(app);
+let app;
+const apps = getApps();
+if (apps.length == 0) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = apps[0];
+}
+const db = getFirestore(app);
+const storage = getStorage(app);
 
 
 //-------------------- User ---------------------
@@ -51,13 +51,14 @@ export const addUser = createAsyncThunk(
     // add the new user to the firebase
     await setDoc(doc(db, 'users', user.uid), userToAdd);
     const userDocRef = doc(db, 'users', user.uid);
-    const subcollectionRef = collection(userDocRef, 'image');
+
     // Add a document to the subcollection
-    await addDoc(subcollectionRef, {
-      imageName: 'void',
-      path: 'void',
-      date: Date.now(),
-    });
+    // const subcollectionRef = collection(userDocRef, 'image');
+    // await addDoc(subcollectionRef, {
+    //   imageName: 'void',
+    //   path: 'void',
+    //   date: Date.now(),
+    // });
   }
 )
 
