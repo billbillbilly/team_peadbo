@@ -187,5 +187,4 @@ const userSlice = createSlice({
   },
 });
 
-export { addUser, setUser};
 export default userSlice.reducer;
