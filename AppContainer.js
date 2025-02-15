@@ -31,7 +31,7 @@ const BoardCreationStack = (props) => {
     const dispatch = useDispatch();
 
     return (
-        <Stack.Navigator initialRouteName='AdvisorSelectionScreen' screenOptions={{ 
+        <Stack.Navigator initialRouteName='FocusScreen' screenOptions={{ 
             headerShown: true, 
             headerTitle: '',
             headerStyle: {
@@ -159,7 +159,7 @@ const DynamicTabsNavigator = () => {
         // Change Initial Route Here
         
         // initialRouteName='Onboarding'
-        // initialRouteName='BoardCreation'
+        initialRouteName='BoardCreation'
         screenOptions={{
             headerShown: false,
         }}
@@ -176,7 +176,7 @@ const DynamicTabsNavigator = () => {
         /> */}
 
         {/* Uncomment this to add Board Creation Tab -- use for modifications to the screens */}
-        {/* <Tabs.Screen
+        <Tabs.Screen
             name="BoardCreation"
             component={BoardCreationStack}
             options={{
@@ -184,7 +184,7 @@ const DynamicTabsNavigator = () => {
                     <Icon name="list" type="font-awesome" color={color} size={size} />
                 ),
             }}
-        /> */}
+        />
         <Tabs.Screen
             name="Home"
             component={HomeTabStack}

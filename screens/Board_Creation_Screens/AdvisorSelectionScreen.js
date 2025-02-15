@@ -1,10 +1,16 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
-const AdvisorSelectionScreen = () => {
+const AdvisorSelectionScreen = ({ navigation }) => {
     return (
         <View style={styles.container}>
-            <Text>Advisor Selection Screen</Text>
+            <Text style={styles.text}>Select Advisors Screen</Text>
+            <TouchableOpacity
+                style={styles.button}
+                onPress={() => navigation.navigate('CreateInvitationScreen')}
+            >
+                <Text style={styles.buttonText}>Continue</Text>
+            </TouchableOpacity>
         </View>
     );
 };
@@ -12,8 +18,23 @@ const AdvisorSelectionScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    text: {
+        fontFamily: 'Muller, Sans-serif',
+    },
+    button: {
+        marginTop: 20,
+        padding: 10,
+        backgroundColor: '#1EA896',
+        borderRadius: 50,
+        width: '80%',
+        alignItems: 'center',
+    },
+    buttonText: {
+        color: '#FFFFFF',
+        fontSize: 16,
     },
 });
 
