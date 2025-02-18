@@ -58,14 +58,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F9F9F9',
     padding: 20,
-    justifyContent: 'center',
+    alignItems: 'flex-start', // Changed to align content to the left
   },
   stepIndicatorContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '80%',
     alignSelf: 'center',
-    marginBottom: 60,
+    marginBottom: 40,
   },
   dotBase: {
     width: DOT_SIZE,
