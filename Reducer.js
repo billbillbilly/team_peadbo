@@ -2,18 +2,20 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { initializeApp, getApps } from 'firebase/app';
 import { setDoc, getDocs, addDoc, doc, getFirestore, collection, onSnapshot, getDoc, deleteDoc, updateDoc, query, where } from 'firebase/firestore';
 import { getStorage, ref, deleteObject } from 'firebase/storage';
-import { firebaseConfig } from "./Secrets";
+import { firebaseConfig } from './Secrets';
 
 // ---------------------- Set up firebase ------------------------
 let app;
 const apps = getApps();
 if (apps.length == 0) {
   app = initializeApp(firebaseConfig);
+
 } else {
   app = apps[0];
 }
 const db = getFirestore(app);
 const storage = getStorage(app);
+
 
 
 //-------------------- User ---------------------
