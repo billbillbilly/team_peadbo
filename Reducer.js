@@ -2,9 +2,19 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { initializeApp, getApps } from 'firebase/app';
 import { setDoc, getDocs, addDoc, doc, getFirestore, collection, onSnapshot, getDoc, deleteDoc, updateDoc, query, where } from 'firebase/firestore';
 import { getStorage, ref, deleteObject } from 'firebase/storage';
-import { firebaseConfig } from "./Secrets";
+
 
 // ---------------------- Set up firebase ------------------------
+const firebaseConfig = {
+  apiKey: "AIzaSyD5DC4VN8KgYAUCHEgSpemD3YJsH1yLbBg",
+  authDomain: "team-peadbo.firebaseapp.com",
+  projectId: "team-peadbo",
+  storageBucket: "team-peadbo.firebasestorage.app",
+  messagingSenderId: "376993504498",
+  appId: "1:376993504498:web:b26bcbe04dc49008f7046b",
+  measurementId: "G-9BBSRCB1J2"
+};
+
 let app;
 const apps = getApps();
 if (apps.length == 0) {
