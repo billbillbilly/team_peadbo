@@ -58,11 +58,12 @@ function HomeScreen(props) {
 
           <TouchableOpacity 
             style={styles.createBoardButton}
-            onPress={async() => navigation.navigate('BoardCreation')}
+            onPress={() => navigation.navigate('BoardDetailsScreen')} 
           >
             <Text style={styles.createBoardText}>+</Text>
             <Text style={styles.createBoardText}>Create a new board</Text>
           </TouchableOpacity>
+
 
           <Text style={styles.sectionTitle}>Other Board</Text>
           <FlatList
