@@ -91,6 +91,13 @@ const HomeTabStack = (props) => {
             },
         }}>
             <Stack.Screen name='Home' component={HomeScreen}/>
+            <Stack.Screen name='BoardCreation' component={BoardCreationStack}/>
+            <Stack.Screen name='FocusScreen' component={FocusScreen}/>
+            <Stack.Screen name='BoardDetailsScreen' component={BoardDetailsScreen}/>
+            <Stack.Screen name='AdvisorSelectionScreen' component={AdvisorSelectionScreen}/>
+            <Stack.Screen name='CreateInvitationScreen' component={CreateInvitationScreen}/>
+            <Stack.Screen name='TimeAvailabilityScreen' component={TimeAvailabilityScreen}/>
+            <Stack.Screen name='ReviewScreen' component={Review}/>
         </Stack.Navigator>
     )
 }
