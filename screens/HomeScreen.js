@@ -56,7 +56,10 @@ function HomeScreen(props) {
             contentContainerStyle={styles.listContent}
           />
 
-          <TouchableOpacity style={styles.createBoardButton}>
+          <TouchableOpacity 
+            style={styles.createBoardButton}
+            onPress={async() => navigation.navigate('CreateBoard')}
+          >
             <Text style={styles.createBoardText}>+</Text>
             <Text style={styles.createBoardText}>Create a new board</Text>
           </TouchableOpacity>
