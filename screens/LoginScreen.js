@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import { signInWithGoogle } from "../AuthManager";
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -32,6 +33,10 @@ const LoginScreen = ({ navigation }) => {
 
       <Button title="Login" onPress={handleLogin} />
 
+      <TouchableOpacity style={styles.googleButton} onPress={signInWithGoogle}>
+        <Text style={styles.googleButtonText}>Sign in with Google</Text>
+      </TouchableOpacity>
+
       <Text style={styles.link} onPress={() => navigation.navigate('Signup')}>
         Don't have an account? Sign up
       </Text>
@@ -60,6 +65,18 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingHorizontal: 10,
     borderRadius: 5,
+  },
+  googleButton: {
+    marginTop: 20,
+    backgroundColor: '#4285F4',
+    padding: 10,
+    borderRadius: 5,
+    width: '100%',
+    alignItems: 'center',
+  },
+  googleButtonText: {
+    color: '#fff',
+    fontSize: 18,
   },
   link: {
     marginTop: 10,
