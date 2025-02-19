@@ -25,7 +25,29 @@ export default function PickAdvisorsScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Pick Your Advisors</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Pick Your Advisors</Text>
+        <View style={styles.stepIndicator}>
+          {[1, 2, 3, 4, 5].map((step) => (
+            <View
+              key={step}
+              style={[
+                styles.stepCircle,
+                step === 3 && styles.activeStepCircle,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.stepNumber,
+                  step === 3 && styles.activeStepNumber,
+                ]}
+              >
+                {step}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </View>
       <FlatList
         data={advisors}
         keyExtractor={(item) => item.id.toString()}
@@ -51,12 +73,19 @@ export default function PickAdvisorsScreen({ navigation, route }) {
   );
 }
 
+const circleSize = 40;
+
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     padding: 20,
     backgroundColor: '#fff',
   },
+  header: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+
   title: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -70,8 +99,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   selectedAdvisor: {
-    backgroundColor: '#e0f7fa',
-    borderColor: '#00bcd4',
+    backgroundColor: 'rgba(30, 168, 150, 0.2)',
+    borderColor: '#1EA896',
   },
   advisorName: {
     fontSize: 18,
@@ -86,7 +115,7 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   continueButton: {
-    backgroundColor: '#00bcd4',
+    backgroundColor: '#1EA896',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -97,5 +126,30 @@ const styles = StyleSheet.create({
   continueButtonText: {
     color: '#fff',
     fontSize: 18,
+  },
+  stepIndicator: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '80%',
+    marginBottom: 20,
+  },
+  stepCircle: {
+    width: circleSize,
+    height: circleSize,
+    borderRadius: circleSize / 2,
+    backgroundColor: '#EEE',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  activeStepCircle: {
+    backgroundColor: '#1EA896',
+  },
+  stepNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  activeStepNumber: {
+    color: '#fff',
   },
 });

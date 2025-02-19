@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 
 const BoardDetailsScreen = ({ navigation }) => {
   const [boardName, setBoardName] = useState('');
@@ -10,7 +10,7 @@ const BoardDetailsScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Add Board Details</Text>
         <View style={styles.stepIndicator}>
@@ -55,12 +55,13 @@ const BoardDetailsScreen = ({ navigation }) => {
         />
       </View>
       <TouchableOpacity
-                style={styles.button}
-                onPress={() => handleContinue()}
-            >
-                <Text style={styles.buttonText}>Continue</Text>
-            </TouchableOpacity>
-    </View>
+        style={[styles.continueButton, (!boardName || !boardDescription) && styles.disabledButton]}
+        onPress={handleContinue}
+        disabled={!boardName || !boardDescription}
+      >
+        <Text style={styles.continueButtonText}>Continue</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
 
@@ -68,7 +69,7 @@ const circleSize = 40;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: '#fff',
     padding: 20,
   },
@@ -118,19 +119,24 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     fontSize: 16,
+    marginBottom: 20,
   },
   multilineInput: {
     height: 100,
     textAlignVertical: 'top',
   },
-  button: {
+  continueButton: {
     backgroundColor: '#1EA896',
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 20,
+    marginTop: 20,
+    width: '100%',
   },
-  buttonText: {
+  disabledButton: {
+    backgroundColor: '#ccc',
+  },
+  continueButtonText: {
     color: '#fff',
     fontSize: 18,
   },

@@ -22,6 +22,26 @@ export default function SetFocusScreen({ navigation }) {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Choose your focus</Text>
+      <View style={styles.stepIndicator}>
+        {[1, 2, 3, 4, 5].map((step) => (
+          <View
+            key={step}
+            style={[
+              styles.stepCircle,
+              step === 1 && styles.activeStepCircle,
+            ]}
+          >
+            <Text
+              style={[
+                styles.stepNumber,
+                step === 1 && styles.activeStepNumber,
+              ]}
+            >
+              {step}
+            </Text>
+          </View>
+        ))}
+      </View>
       <Text style={styles.subtitle}>
         Giving your board a focus gives members a better idea of what to expect. You can change this later.
       </Text>
@@ -47,26 +67,33 @@ export default function SetFocusScreen({ navigation }) {
   );
 }
 
+const circleSize = 40;
+
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 20,
     backgroundColor: '#fff',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 10,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
     color: '#666',
     marginBottom: 20,
+    textAlign: 'center',
   },
   focusContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    width: '100%',
   },
   focusItem: {
     width: '48%',
@@ -78,18 +105,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   selectedFocus: {
-    backgroundColor: '#e0f7fa',
-    borderColor: '#00bcd4',
+    backgroundColor: 'rgba(30, 168, 150, 0.2)',
+    borderColor: '#1EA896',
   },
   focusText: {
     fontSize: 18,
   },
+  stepIndicator: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '80%',
+    marginBottom: 20,
+  },
+  stepCircle: {
+    width: circleSize,
+    height: circleSize,
+    borderRadius: circleSize / 2,
+    backgroundColor: '#EEE',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  activeStepCircle: {
+    backgroundColor: '#1EA896',
+  },
+  stepNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  activeStepNumber: {
+    color: '#fff',
+  },
   continueButton: {
-    backgroundColor: '#00bcd4',
+    backgroundColor: '#1EA896',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 20,
+    width: '100%',
   },
   disabledButton: {
     backgroundColor: '#ccc',
