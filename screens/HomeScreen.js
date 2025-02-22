@@ -2,7 +2,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, View, FlatList, TouchableOpacity, Text, TextInput } from "react-native";
 import { userSlice } from '../Reducer';
-import renderBoard from "../components/renderBoard";
+import RenderBoard from "../components/RenderBoard";
 
 
 function HomeScreen(props) {
@@ -51,7 +51,7 @@ function HomeScreen(props) {
           <FlatList
             data={boards}
             scrollEnabled={false}
-            renderItem={renderBoard}
+            renderItem={({ item }) => <RenderBoard item={item} navigation={navigation} />}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.listContent}
           />
@@ -68,7 +68,7 @@ function HomeScreen(props) {
           <FlatList
             data={boards}
             scrollEnabled={false}
-            renderItem={renderBoard}
+            renderItem={({ item }) => <RenderBoard item={item} navigation={navigation} />}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.listContent}
           />
@@ -129,4 +129,4 @@ function HomeScreen(props) {
     },
   });
   
-  export default HomeScreen;
+export default HomeScreen;
