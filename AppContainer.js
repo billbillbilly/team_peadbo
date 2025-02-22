@@ -19,6 +19,8 @@ import CreateInvitationScreen from './screens/Board_Creation_Screens/CreateInvit
 import TimeAvailabilityScreen from './screens/Board_Creation_Screens/TimeAvailabilityScreen';
 import Review from './screens/Board_Creation_Screens/ReviewScreen';
 
+import BoardDetailScreen from './screens/Board_Detail_Screens/BoardDetailScreen';
+
 const store = configureStore({
     reducer: {
         user: userSlice,
@@ -81,14 +83,18 @@ const HomeTabStack = (props) => {
     const dispatch = useDispatch();
 
     return (
-        <Stack.Navigator initialRouteName='Home' screenOptions={{ 
-            headerShown: true, 
-            headerTitle: '',
-            headerStyle: {
-                backgroundColor: '#F9F9F9',
-                shadowOpacity: 0,
-                elevation: 0
-            },
+        <Stack.Navigator initialRouteName='Home' 
+            screenOptions={{ 
+                headerShown: true, 
+                headerTitle: '',
+                headerStyle: {
+                    backgroundColor: '#F9F9F9',
+                    shadowOpacity: 0,
+                    elevation: 0
+                },
+                tabBarStyle: {
+                    display: 'none',
+                },
         }}>
             <Stack.Screen name='Home' component={HomeScreen}/>
             <Stack.Screen name='BoardCreation' component={BoardCreationStack}/>
@@ -98,6 +104,8 @@ const HomeTabStack = (props) => {
             <Stack.Screen name='CreateInvitationScreen' component={CreateInvitationScreen}/>
             <Stack.Screen name='TimeAvailabilityScreen' component={TimeAvailabilityScreen}/>
             <Stack.Screen name='ReviewScreen' component={Review}/>
+            {/* boad management */}
+            <Stack.Screen name='BoardDetail' component={BoardDetailScreen}/>
         </Stack.Navigator>
     )
 }
@@ -168,9 +176,11 @@ const DynamicTabsNavigator = () => {
         
         // initialRouteName='Onboarding'
         // initialRouteName='BoardCreation'
-        screenOptions={{
+        screenOptions={({ route }) => ({
             headerShown: false,
-        }}
+            // hide tab bar on login screen
+            tabBarStyle: { display: route.name === 'Login' ? 'none' : 'flex' },
+        })}
     >
      {/* Uncomment this to add Onboarding Tab -- use for modifications to the screens */}
         {/* <Tabs.Screen
@@ -198,7 +208,7 @@ const DynamicTabsNavigator = () => {
             component={HomeTabStack}
             options={{
             tabBarIcon: ({ color, size }) => (
-                <Icon name="list" type="font-awesome" color={color} size={size} />
+                <Icon name="home" type="font-awesome" color={color} size={size} />
             ),
             }}
         />
