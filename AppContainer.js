@@ -105,7 +105,7 @@ const HomeTabStack = (props) => {
             <Stack.Screen name='TimeAvailabilityScreen' component={TimeAvailabilityScreen}/>
             <Stack.Screen name='ReviewScreen' component={Review}/>
             {/* boad management */}
-            <Stack.Screen name='BoardDetail' component={BoardDetailScreen}/>
+            <Stack.Screen name='BoardDetail' component={BoardDetailScreen} screenOptions={{}}/>
         </Stack.Navigator>
     )
 }

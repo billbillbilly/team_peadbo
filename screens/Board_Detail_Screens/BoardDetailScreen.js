@@ -1,9 +1,70 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, Image, Dimensions } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 
 const BoardDetailsScreen = ({ navigation, route }) => {
     const { board } = route.params;
+    // Get today's date and weekday
+    const weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    let today = new Date();
+    let currentDay = today.getDay();
+    let currentWeekday = weekday[currentDay];
+    const currentYear = today.getFullYear();
+    const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
+    const currentDate = today.getDate();
+
+    const { screenWidth } = Dimensions.get('window');
+
+    const mapDates = (cDay, cDate, cMonth) => {
+        let dates = [];
+        for (let i = 0; i < 7; i++) {
+            if (i < cDay) {
+                let temp = cDate - (cDay - i)+1;
+                if (cMonth === '01' || cMonth === '03' || cMonth === '05' || cMonth === '07' || cMonth === '08' || cMonth === '10' || cMonth === '12') {
+                    dates.push(temp > 0 ? temp: 31 + temp);
+                } else if (cMonth === '02') {
+                    dates.push(temp > 0 ? temp: 28 + temp);
+                } else { 
+                    dates.push(temp > 0 ? temp: 30 + temp);
+                }
+            } else {
+                let temp = cDate + (i - cDay)+1;
+                if (cMonth === '01' || cMonth === '03' || cMonth === '05' || cMonth === '07' || cMonth === '08' || cMonth === '10' || cMonth === '12') {
+                    dates.push(temp < 32 ? temp: temp - 31);
+                } else if (cMonth === '02') {
+                    dates.push(temp < 29 ? temp: temp - 28);
+                } else { 
+                    dates.push(temp < 31 ? temp: temp - 30);
+                }
+            }
+        }
+        // Add 7 days before the first day in dates
+        const firstDate = dates[0];
+        for (let i = 1; i <= 7; i++) {
+            let temp = firstDate - i;
+            if (cMonth === '01' || cMonth === '03' || cMonth === '05' || cMonth === '07' || cMonth === '08' || cMonth === '10' || cMonth === '12') {
+            dates.unshift(temp > 0 ? temp : 31 + temp);
+            } else if (cMonth === '02') {
+            dates.unshift(temp > 0 ? temp : 28 + temp);
+            } else {
+            dates.unshift(temp > 0 ? temp : 30 + temp);
+            }
+        }
+
+        // Add 7 days after the last day in dates
+        const lastDate = dates[dates.length - 1];
+        for (let i = 1; i <= 7; i++) {
+            let temp = lastDate + i;
+            if (cMonth === '01' || cMonth === '03' || cMonth === '05' || cMonth === '07' || cMonth === '08' || cMonth === '10' || cMonth === '12') {
+            dates.push(temp < 32 ? temp : temp - 31);
+            } else if (cMonth === '02') {
+            dates.push(temp < 29 ? temp : temp - 28);
+            } else {
+            dates.push(temp < 31 ? temp : temp - 30);
+            }
+        }
+        return dates;
+    };
     // will be replaced with API call
     const events = [
         { id: '1', time: '09:00', duration: '50 min', title: 'Meet with Sophia', description: 'Discuss my graduation plan', participants: ['Lucy', 'Sophia'] },
@@ -13,25 +74,40 @@ const BoardDetailsScreen = ({ navigation, route }) => {
     ];
 
     const [selectedDate, setSelectedDate] = useState('');
+    const [dateList, setDateList] = useState(mapDates( currentDay, currentDate, currentMonth));
 
     return (
         <View style={styles.container}>
             {/* Fixed title and calendar */}
             <View style={styles.fixedHeader}>
                 <Text style={styles.header}>{board.title}</Text>
-                <View style={styles.horizontalCalendar}>
-                    {[5, 6, 7, 8, 9, 10, 11].map((day, index) => (
+                <View style={{flexDirection: 'row', justifyContent: 'space-between', alignContent: 'center',}}>
+                    {weekday.map((day, index) => (
+                        <View key={index} style={{alignItems: 'center', textAlign:'center'}}>
+                            <Text style={[styles.dayText, {paddingLeft:10, paddingRight:10}]}>{weekday[index]}</Text>         
+                        </View>
+                    ))}
+                </View>
+                <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false} 
+                    decelerationRate={"fast"}
+                    pagingEnabled
+                    snapToInterval={screenWidth/7}
+                    contentInset={{top: 0, left: 100, bottom: 0, right: 100,}}
+                >
+                    {dateList.map((day, index) => (
                         <TouchableOpacity 
                             key={index} 
-                            onPress={() => setSelectedDate(`2024-02-${day}`)}
+                            onPress={() => {setSelectedDate(`${day}`) 
+                        console.log(today.getDate())}}
                             style={{alignItems: 'center'}}
                         >
-                            <Text style={[styles.dayText, styles.dateItem]}>{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][index]}</Text>
-                            <Text style={[styles.dateText, styles.dateItem, selectedDate === `2024-02-${day}` && styles.selectedDate]}>{day}</Text>
+                            <Text style={[styles.dateText, styles.dateItem, selectedDate === `${day}` && styles.selectedDate]}>{day}</Text>
                             <Text style={[styles.dateEventItem]}>.</Text>
                         </TouchableOpacity>
                     ))}
-                </View>
+                </ScrollView>
                 <View style={{marginBottom: 10}}>
                     <Text style={styles.sectionTitle}>Event</Text>
                 </View>
@@ -79,7 +155,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         marginBottom: 15,
         alignContent: 'center',
-        justifyContent: 'space-between',
+        // justifyContent: 'space-between',
     },
     dateItem: {
         alignItems: 'center',
