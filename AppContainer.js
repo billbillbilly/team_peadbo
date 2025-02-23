@@ -96,7 +96,7 @@ const HomeTabStack = (props) => {
                     display: 'none',
                 },
         }}>
-            <Stack.Screen name='Home' component={HomeScreen}/>
+            <Stack.Screen name='Home' component={HomeScreen} options={{ headerShown: false}}/>
             <Stack.Screen name='BoardCreation' component={BoardCreationStack}/>
             <Stack.Screen name='FocusScreen' component={FocusScreen}/>
             <Stack.Screen name='BoardDetailsScreen' component={BoardDetailsScreen}/>
@@ -105,7 +105,7 @@ const HomeTabStack = (props) => {
             <Stack.Screen name='TimeAvailabilityScreen' component={TimeAvailabilityScreen}/>
             <Stack.Screen name='ReviewScreen' component={Review}/>
             {/* boad management */}
-            <Stack.Screen name='BoardDetail' component={BoardDetailScreen} screenOptions={{}}/>
+            <Stack.Screen name='BoardDetail' component={BoardDetailScreen} options={{ headerShown: false}}/>
         </Stack.Navigator>
     )
 }
@@ -162,7 +162,7 @@ const UserTabStack = (props) => {
                 backgroundColor: '#F9F9F9',
             },
         }}>
-            <Stack.Screen name='Usersettings' component={HomeScreen}/>
+            <Stack.Screen name='Usersettings' component={HomeScreen} options={{ headerShown: false}}/>
         </Stack.Navigator>
     )
 }

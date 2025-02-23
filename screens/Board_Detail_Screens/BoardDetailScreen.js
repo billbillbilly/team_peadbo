@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, Image, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Icon } from '@rneui/themed';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, Image, Dimensions, TextInput } from 'react-native';
 import RenderEvent from "../../components/RenderEvent";
+import BoardMembers from '../../components/BoardMembers';
+import { TextBase } from 'react-native';
 
 const BoardDetailsScreen = ({ navigation, route }) => {
+    useEffect(() => {
+        navigation.setOptions({ headerLeft: () => null }); // Hides back button
+    }, [navigation]);
     const { board } = route.params;
     // Get today's date and weekday
     const weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -79,9 +85,18 @@ const BoardDetailsScreen = ({ navigation, route }) => {
 
     return (
         <View style={styles.container}>
-            {/* Fixed title and calendar */}
-            <View style={styles.fixedHeader}>
+            <View style={styles.headerSection}>
+                <TouchableOpacity onPress={()=>navigation.navigate('Home')}>
+                    <Text style={{fontSize:20}}>&lt;</Text>
+                    {/* <Icon name="left" type="font-awesome" color={'gray'} size={20} /> */}
+                </TouchableOpacity>
                 <Text style={styles.header}>{board.title}</Text>
+                <TouchableOpacity>
+                    <Icon name="edit" type="font-awesome" size={20} />
+                </TouchableOpacity>
+            </View>
+            {/* Fixed title and calendar */}
+            <View>
                 <View style={{flexDirection: 'row', justifyContent: 'space-between', alignContent: 'center',}}>
                     {weekday.map((day, index) => (
                         <View key={index} style={{alignItems: 'center', textAlign:'center'}}>
@@ -117,13 +132,12 @@ const BoardDetailsScreen = ({ navigation, route }) => {
                 </View>
             </View>
 
-            <View style={styles.events}>
+            <ScrollView style={styles.events}>
                 <FlatList
                     data={viewAll? events:events.slice(0,2)}
                     scrollEnabled={false}
                     renderItem={({ item }) => <RenderEvent item={item} navigation={navigation} />}
                     keyExtractor={(item) => item.id}
-                    contentContainerStyle={styles.listContent}
                 />
                 <TouchableOpacity 
                     style={styles.createEventButton}
@@ -132,7 +146,9 @@ const BoardDetailsScreen = ({ navigation, route }) => {
                     <Text style={styles.createEventText}>+</Text>
                     <Text style={styles.createEventText}>Create a new board</Text>
                 </TouchableOpacity>
-            </View>
+            </ScrollView>
+            <BoardMembers members={board.users}></BoardMembers>
+            <TextInput style={styles.searchInput} placeholder="Ask Peadbo AI..." />
         </View>
     );
 };
@@ -143,9 +159,12 @@ const styles = StyleSheet.create({
         backgroundColor: '#F9F9F9',
         padding: 20,
     },
-    fixedHeader: {
-        backgroundColor: '#F9F9F9',
-        borderBottomColor: '#DDD',
+    headerSection: {
+        flexDirection: 'row',
+        marginTop: 50,
+        marginBottom: 20,
+        justifyContent: 'space-between',
+        alignItems: 'center'
     },
     sectionTitle: {
         fontSize: 18,
@@ -190,9 +209,8 @@ const styles = StyleSheet.create({
         paddingTop: 0,
     },
     header: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 10,
+        fontSize: 20,
+        fontWeight: 'light',
     },
     subText: {
         fontSize: 16,
@@ -266,6 +284,20 @@ const styles = StyleSheet.create({
     },
     createEventText: {
         color: 'lightgrey',
+    },
+    searchInput: {
+        backgroundColor: 'white',
+        padding: 10,
+        borderRadius: 20,
+        marginTop: 15,
+        marginBottom: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        shadowRadius: 3,
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
     },
 });
 
