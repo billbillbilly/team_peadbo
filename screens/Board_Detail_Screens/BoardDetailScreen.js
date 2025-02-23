@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, Image, Dimensions } from 'react-native';
-import { Calendar } from 'react-native-calendars';
+import RenderEvent from "../../components/RenderEvent";
 
 const BoardDetailsScreen = ({ navigation, route }) => {
     const { board } = route.params;
@@ -67,14 +67,15 @@ const BoardDetailsScreen = ({ navigation, route }) => {
     };
     // will be replaced with API call
     const events = [
-        { id: '1', time: '09:00', duration: '50 min', title: 'Meet with Sophia', description: 'Discuss my graduation plan', participants: ['Lucy', 'Sophia'] },
-        { id: '2', time: '11:00', duration: '60 min', title: 'School Advisor', description: 'Internship visa', participants: ['Lucy', 'Kay'] },
-        { id: '3', time: '11:00', duration: '40 min', title: 'School Advisor', description: 'Internship visa', participants: ['Lucy', 'Kay'] },
-        { id: '4', time: '11:00', duration: '30 min', title: 'School Advisor', description: 'Internship visa', participants: ['Lucy', 'Kay'] }
+        { id: '1', time: '09:00', duration: '50 min', title: 'Meet with Sophia', description: 'Discuss my graduation plan', participants: ['Lucy', 'Sophia'], month:2, day:23,your:2025, finished: false},
+        { id: '2', time: '11:00', duration: '60 min', title: 'School Advisor', description: 'Internship visa', participants: ['Lucy', 'Kay'], month:2, day:23,your:2025, finished: true},
+        { id: '3', time: '11:00', duration: '40 min', title: 'School Advisor', description: 'Discuss my graduation plan', participants: ['Lucy', 'Kay'], month:2, day:23,your:2025, finished: false},
+        { id: '4', time: '11:00', duration: '30 min', title: 'School Advisor', description: 'Internship visa', participants: ['Lucy', 'Kay'], month:2, day:23,your:2025, finished: false}
     ];
 
     const [selectedDate, setSelectedDate] = useState('');
     const [dateList, setDateList] = useState(mapDates( currentDay, currentDate, currentMonth));
+    const [viewAll, setViewAll] = useState(false);
 
     return (
         <View style={styles.container}>
@@ -108,28 +109,29 @@ const BoardDetailsScreen = ({ navigation, route }) => {
                         </TouchableOpacity>
                     ))}
                 </ScrollView>
-                <View style={{marginBottom: 10}}>
+                <View style={{marginBottom: 5, marginTop: 15, flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
                     <Text style={styles.sectionTitle}>Event</Text>
+                    <TouchableOpacity onPress={()=>{viewAll? setViewAll(false):setViewAll(true)}}>
+                        <Text style={{fontSize:12, marginVertical: 10, color:'gray'}}>{viewAll? "View less":"View all"}</Text>
+                    </TouchableOpacity>
                 </View>
-                
             </View>
 
             <View style={styles.events}>
                 <FlatList
-                    data={events}
-                    keyExtractor={item => item.id}
-                    renderItem={({ item }) => (
-                        <TouchableOpacity style={styles.event} onPress={() => navigation.navigate('EventDetail', { event: item })}>
-                            <Text style={styles.eventTime}>{item.time}</Text>
-                            <View style={styles.eventInfo}>
-                                <Text style={styles.eventTitle}>{item.title}</Text>
-                                <Text style={styles.eventDescription}>{item.description}</Text>
-                                <Text style={styles.eventParticipants}>{item.participants.join(', ')}</Text>
-                            </View>
-                        </TouchableOpacity>
-                    )}
+                    data={viewAll? events:events.slice(0,2)}
+                    scrollEnabled={false}
+                    renderItem={({ item }) => <RenderEvent item={item} navigation={navigation} />}
+                    keyExtractor={(item) => item.id}
+                    contentContainerStyle={styles.listContent}
                 />
-                
+                <TouchableOpacity 
+                    style={styles.createEventButton}
+                    onPress={async() => {}}
+                >
+                    <Text style={styles.createEventText}>+</Text>
+                    <Text style={styles.createEventText}>Create a new board</Text>
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -144,7 +146,6 @@ const styles = StyleSheet.create({
     fixedHeader: {
         backgroundColor: '#F9F9F9',
         borderBottomColor: '#DDD',
-        paddingBottom: 0,
     },
     sectionTitle: {
         fontSize: 18,
@@ -252,7 +253,20 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#555',
         marginTop: 10,
-    }
+    },
+    createEventButton: {
+        alignItems: 'center',
+        padding: 25,
+        borderRadius: 15,
+        marginBottom: 15,
+        backgroundColor: '#F9F9F9',
+        borderWidth: 2,
+        borderStyle: 'dashed',
+        borderColor: 'lightgrey',
+    },
+    createEventText: {
+        color: 'lightgrey',
+    },
 });
 
 export default BoardDetailsScreen;
