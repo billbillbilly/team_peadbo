@@ -89,6 +89,7 @@ function HomeScreen(props) {
       padding: 10,
       borderBottomColor: '#DDD',
       paddingBottom: 0,
+      marginTop: 50
     },
     scrollContent: {
       flex: 1,
