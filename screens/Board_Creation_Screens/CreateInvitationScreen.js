@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
-
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { generateText } from '../../OpenAIService';
 
 const templates = {
   'Board Invite Template 1': 'Hello,\n\nI hope this email finds you well. I am reaching out to invite you to be part of my Personal Advisory Board. Your expertise and achievements have always impressed and inspired me, and I genuinely admire your valuable insights.\n\nI believe that your guidance would significantly contribute to my personal and professional growth. With a commitment of just six hours per year, your input would make a meaningful impact on my professional journey.\n\nIf you are interested in accepting this invitation, I would be thrilled to have you on board. I am more than happy to provide further details and answer any questions you may have. Your contribution would be truly appreciated and respected.\n\nThank you for considering this opportunity, and I eagerly await your response.',
@@ -19,6 +20,15 @@ function CreateInvitationScreen({ navigation, route }) {
 
   const handleContinue = () => {
     navigation.navigate('TimeAvailabilityScreen', { focus, boardName, description, advisors, message });
+  };
+
+  const generateTemplate = async () => {
+    try {
+      const generatedMessage = await generateText();
+      setMessage(generatedMessage);
+    } catch (error) {
+      console.error('Error generating template:', error);
+    }
   };
 
   return (
@@ -62,7 +72,11 @@ function CreateInvitationScreen({ navigation, route }) {
         }}
         style={pickerSelectStyles}
         useNativeAndroidPickerStyle={false}
+        Icon={() => <Ionicons name="caret-down-outline" size={24} color="gray" />}
       />
+      <TouchableOpacity style={styles.generateButton} onPress={generateTemplate}>
+        <Text style={styles.generateButtonText}>Generate AI Template</Text>
+      </TouchableOpacity>
       <TextInput
         style={styles.messageInput}
         multiline
@@ -124,6 +138,17 @@ const styles = StyleSheet.create({
   continueButtonText: {
     color: '#fff',
     fontSize: 18,
+  },
+  generateButton: {
+    backgroundColor: '#1EA896',
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  generateButtonText: {
+    color: '#fff',
+    fontSize: 16,
   },
   stepIndicator: {
     flexDirection: 'row',

@@ -16,6 +16,8 @@
     "@react-navigation/stack": "^7.1.1",
     "@reduxjs/toolkit": "^2.5.1",
     "@rneui/themed": "^4.0.0-rc.8",
+    "axios": "^1.8.1",
+    "axios-retry": "^4.5.0",
     "expo": "~52.0.32",
     "expo-status-bar": "~2.0.1",
     "firebase": "^11.3.1",
