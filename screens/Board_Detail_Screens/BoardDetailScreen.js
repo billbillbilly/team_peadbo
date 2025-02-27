@@ -7,8 +7,8 @@ import { TextBase } from 'react-native';
 
 const BoardDetailsScreen = ({ navigation, route }) => {
     useEffect(() => {
-        navigation.setOptions({ headerLeft: () => null }); // Hides back button
-    }, [navigation]);
+        navigation.setOptions({ tabBarStyle: () => null }); // Hides back button
+    }, []);
     const { board } = route.params;
     // Get today's date and weekday
     const weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -148,7 +148,10 @@ const BoardDetailsScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
             </ScrollView>
             <BoardMembers members={board.users}></BoardMembers>
-            <TextInput style={styles.searchInput} placeholder="Ask Peadbo AI..." />
+            <TouchableOpacity style={styles.searchInput}>
+                <Text style={{color:'lightgray'}}>Ask Peadbo AI...</Text>
+            </TouchableOpacity>
+            
         </View>
     );
 };
