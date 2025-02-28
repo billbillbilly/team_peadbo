@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, Image } from 'react-native';
+import DropDownPicker from 'react-native-dropdown-picker';
 import { Icon } from '@rneui/themed';
 
 const EventScreen = ({ navigation, route }) => {
     const { event } = route.params;
 
+    // status dropdown picker
+    const [open, setOpen] = useState(false);
+    const [value, setValue] = useState(null);
+    const [items, setItems] = useState([
+        {label: 'Finished', value: 'Finished'},
+        {label: 'Unfinished', value: 'Unfinished'},
+    ]);
     const [status, setStatus] = useState('Finished');
     const [todos, setTodos] = useState(['Revise my resume', 'List all the experience bullet points']);
     const [notes, setNotes] = useState('');
@@ -23,10 +31,30 @@ const EventScreen = ({ navigation, route }) => {
             {/* Status */}
             <View style={styles.section}>
                 <Text style={styles.label}>Status</Text>
-                <TouchableOpacity style={styles.statusButton}>
+                {/* <TouchableOpacity style={styles.statusButton}>
                     <Text>{status}</Text>
                     <Icon name="chevron-down" type="font-awesome" size={12} />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
+                <DropDownPicker
+                    placeholder="Select status"
+                    open={open}
+                    value={value}
+                    items={items}
+                    setOpen={setOpen}
+                    setValue={setValue}
+                    setItems={setItems}
+                    ArrowDownIconComponent={() => <Icon name="chevron-down" type="font-awesome" size={10} color="white" />}
+                    ArrowUpIconComponent={() => <Icon name="chevron-down" type="font-awesome" size={10} color="white" />}
+                    containerStyle={{width: '35%'}}
+                    style={styles.statusButton}
+                    textStyle={{color:'white'}}
+                    dropDownContainerStyle={{
+                        backgroundColor: 'lightgray',
+                        borderWidth: null,
+                        borderRadius: 20
+                    }}
+                    tickIconStyle={{tintColor: 'white'}}
+                />
             </View>
 
             {/* Collaborators */}
@@ -97,12 +125,10 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
     statusButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 10,
-        backgroundColor: '#E7F6EF',
-        borderRadius: 5,
+        backgroundColor: '#1E9278',
+        borderRadius: 20,
+        borderWidth: null,
+        minHeight: 35, 
     },
     avatar: {
         width: 40,
