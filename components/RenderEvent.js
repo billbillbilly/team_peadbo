@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import EventScreen from '../screens/Board_Detail_Screens/EventScreen';
 import { useDispatch } from 'react-redux';
 
 const RenderEvent = (props) => {
@@ -10,7 +11,7 @@ const RenderEvent = (props) => {
             <Text style={styles.eventDuration}>{item.duration}</Text>
         </View>
         <View style={styles.eventDetails}>
-            <TouchableOpacity onPress={() => {}}>
+            <TouchableOpacity onPress={() => navigation.navigate('EventScreen', {event:item})}>
             <Text style={styles.eventTitle}>{item.title}</Text>
             <Text style={styles.eventDescription}>{item.description}</Text>
             <Text style={styles.eventParticipants}>{item.participants.join(', ')}</Text>

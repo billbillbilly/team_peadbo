@@ -20,6 +20,7 @@ import TimeAvailabilityScreen from './screens/Board_Creation_Screens/TimeAvailab
 import Review from './screens/Board_Creation_Screens/ReviewScreen';
 
 import BoardDetailScreen from './screens/Board_Detail_Screens/BoardDetailScreen';
+import EventScreen from './screens/Board_Detail_Screens/EventScreen';
 
 const store = configureStore({
     reducer: {
@@ -106,6 +107,7 @@ const HomeTabStack = (props) => {
             <Stack.Screen name='ReviewScreen' component={Review}/>
             {/* boad management */}
             <Stack.Screen name='BoardDetail' component={BoardDetailScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
+            <Stack.Screen name='EventScreen' component={EventScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
         </Stack.Navigator>
     )
 }
