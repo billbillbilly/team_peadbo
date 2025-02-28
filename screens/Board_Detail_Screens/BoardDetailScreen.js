@@ -113,7 +113,7 @@ const BoardDetailsScreen = ({ navigation, route }) => {
     return (
         <View style={styles.container}>
             <View style={styles.headerSection}>
-                <TouchableOpacity onPress={()=>navigation.navigate('Home')}>
+                <TouchableOpacity onPress={()=>navigation.goBack()}>
                     <Text style={{fontSize:20}}>&lt;</Text>
                     {/* <Icon name="left" type="font-awesome" color={'gray'} size={20} /> */}
                 </TouchableOpacity>
