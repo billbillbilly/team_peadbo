@@ -1,87 +1,114 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Icon } from '@rneui/themed';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, Image, Dimensions, TextInput } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, Image, TextInput } from 'react-native';
 import RenderEvent from "../../components/RenderEvent";
 import BoardMembers from '../../components/BoardMembers';
+import RenderHorizontalCalender from '../../components/RenderHorizontalCalender';
 import { TextBase } from 'react-native';
 
 const BoardDetailsScreen = ({ navigation, route }) => {
-    useEffect(() => {
-        navigation.setOptions({ tabBarStyle: () => null }); // Hides back button
-    }, []);
     const { board } = route.params;
+    const calendar = useRef(null);
+
     // Get today's date and weekday
     const weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     let today = new Date();
     let currentDay = today.getDay();
     let currentWeekday = weekday[currentDay];
     const currentYear = today.getFullYear();
-    const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
+    const currentMonth = today.getMonth() + 1;
     const currentDate = today.getDate();
 
-    const { screenWidth } = Dimensions.get('window');
+    useEffect(() => {
+        // Automatically scroll to the second page after mount
+        setTimeout(() => {
+            calendar.current?.scrollTo({ x: 370, animated: false });
+        }, 100);
+        //navigation.setOptions({ tabBarStyle: () => null }); // Hides back button
+    }, []);
 
-    const mapDates = (cDay, cDate, cMonth) => {
+    const mapDates = (cDay, cDate, cMonth, cYear, events) => {
         let dates = [];
         for (let i = 0; i < 7; i++) {
             if (i < cDay) {
                 let temp = cDate - (cDay - i)+1;
-                if (cMonth === '01' || cMonth === '03' || cMonth === '05' || cMonth === '07' || cMonth === '08' || cMonth === '10' || cMonth === '12') {
-                    dates.push(temp > 0 ? temp: 31 + temp);
-                } else if (cMonth === '02') {
-                    dates.push(temp > 0 ? temp: 28 + temp);
+                if (cMonth === 1 || cMonth === 3 || cMonth === 5 || cMonth === 7 || cMonth === 8 || cMonth === 10 || cMonth === 12) {
+                    dates.push(temp > 0 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth===1?12:cMonth-1, day:31 + temp, year:cMonth===1?cYear-1:cYear, event:checkEventDate(events, cMonth===1?12:cMonth-1, 31 + temp, cMonth===1?cYear-1:cYear)});
+                } else if (cMonth === 2) {
+                    dates.push(temp > 0 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth-1, day:28 + temp , year:cYear, event:checkEventDate(events, cMonth-1, 28 + temp, cYear)});
                 } else { 
-                    dates.push(temp > 0 ? temp: 30 + temp);
+                    dates.push(temp > 0 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth-1, day:30 + temp , year:cYear, event:checkEventDate(events, cMonth-1, 30 + temp, cYear)});
                 }
             } else {
                 let temp = cDate + (i - cDay)+1;
-                if (cMonth === '01' || cMonth === '03' || cMonth === '05' || cMonth === '07' || cMonth === '08' || cMonth === '10' || cMonth === '12') {
-                    dates.push(temp < 32 ? temp: temp - 31);
-                } else if (cMonth === '02') {
-                    dates.push(temp < 29 ? temp: temp - 28);
+                if (cMonth === 1 || cMonth === 3 || cMonth === 5 || cMonth === 7 || cMonth === 8 || cMonth === 10 || cMonth === 12) {
+                    dates.push(temp < 32 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth===12?1:cMonth+1, day:temp - 31, year:cMonth===12?cYear+1:cYear, event:checkEventDate(events, cMonth===12?1:cMonth+1, temp - 31, cMonth===12?cYear+1:cYear)});
+                } else if (cMonth === 2) {
+                    dates.push(temp < 29 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth-1, day:temp - 28 , year:cYear, event:checkEventDate(events, cMonth-1, temp-28, cYear)});
                 } else { 
-                    dates.push(temp < 31 ? temp: temp - 30);
+                    dates.push(temp < 31 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth-1, day:temp - 30 , year:cYear, event:checkEventDate(events, cMonth-1, temp-30, cYear)});
                 }
             }
         }
         // Add 7 days before the first day in dates
-        const firstDate = dates[0];
+        const firstDate = dates[0].day;
         for (let i = 1; i <= 7; i++) {
             let temp = firstDate - i;
-            if (cMonth === '01' || cMonth === '03' || cMonth === '05' || cMonth === '07' || cMonth === '08' || cMonth === '10' || cMonth === '12') {
-            dates.unshift(temp > 0 ? temp : 31 + temp);
-            } else if (cMonth === '02') {
-            dates.unshift(temp > 0 ? temp : 28 + temp);
+            if (cMonth === 1 || cMonth === 3 || cMonth === 5 || cMonth === 7 || cMonth === 8 || cMonth === 10 || cMonth === 12) {
+                dates.unshift(temp > 0 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth===1?12:cMonth-1, day:31 + temp, year:cMonth===1?cYear-1:cYear, event:checkEventDate(events, cMonth===1?12:cMonth-1, 31 + temp, cMonth===1?cYear-1:cYear)});
+            } else if (cMonth === 2) {
+                dates.unshift(temp > 0 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth-1, day:28 + temp , year:cYear, event:checkEventDate(events, cMonth-1, 28 + temp, cYear)});
             } else {
-            dates.unshift(temp > 0 ? temp : 30 + temp);
+                dates.unshift(temp > 0 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth-1, day:30 + temp , year:cYear, event:checkEventDate(events, cMonth-1, 30 + temp, cYear)});
             }
         }
 
         // Add 7 days after the last day in dates
-        const lastDate = dates[dates.length - 1];
+        const lastDate = dates[dates.length - 1].day;
         for (let i = 1; i <= 7; i++) {
             let temp = lastDate + i;
-            if (cMonth === '01' || cMonth === '03' || cMonth === '05' || cMonth === '07' || cMonth === '08' || cMonth === '10' || cMonth === '12') {
-            dates.push(temp < 32 ? temp : temp - 31);
-            } else if (cMonth === '02') {
-            dates.push(temp < 29 ? temp : temp - 28);
+            if (cMonth === 1 || cMonth === 3 || cMonth === 5 || cMonth === 7 || cMonth === 8 || cMonth === 10 || cMonth === 12) {
+                dates.push(temp < 32 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth===12?1:cMonth+1, day:temp - 31, year:cMonth===12?cYear+1:cYear, event:checkEventDate(events, cMonth===12?1:cMonth+1, temp - 31, cMonth===12?cYear+1:cYear)});
+            } else if (cMonth === 2) {
+                dates.push(temp < 29 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth-1, day:temp - 28 , year:cYear, event:checkEventDate(events, cMonth-1, temp-28, cYear)});
             } else {
-            dates.push(temp < 31 ? temp : temp - 30);
+                dates.push(temp < 31 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth-1, day:temp - 30 , year:cYear, event:checkEventDate(events, cMonth-1, temp-30, cYear)});
             }
         }
         return dates;
     };
+
+    const checkEventDate = (events, m,d,y) => {
+        let count = 0;
+        for (let index = 0; index < events.length; index++) {
+            const e = events[index];
+            if (`${e.month}-${e.day}-${e.year}` === `${m}-${d}-${y}`) {
+                count++
+            }
+        }
+        if (count > 0) {
+            return true
+        } else {return false}
+    }
+
+    // need to make sure how this calendar excatly works from the clientß
+    const dragCalendar = (dateList) => {
+
+    }
+
     // will be replaced with API call
     const events = [
-        { id: '1', time: '09:00', duration: '50 min', title: 'Meet with Sophia', description: 'Discuss my graduation plan', participants: ['Lucy', 'Sophia'], month:2, day:23,your:2025, finished: false},
-        { id: '2', time: '11:00', duration: '60 min', title: 'School Advisor', description: 'Internship visa', participants: ['Lucy', 'Kay'], month:2, day:23,your:2025, finished: true},
-        { id: '3', time: '11:00', duration: '40 min', title: 'School Advisor', description: 'Discuss my graduation plan', participants: ['Lucy', 'Kay'], month:2, day:23,your:2025, finished: false},
-        { id: '4', time: '11:00', duration: '30 min', title: 'School Advisor', description: 'Internship visa', participants: ['Lucy', 'Kay'], month:2, day:23,your:2025, finished: false}
+        { id: '1', time: '09:00', duration: '50 min', title: 'Meet with Sophia', description: 'Discuss my graduation plan', participants: ['Lucy', 'Sophia'], month:2, day:28,year:2025, finished: false},
+        { id: '2', time: '11:00', duration: '60 min', title: 'School Advisor', description: 'Internship visa', participants: ['Lucy', 'Kay'], month:2, day:19,year:2025, finished: true},
+        { id: '3', time: '11:00', duration: '40 min', title: 'School Advisor', description: 'Discuss my graduation plan', participants: ['Lucy', 'Kay'], month:2, day:25,year:2025, finished: false},
+        { id: '4', time: '11:00', duration: '30 min', title: 'School Advisor', description: 'Internship visa', participants: ['Lucy', 'Kay'], month:2, day:23,year:2025, finished: false}
     ];
 
     const [selectedDate, setSelectedDate] = useState('');
-    const [dateList, setDateList] = useState(mapDates( currentDay, currentDate, currentMonth));
+    const [dateList, setDateList] = useState(mapDates( currentDay, currentDate, currentMonth, currentYear, events));
     const [viewAll, setViewAll] = useState(false);
+
+    // To evenly distribute all the <TouchableOpacity> buttons into three <View> containers
 
     return (
         <View style={styles.container}>
@@ -105,24 +132,32 @@ const BoardDetailsScreen = ({ navigation, route }) => {
                     ))}
                 </View>
                 <ScrollView 
-                    horizontal 
+                    ref={calendar}
+                    horizontal
                     showsHorizontalScrollIndicator={false} 
                     decelerationRate={"fast"}
-                    pagingEnabled
-                    snapToInterval={screenWidth/7}
-                    contentInset={{top: 0, left: 100, bottom: 0, right: 100,}}
+                    pagingEnabled={true}
                 >
-                    {dateList.map((day, index) => (
+                    {/* {dateList.map((day, index) => (
                         <TouchableOpacity 
                             key={index} 
-                            onPress={() => {setSelectedDate(`${day}`) 
-                        console.log(today.getDate())}}
-                            style={{alignItems: 'center'}}
+                            onPress={() => {setSelectedDate(`${day}`)}}
+                            style={{alignItems:'center', width:53}}
                         >
                             <Text style={[styles.dateText, styles.dateItem, selectedDate === `${day}` && styles.selectedDate]}>{day}</Text>
                             <Text style={[styles.dateEventItem]}>.</Text>
                         </TouchableOpacity>
-                    ))}
+                    ))} */}
+                    <RenderHorizontalCalender 
+                        events={events}
+                        dateList={dateList} 
+                        selectedDate={selectedDate} 
+                        setSelectedDate={setSelectedDate} 
+                        styles={styles} 
+                        m={currentMonth}
+                        d={currentDate}
+                        y={currentYear}
+                    />
                 </ScrollView>
                 <View style={{marginBottom: 5, marginTop: 15, flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
                     <Text style={styles.sectionTitle}>Event</Text>
