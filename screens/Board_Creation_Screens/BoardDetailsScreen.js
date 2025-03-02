@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 
 const BoardDetailsScreen = ({ navigation }) => {
@@ -33,6 +33,75 @@ const BoardDetailsScreen = ({ navigation }) => {
     borderColor: value ? '#1EA896' : '#CCC',
   });
 
+  const formData = [
+    {
+      label: 'Board Name',
+      value: boardName,
+      onChange: setBoardName,
+      component: (
+        <TextInput
+          style={[styles.input, getInputStyle(boardName)]}
+          placeholder="Enter board name"
+          value={boardName}
+          onChangeText={setBoardName}
+        />
+      ),
+    },
+    {
+      label: 'Board Description',
+      value: boardDescription,
+      onChange: setBoardDescription,
+      component: (
+        <TextInput
+          style={[styles.input, styles.multilineInput, getInputStyle(boardDescription)]}
+          placeholder="Enter board description"
+          value={boardDescription}
+          onChangeText={setBoardDescription}
+          multiline
+          numberOfLines={4}
+        />
+      ),
+    },
+    {
+      label: 'How long will your board last?',
+      component: (
+        <DropDownPicker
+          open={openDuration}
+          value={valueDuration}
+          items={durations}
+          setOpen={setOpenDuration}
+          setValue={setValueDuration}
+          setItems={setDurations}
+          containerStyle={{ marginBottom: 20 }}
+          style={[styles.picker, getInputStyle(valueDuration)]}
+          dropDownContainerStyle={{ borderColor: '#CCC', zIndex: 1000 }}
+          onChangeValue={(value) => setBoardDuration(value)}
+          zIndex={1000}
+          zIndexInverse={3000}
+        />
+      ),
+    },
+    {
+      label: 'How often will your board meet?',
+      component: (
+        <DropDownPicker
+          open={openFrequency}
+          value={valueFrequency}
+          items={frequencies}
+          setOpen={setOpenFrequency}
+          setValue={setValueFrequency}
+          setItems={setFrequencies}
+          containerStyle={{ marginBottom: 140 }}
+          style={[styles.picker, getInputStyle(valueFrequency)]}
+          dropDownContainerStyle={{ borderColor: '#CCC', zIndex: 500 }}
+          onChangeValue={(value) => setBoardFrequency(value)}
+          zIndex={500}
+          zIndexInverse={2000}
+        />
+      ),
+    },
+  ];
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -62,57 +131,20 @@ const BoardDetailsScreen = ({ navigation }) => {
         </View>
       </View>
 
-      <View style={styles.form}>
-        <Text style={styles.label}>Board Name</Text>
-        <TextInput
-          style={[styles.input, getInputStyle(boardName)]}
-          placeholder="Enter board name"
-          value={boardName}
-          onChangeText={setBoardName}
-        />
+      {/* Form Fields */}
+      <FlatList
+        data={formData}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.formItem}>
+            <Text style={styles.label}>{item.label}</Text>
+            {item.component}
+          </View>
+        )}
+        contentContainerStyle={styles.scrollContainer}
+      />
 
-        <Text style={styles.label}>Board Description</Text>
-        <TextInput
-          style={[styles.input, styles.multilineInput, getInputStyle(boardDescription)]}
-          placeholder="Enter board description"
-          value={boardDescription}
-          onChangeText={setBoardDescription}
-          multiline
-          numberOfLines={4}
-        />
-
-        <Text style={styles.label}>How long will your board last?</Text>
-        <DropDownPicker
-          open={openDuration}
-          value={valueDuration}
-          items={durations}
-          setOpen={setOpenDuration}
-          setValue={setValueDuration}
-          setItems={setDurations}
-          containerStyle={{ marginBottom: 20 }}
-          style={[styles.picker, getInputStyle(valueDuration)]}
-          dropDownContainerStyle={{ borderColor: '#CCC', zIndex: 1000 }}
-          onChangeValue={(value) => setBoardDuration(value)}
-          zIndex={1000}
-          zIndexInverse={3000}
-        />
-
-        <Text style={styles.label}>How often will your board meet?</Text>
-        <DropDownPicker
-          open={openFrequency}
-          value={valueFrequency}
-          items={frequencies}
-          setOpen={setOpenFrequency}
-          setValue={setValueFrequency}
-          setItems={setFrequencies}
-          containerStyle={{ marginBottom: 20 }}
-          style={[styles.picker, getInputStyle(valueFrequency)]}
-          dropDownContainerStyle={{ borderColor: '#CCC', zIndex: 500 }}
-          onChangeValue={(value) => setBoardFrequency(value)}
-          zIndex={500}
-          zIndexInverse={2000}
-        />
-      </View>
+      {/* Continue Button */}
       <TouchableOpacity
         style={[styles.continueButton, (!boardName || !boardDescription || !boardDuration || !boardFrequency) && styles.disabledButton]}
         onPress={handleContinue}
@@ -130,7 +162,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 20,
+  },
+  scrollContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  formItem: {
+    marginBottom: 20,
   },
   header: {
     alignItems: 'center',
@@ -164,9 +202,6 @@ const styles = StyleSheet.create({
   },
   activeStepNumber: {
     color: '#fff',
-  },
-  form: {
-    flex: 1,
   },
   label: {
     fontSize: 16,
