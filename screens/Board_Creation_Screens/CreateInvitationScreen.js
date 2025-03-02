@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { generateText } from '../../OpenAIService';
 
@@ -9,7 +9,7 @@ const templates = {
   'Board Invite Template 3': 'Hello,\n\nI hope this message finds you in good spirits. I am reaching out to extend a special invitation to you to join my Personal Advisory Board. Your expertise and accomplishments have consistently impressed me, and I believe your insights are exactly what I need to achieve my own goals.\n\nI greatly admire your profound knowledge and experience in <specific area>. As I embark on this journey, I recognize the immense value your guidance could bring. Considering your busy schedule, I want to emphasize that this commitment would require just six hours of your time per year. Your contributions would play a crucial role in assisting me with the challenges and complexities I may encounter along the way. I genuinely hope that you will accept this invitation and join me in this endeavor. I am more than happy to provide additional details and address any questions or concerns you may have.\n\nThank you for considering this opportunity, and I eagerly await your response.',
   'Board Kickoff Agenda 1': "Meeting's Purpose:\n\nKick off the board, establish a meeting cadence, and begin to discuss strategies\n\nAgenda:\n\n\u2022 Welcome & Icebreaker\n\u2022 Peadbo Overview\n\u2022 Board Member Introductions\n\u2022 My Mission & Goals\n\u2022 Recent Accomplishments/Current Activities\n\u2022 Strategic Discussion\n\u2022 Specific Asks\n\u2022 Recap of Action Items & Next Steps\n\u2022 Closing\n\nIf this time doesn’t work, please let me know as soon as possible.",
   'Board Kickoff Agenda 2': "Meeting's Purpose:\n\nKick off the board, establish a meeting cadence, and begin to discuss strategies\n\nAgenda:\n\n\u2022 Welcome and Opening Remarks\n\u2022 Goals and Objectives\n\u2022 Discussion on Current Challenges\n\u2022 Brainstorming and Idea Generation\n\u2022 Wrap-up and Next Steps\n\u2022 Meeting Cadence and Logistics\n\nIf this time doesn’t work, please let me know as soon as possible.",
-  'Meeting Agenda' : "Meeting's Purpose:\n\nTo review individual progress, provide updates, and ensure accountability towards set goals.\n\nAgenda:\n\n\u2022 Welcome and Introduction (5 minutes)\n\u2022 Progress Update and Achievements (15 minutes)\n\u2022 Challenges and Lessons Learned (10 minutes)\n\u2022 Goal Evaluation and Assessment (15 minutes)\n\u2022 Action Plan Adjustments (5 minutes)\n\u2022 Next Steps and Commitments (5 minutes)\n\u2022 Closing Remarks (5 minutes)",
+  'Meeting Agenda': "Meeting's Purpose:\n\nTo review individual progress, provide updates, and ensure accountability towards set goals.\n\nAgenda:\n\n\u2022 Welcome and Introduction (5 minutes)\n\u2022 Progress Update and Achievements (15 minutes)\n\u2022 Challenges and Lessons Learned (10 minutes)\n\u2022 Goal Evaluation and Assessment (15 minutes)\n\u2022 Action Plan Adjustments (5 minutes)\n\u2022 Next Steps and Commitments (5 minutes)\n\u2022 Closing Remarks (5 minutes)",
 };
 
 const templateItems = Object.keys(templates).map(key => ({
@@ -42,62 +42,77 @@ function CreateInvitationScreen({ navigation, route }) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <View style={styles.header}>
-        <Text style={styles.title}>Create Invitation</Text>
-        <View style={styles.stepIndicator}>
-          {[1, 2, 3, 4, 5].map((step) => (
-            <View
-              key={step}
-              style={[
-                styles.stepCircle,
-                step === 4 && styles.activeStepCircle,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.stepNumber,
-                  step === 4 && styles.activeStepNumber,
-                ]}
-              >
-                {step}
-              </Text>
+      <FlatList
+        contentContainerStyle={styles.scrollContainer}
+        data={[{}]}  // Empty array to simulate the wrapping container
+        renderItem={() => (
+          <View style={styles.content}>
+            <View style={styles.header}>
+              <Text style={styles.title}>Create Invitation</Text>
+              <View style={styles.stepIndicator}>
+                {[1, 2, 3, 4, 5].map((step) => (
+                  <View
+                    key={step}
+                    style={[
+                      styles.stepCircle,
+                      step === 4 && styles.activeStepCircle,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.stepNumber,
+                        step === 4 && styles.activeStepNumber,
+                      ]}
+                    >
+                      {step}
+                    </Text>
+                  </View>
+                ))}
+              </View>
             </View>
-          ))}
-        </View>
-      </View>
-      <Text style={styles.subtitle}>This is the email that will be sent to your invitees. You can personalize the invite to each invitee.</Text>
-      <DropDownPicker
-        open={openTemplate}
-        value={valueTemplate}
-        items={templateItems}
-        setOpen={setOpenTemplate}
-        setValue={setValueTemplate}
-        placeholder="Select a template"
-        onChangeValue={(value) => {
-          setSelectedTemplate(value);
-          setMessage(templates[value]);
-        }}
-        style={styles.picker}
-        dropDownContainerStyle={styles.dropDownContainer}
+            <Text style={styles.subtitle}>This is the email that will be sent to your invitees. You can personalize the invite to each invitee.</Text>
+
+            {/* Template Dropdown */}
+            <DropDownPicker
+              open={openTemplate}
+              value={valueTemplate}
+              items={templateItems}
+              setOpen={setOpenTemplate}
+              setValue={setValueTemplate}
+              placeholder="Select a template"
+              onChangeValue={(value) => {
+                setSelectedTemplate(value);
+                setMessage(templates[value]);
+              }}
+              style={styles.picker}
+              dropDownContainerStyle={styles.dropDownContainer}
+            />
+
+            <TouchableOpacity style={styles.generateButton} onPress={generateTemplate}>
+              <Text style={styles.generateButtonText}>Generate AI Template</Text>
+            </TouchableOpacity>
+
+            {/* Message Input */}
+            <TextInput
+              style={styles.messageInput}
+              multiline
+              numberOfLines={25}
+              placeholder="Write your message here..."
+              value={message}
+              onChangeText={setMessage}
+            />
+
+            {/* Continue Button */}
+            <TouchableOpacity
+              style={[styles.continueButton, !message && styles.disabledButton]}
+              onPress={handleContinue}
+              disabled={!message}
+            >
+              <Text style={styles.continueButtonText}>Continue</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       />
-      <TouchableOpacity style={styles.generateButton} onPress={generateTemplate}>
-        <Text style={styles.generateButtonText}>Generate AI Template</Text>
-      </TouchableOpacity>
-      <TextInput
-        style={styles.messageInput}
-        multiline
-        numberOfLines={25}
-        placeholder="Write your message here..."
-        value={message}
-        onChangeText={setMessage}
-      />
-      <TouchableOpacity
-        style={[styles.continueButton, !message && styles.disabledButton]}
-        onPress={handleContinue}
-        disabled={!message}
-      >
-        <Text style={styles.continueButtonText}>Continue</Text>
-      </TouchableOpacity>
     </KeyboardAvoidingView>
   );
 }
@@ -107,8 +122,13 @@ const circleSize = 40;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: '#fff',
+  },
+  scrollContainer: {
+    paddingBottom: 40,
+  },
+  content: {
+    padding: 20,
   },
   header: {
     alignItems: 'center',
@@ -131,6 +151,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     flex: 1,
     textAlignVertical: 'top',
+    minHeight: 200,
   },
   continueButton: {
     backgroundColor: '#1EA896',
