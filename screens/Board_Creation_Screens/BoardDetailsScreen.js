@@ -1,12 +1,29 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
-import RNPickerSelect from 'react-native-picker-select';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import DropDownPicker from 'react-native-dropdown-picker';
 
 const BoardDetailsScreen = ({ navigation }) => {
   const [boardName, setBoardName] = useState('');
   const [boardDescription, setBoardDescription] = useState('');
   const [boardDuration, setBoardDuration] = useState('');
   const [boardFrequency, setBoardFrequency] = useState('');
+  const [openDuration, setOpenDuration] = useState(false);
+  const [valueDuration, setValueDuration] = useState(null);
+  const [openFrequency, setOpenFrequency] = useState(false);
+  const [valueFrequency, setValueFrequency] = useState(null);
+  const [durations, setDurations] = useState([
+    { label: 'One Year (Most Common)', value: 'One Year' },
+    { label: '3 Months', value: '3 Months' },
+    { label: '6 Months', value: '6 Months' },
+    { label: '9 Months', value: '9 Months' },
+  ]);
+  const [frequencies, setFrequencies] = useState([
+    { label: 'Bi-Weekly', value: 'Bi-Weekly' },
+    { label: 'Once a Month', value: 'Once a Month' },
+    { label: 'Every 3 Months', value: 'Every 3 Months' },
+    { label: 'Every 6 Months', value: 'Every 6 Months' },
+    { label: 'Once Per Year', value: 'Once Per Year' },
+  ]);
 
   const handleContinue = () => {
     navigation.navigate('AdvisorSelectionScreen', { boardName, boardDescription, boardDuration, boardFrequency });
@@ -17,7 +34,10 @@ const BoardDetailsScreen = ({ navigation }) => {
   });
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
       <View style={styles.header}>
         <Text style={styles.title}>Add Board Details</Text>
         <View style={styles.stepIndicator}>
@@ -62,48 +82,35 @@ const BoardDetailsScreen = ({ navigation }) => {
         />
 
         <Text style={styles.label}>How long will your board last?</Text>
-        <RNPickerSelect
-          placeholder={{
-            label: 'Select duration...',
-            value: null,
-          }}
-          items={[
-            { label: 'One Year (Most Common)', value: 'One Year' },
-            { label: '3 Months', value: '3 Months' },
-            { label: '6 Months', value: '6 Months' },
-            { label: '9 Months', value: '9 Months' },
-          ]}
-          value={boardDuration}
-          onValueChange={(value) => setBoardDuration(value)}
-          style={{
-            ...pickerSelectStyles,
-            inputIOS: { ...pickerSelectStyles.inputIOS, ...getInputStyle(boardDuration) },
-            inputAndroid: { ...pickerSelectStyles.inputAndroid, ...getInputStyle(boardDuration) },
-          }}
-          useNativeAndroidPickerStyle={false}
+        <DropDownPicker
+          open={openDuration}
+          value={valueDuration}
+          items={durations}
+          setOpen={setOpenDuration}
+          setValue={setValueDuration}
+          setItems={setDurations}
+          containerStyle={{ marginBottom: 20 }}
+          style={[styles.picker, getInputStyle(valueDuration)]}
+          dropDownContainerStyle={{ borderColor: '#CCC', zIndex: 1000 }}
+          onChangeValue={(value) => setBoardDuration(value)}
+          zIndex={1000}
+          zIndexInverse={3000}
         />
 
         <Text style={styles.label}>How often will your board meet?</Text>
-        <RNPickerSelect
-          placeholder={{
-            label: 'Select frequency...',
-            value: null,
-          }}
-          items={[
-            { label: 'Bi-Weekly', value: 'Bi-Weekly' },
-            { label: 'Once a Month', value: 'Once a Month' },
-            { label: 'Every 3 Months', value: 'Every 3 Months' },
-            { label: 'Every 6 Months', value: 'Every 6 Months' },
-            { label: 'Once Per Year', value: 'Once Per Year' },
-          ]}
-          value={boardFrequency}
-          onValueChange={(value) => setBoardFrequency(value)}
-          style={{
-            ...pickerSelectStyles,
-            inputIOS: { ...pickerSelectStyles.inputIOS, ...getInputStyle(boardFrequency) },
-            inputAndroid: { ...pickerSelectStyles.inputAndroid, ...getInputStyle(boardFrequency) },
-          }}
-          useNativeAndroidPickerStyle={false}
+        <DropDownPicker
+          open={openFrequency}
+          value={valueFrequency}
+          items={frequencies}
+          setOpen={setOpenFrequency}
+          setValue={setValueFrequency}
+          setItems={setFrequencies}
+          containerStyle={{ marginBottom: 20 }}
+          style={[styles.picker, getInputStyle(valueFrequency)]}
+          dropDownContainerStyle={{ borderColor: '#CCC', zIndex: 500 }}
+          onChangeValue={(value) => setBoardFrequency(value)}
+          zIndex={500}
+          zIndexInverse={2000}
         />
       </View>
       <TouchableOpacity
@@ -113,7 +120,7 @@ const BoardDetailsScreen = ({ navigation }) => {
       >
         <Text style={styles.continueButtonText}>Continue</Text>
       </TouchableOpacity>
-    </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -121,7 +128,7 @@ const circleSize = 40;
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flex: 1,
     backgroundColor: '#fff',
     padding: 20,
   },
@@ -176,6 +183,9 @@ const styles = StyleSheet.create({
     height: 100,
     textAlignVertical: 'top',
   },
+  picker: {
+    borderColor: '#CCC',
+  },
   continueButton: {
     backgroundColor: '#1EA896',
     padding: 15,
@@ -190,29 +200,6 @@ const styles = StyleSheet.create({
   continueButtonText: {
     color: '#fff',
     fontSize: 18,
-  },
-});
-
-const pickerSelectStyles = StyleSheet.create({
-  inputIOS: {
-    fontSize: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderWidth: 1,
-    borderRadius: 8,
-    color: 'black',
-    paddingRight: 30, // to ensure the text is never behind the icon
-    marginBottom: 20,
-  },
-  inputAndroid: {
-    fontSize: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderRadius: 8,
-    color: 'black',
-    paddingRight: 30, // to ensure the text is never behind the icon
-    marginBottom: 20,
   },
 });
 
