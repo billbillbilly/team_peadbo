@@ -24,7 +24,7 @@ const EventScreen = ({ navigation, route }) => {
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Text style={{fontSize:20}}>{'<'}</Text>
                 </TouchableOpacity>
-                <Text style={styles.headerText}>Meet with Sophia</Text>
+                <Text style={styles.headerText}>{event.title}</Text>
                 <Icon name="cog" type="font-awesome" size={20} />
             </View>
 
