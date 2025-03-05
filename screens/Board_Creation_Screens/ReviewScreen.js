@@ -2,12 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 
 export default function ReviewScreen({ navigation, route }) {
-  const { focus, boardName, description, advisors, message, selectedDate, selectedTime } = route.params;
+  const { focus, boardName, description, advisors, selectedDate, selectedTime } = route.params;
   const [acknowledged, setAcknowledged] = useState(false);
 
   const handleConfirm = () => {
-    // You would typically submit all data to your backend here
-    // For now, we'll just navigate to a success screen or home
+    // Submit data to Firestore or backend
     navigation.navigate('SuccessScreen');
   };
 
@@ -71,9 +70,7 @@ export default function ReviewScreen({ navigation, route }) {
 
       <View style={styles.detailSection}>
         <Text style={styles.sectionLabel}>Scheduled Meetings (1 Year | Meeting Quarterly)</Text>
-        <Text style={styles.meetingDate}>{formatDate(selectedDate)}, {selectedTime} pm</Text>
-        
-        {/* Add placeholder for future quarterly meetings */}
+        <Text style={styles.meetingDate}>{formatDate(selectedDate)}, {selectedTime}</Text>
         {selectedDate && (
           <>
             <Text style={styles.meetingDate}>
@@ -83,7 +80,7 @@ export default function ReviewScreen({ navigation, route }) {
                   year: 'numeric', 
                   month: 'long', 
                   day: 'numeric' 
-                })}, {selectedTime} pm
+                })}, {selectedTime}
             </Text>
             <Text style={styles.meetingDate}>
               {new Date(new Date(selectedDate).setMonth(new Date(selectedDate).getMonth() + 6))
@@ -92,7 +89,7 @@ export default function ReviewScreen({ navigation, route }) {
                   year: 'numeric', 
                   month: 'long', 
                   day: 'numeric' 
-                })}, {selectedTime} pm
+                })}, {selectedTime}
             </Text>
             <Text style={styles.meetingDate}>
               {new Date(new Date(selectedDate).setMonth(new Date(selectedDate).getMonth() + 9))
@@ -101,7 +98,7 @@ export default function ReviewScreen({ navigation, route }) {
                   year: 'numeric', 
                   month: 'long', 
                   day: 'numeric' 
-                })}, {selectedTime} pm
+                })}, {selectedTime}
             </Text>
           </>
         )}
