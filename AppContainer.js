@@ -185,7 +185,7 @@ const DynamicTabsNavigator = () => {
         })}
     >
      {/* Uncomment this to add Onboarding Tab -- use for modifications to the screens */}
-        {/* <Tabs.Screen
+        <Tabs.Screen
             name="Onboarding"
             component={OnboardingStack}
             options={{
@@ -193,10 +193,10 @@ const DynamicTabsNavigator = () => {
                     <Icon name="user" type="font-awesome" color={color} size={size} />
                 ),
             }}
-        /> */}
+        />
 
         {/* Uncomment this to add Board Creation Tab -- use for modifications to the screens */}
-        {/* <Tabs.Screen
+        <Tabs.Screen
             name="BoardCreation"
             component={BoardCreationStack}
             options={{
@@ -204,7 +204,7 @@ const DynamicTabsNavigator = () => {
                     <Icon name="list" type="font-awesome" color={color} size={size} />
                 ),
             }}
-        /> */}
+        />
         <Tabs.Screen
             name="Home"
             component={HomeTabStack}

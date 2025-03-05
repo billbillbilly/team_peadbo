@@ -3,6 +3,10 @@ import { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, View, FlatList, TouchableOpacity, Text, TextInput } from "react-native";
 import { userSlice } from '../Reducer';
 import RenderBoard from "../components/RenderBoard";
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import { app } from '../Secrets';
+
+const db = getFirestore(app);
 
 
 function HomeScreen(props) {
@@ -28,6 +32,16 @@ function HomeScreen(props) {
         users: ['https://randomuser.me/api/portraits/women/4.jpg', 'https://randomuser.me/api/portraits/men/5.jpg'],
       },
     ];
+
+    // Fetch boards from Firestore
+  useEffect(() => {
+    const fetchBoards = async () => {
+      const querySnapshot = await getDocs(collection(db, 'boards'));
+      const boardsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setBoards(boardsData);
+    };
+    fetchBoards();
+  }, []);
 
     // useEffect(() => {
     //     if (currentUser.key) {
