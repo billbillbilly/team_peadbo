@@ -175,7 +175,7 @@ const DynamicTabsNavigator = () => {
   
     return (
       <Tabs.Navigator
-          initialRouteName='Login'
+          initialRouteName='Home'
           screenOptions={({ route }) => ({
               headerShown: false,
               tabBarStyle: { display: route.name === 'Login' || route.name === 'Signup' ? 'none' : 'flex' },

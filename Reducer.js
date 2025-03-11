@@ -64,7 +64,7 @@ export const fetchSchemaStructure = async () => {
 };
 
 const client = generateClient();
-const result = await client.graphql({ query: queries.listPeadboTasks });
+// const result = await client.graphql({ query: queries.listPeadboTasks });
 // console.log('Tasks:', result.data.listPeadboTasks.items);
 
 
