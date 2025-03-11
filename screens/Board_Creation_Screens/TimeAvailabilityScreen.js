@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { ScrollView } from 'react-native';
 
-export default function SetTimeAvailabilityScreen({ navigation, route }) {
+export default function TimeAvailabilityScreen({ navigation, route }) {
   const { focus, boardName, description, advisors, message } = route.params;
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
@@ -15,90 +14,92 @@ export default function SetTimeAvailabilityScreen({ navigation, route }) {
   };
 
   return (
-    <ScrollView>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Set Time Availability</Text>
-          <View style={styles.stepIndicator}>
-            {[1, 2, 3, 4, 5].map((step) => (
-              <View
-                key={step}
+    <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Set Time Availability</Text>
+        <View style={styles.stepIndicator}>
+          {[1, 2, 3, 4, 5].map((step) => (
+            <View
+              key={step}
+              style={[
+                styles.stepCircle,
+                step === 4 && styles.activeStepCircle,
+              ]}
+            >
+              <Text
                 style={[
-                  styles.stepCircle,
-                  step === 5 && styles.activeStepCircle,
+                  styles.stepNumber,
+                  step === 4 && styles.activeStepNumber,
                 ]}
               >
-                <Text
-                  style={[
-                    styles.stepNumber,
-                    step === 5 && styles.activeStepNumber,
-                  ]}
-                >
-                  {step}
-                </Text>
-              </View>
-            ))}
-          </View>
+                {step}
+              </Text>
+            </View>
+          ))}
         </View>
-        <Text style={styles.subtitle}>Let's pick a date for your first meeting! You can always change it later.</Text>
-        <View style={styles.calendar}>
-          <Calendar
-            onDayPress={(day) => setSelectedDate(day.dateString)}
-            markedDates={selectedDate ? { [selectedDate]: { selected: true } } : {}}
-            theme={{
-              selectedDayBackgroundColor: '#1EA896',
-              selectedDayTextColor: '#fff',
-              arrowColor: '#1EA896',
-              todayTextColor: '#1EA896'
-            }}
-          />
-        </View>
-        <View style={styles.timeSlots}>
-          <Text style={styles.timeSlotTitle}>Morning</Text>
-          <View style={styles.timeSlotContainer}>
-            <TouchableOpacity
-              style={[styles.timeSlot, selectedTime === '9:00' && styles.selectedTimeSlot]}
-              onPress={() => setSelectedTime('9:00')}
-            >
-              <Text style={styles.timeSlotText}>9:00</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.timeSlot, selectedTime === '10:00' && styles.selectedTimeSlot]}
-              onPress={() => setSelectedTime('10:00')}
-            >
-              <Text style={styles.timeSlotText}>10:00</Text>
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.timeSlotTitle}>Afternoon</Text>
-          <View style={styles.timeSlotContainer}>
-            <TouchableOpacity
-              style={[styles.timeSlot, selectedTime === '14:00' && styles.selectedTimeSlot]}
-              onPress={() => setSelectedTime('14:00')}
-            >
-              <Text style={styles.timeSlotText}>14:00</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.timeSlot, selectedTime === '15:00' && styles.selectedTimeSlot]}
-              onPress={() => setSelectedTime('15:00')}
-            >
-              <Text style={styles.timeSlotText}>15:00</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.timeSlot, selectedTime === '16:00' && styles.selectedTimeSlot]}
-              onPress={() => setSelectedTime('16:00')}
-            >
-              <Text style={styles.timeSlotText}>16:00</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <TouchableOpacity
-          style={[styles.continueButton, (!selectedDate || !selectedTime) && styles.disabledButton]}
-          onPress={handleContinue}
-          disabled={!selectedDate || !selectedTime}
-        >
-          <Text style={styles.continueButtonText}>Continue</Text>
-        </TouchableOpacity>
       </View>
+
+      <Text style={styles.subtitle}>Let's pick a date and time for your first meeting. You can always change it later.</Text>
+
+      <View style={styles.calendar}>
+        <Calendar
+          onDayPress={(day) => setSelectedDate(day.dateString)}
+          markedDates={selectedDate ? { [selectedDate]: { selected: true } } : {}}
+          theme={{
+            selectedDayBackgroundColor: '#1EA896',
+            selectedDayTextColor: '#fff',
+            arrowColor: '#1EA896',
+            todayTextColor: '#1EA896'
+          }}
+        />
+      </View>
+
+      <View style={styles.timeSlots}>
+        <Text style={styles.timeSlotTitle}>Morning</Text>
+        <View style={styles.timeSlotContainer}>
+          <TouchableOpacity
+            style={[styles.timeSlot, selectedTime === '9:00' && styles.selectedTimeSlot]}
+            onPress={() => setSelectedTime('9:00')}
+          >
+            <Text style={styles.timeSlotText}>9:00 AM</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.timeSlot, selectedTime === '10:00' && styles.selectedTimeSlot]}
+            onPress={() => setSelectedTime('10:00')}
+          >
+            <Text style={styles.timeSlotText}>10:00 AM</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.timeSlotTitle}>Afternoon</Text>
+        <View style={styles.timeSlotContainer}>
+          <TouchableOpacity
+            style={[styles.timeSlot, selectedTime === '14:00' && styles.selectedTimeSlot]}
+            onPress={() => setSelectedTime('14:00')}
+          >
+            <Text style={styles.timeSlotText}>2:00 PM</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.timeSlot, selectedTime === '15:00' && styles.selectedTimeSlot]}
+            onPress={() => setSelectedTime('15:00')}
+          >
+            <Text style={styles.timeSlotText}>3:00 PM</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.timeSlot, selectedTime === '16:00' && styles.selectedTimeSlot]}
+            onPress={() => setSelectedTime('16:00')}
+          >
+            <Text style={styles.timeSlotText}>4:00 PM</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <TouchableOpacity
+        style={[styles.continueButton, (!selectedDate || !selectedTime) && styles.disabledButton]}
+        onPress={handleContinue}
+        disabled={!selectedDate || !selectedTime}
+      >
+        <Text style={styles.continueButtonText}>Continue</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -107,7 +108,7 @@ const circleSize = 40;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     padding: 20,
     backgroundColor: '#fff',
   },
