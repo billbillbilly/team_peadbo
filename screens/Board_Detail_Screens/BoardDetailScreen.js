@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Icon } from '@rneui/themed';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, Image, TextInput } from 'react-native';
+import { useSelector, useDispatch } from 'react-redux';
+import {fetchSchemaStructure} from '../../Reducer'
 import RenderEvent from "../../components/RenderEvent";
 import BoardMembers from '../../components/BoardMembers';
 import RenderHorizontalCalender from '../../components/RenderHorizontalCalender';
@@ -8,6 +10,8 @@ import { TextBase } from 'react-native';
 
 const BoardDetailsScreen = ({ navigation, route }) => {
     const { board } = route.params;
+    const dispatch = useDispatch();
+
     const calendar = useRef(null);
 
     // Get today's date and weekday
@@ -199,7 +203,12 @@ const BoardDetailsScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
             </ScrollView>
             <BoardMembers members={board.users}></BoardMembers>
-            <TouchableOpacity style={styles.searchInput}>
+            <TouchableOpacity 
+                style={styles.searchInput}
+                onPress={()=>{
+                    fetchSchemaStructure()
+                }}
+            >
                 <Text style={{color:'lightgray'}}>Ask Peadbo AI...</Text>
             </TouchableOpacity>
             
