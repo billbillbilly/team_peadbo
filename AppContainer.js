@@ -7,8 +7,9 @@ import { configureStore } from '@reduxjs/toolkit';
 
 import userSlice from './Reducer';
 
-
+import LoginScreen from './screens/LoginScreen';  // Import LoginScreen
 import HomeScreen from './screens/HomeScreen';
+import SignupScreen from './screens/SignupScreen';
 import CommunicationStyleScreen from './screens/Onboarding_Screens/CommunicationStyleScreen';
 import PersonalInformationScreen from './screens/Onboarding_Screens/PersonalInformationScreen';
 
@@ -170,80 +171,67 @@ const UserTabStack = (props) => {
 }
 
 const DynamicTabsNavigator = () => {
-  const Tabs = createBottomTabNavigator();
+    const Tabs = createBottomTabNavigator();
+  
+    return (
+      <Tabs.Navigator
+          initialRouteName='Login'
+          screenOptions={({ route }) => ({
+              headerShown: false,
+              tabBarStyle: { display: route.name === 'Login' || route.name === 'Signup' ? 'none' : 'flex' },
+          })}
+      >
+          <Tabs.Screen
+              name="Login"
+              component={LoginScreen}
+              options={{ tabBarButton: () => null }}
+          />
+  
+          <Tabs.Screen
+              name="Signup"
+              component={SignupScreen}
+              options={{ tabBarButton: () => null }}
+          />
 
-  return (
-    <Tabs.Navigator
-        // Change Initial Route Here
-        
-        // initialRouteName='Onboarding'
-        // initialRouteName='BoardCreation'
-        screenOptions={({ route }) => ({
-            headerShown: false,
-            // hide tab bar on login screen
-            tabBarStyle: { display: route.name === 'Login' ? 'none' : 'flex' },
-        })}
-    >
-     {/* Uncomment this to add Onboarding Tab -- use for modifications to the screens */}
-        <Tabs.Screen
-            name="Onboarding"
-            component={OnboardingStack}
-            options={{
-                tabBarIcon: ({ color, size }) => (
-                    <Icon name="user" type="font-awesome" color={color} size={size} />
-                ),
-            }}
-        />
-
-        {/* Uncomment this to add Board Creation Tab -- use for modifications to the screens */}
-        <Tabs.Screen
-            name="BoardCreation"
-            component={BoardCreationStack}
-            options={{
-                tabBarIcon: ({ color, size }) => (
-                    <Icon name="list" type="font-awesome" color={color} size={size} />
-                ),
-            }}
-        />
-        <Tabs.Screen
-            name="Home"
-            component={HomeTabStack}
-            options={{
-            tabBarIcon: ({ color, size }) => (
-                <Icon name="home" type="font-awesome" color={color} size={size} />
-            ),
-            }}
-        />
-        <Tabs.Screen
-            name="Contacts"
-            component={ContactTabStack}
-            options={{
-            tabBarIcon: ({ color, size }) => (
-                <Icon name="group" type="font-awesome" color={color} size={size} />
-            ),
-            }}
-        />
-        <Tabs.Screen
-            name="Letter"
-            component={NewsTabStack}
-            options={{
-            tabBarIcon: ({ color, size }) => (
-                <Icon name="list" type="font-awesome" color={color} size={size} />
-            ),
-            }}
-        />
-        <Tabs.Screen
-            name="Setting"
-            component={UserTabStack}
-            options={{
-            tabBarIcon: ({ color, size }) => (
-                <Icon name="user" type="font-awesome" color={color} size={size} />
-            ),
-            }}
-        />
-    </Tabs.Navigator>
-  );
-}
+          <Tabs.Screen
+              name="Home"
+              component={HomeTabStack}
+              options={{
+                  tabBarIcon: ({ color, size }) => (
+                      <Icon name="home" type="font-awesome" color={color} size={size} />
+                  ),
+              }}
+          />
+          <Tabs.Screen
+              name="Contacts"
+              component={ContactTabStack}
+              options={{
+                  tabBarIcon: ({ color, size }) => (
+                      <Icon name="group" type="font-awesome" color={color} size={size} />
+                  ),
+              }}
+          />
+          <Tabs.Screen
+              name="Letter"
+              component={NewsTabStack}
+              options={{
+                  tabBarIcon: ({ color, size }) => (
+                      <Icon name="list" type="font-awesome" color={color} size={size} />
+                  ),
+              }}
+          />
+          <Tabs.Screen
+              name="Setting"
+              component={UserTabStack}
+              options={{
+                  tabBarIcon: ({ color, size }) => (
+                      <Icon name="user" type="font-awesome" color={color} size={size} />
+                  ),
+              }}
+          />
+      </Tabs.Navigator>
+    );
+};
 
 const AppContainer = () => {
     const dispatch = useDispatch();
