@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Icon } from '@rneui/themed';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, Image, TextInput } from 'react-native';
+import { useSelector, useDispatch } from 'react-redux';
+import {fetchSchemaStructure} from '../../Reducer'
 import RenderEvent from "../../components/RenderEvent";
 import BoardMembers from '../../components/BoardMembers';
 import RenderHorizontalCalender from '../../components/RenderHorizontalCalender';
@@ -8,6 +10,8 @@ import { TextBase } from 'react-native';
 
 const BoardDetailsScreen = ({ navigation, route }) => {
     const { board } = route.params;
+    const dispatch = useDispatch();
+
     const calendar = useRef(null);
 
     // Get today's date and weekday
@@ -98,10 +102,26 @@ const BoardDetailsScreen = ({ navigation, route }) => {
 
     // will be replaced with API call
     const events = [
-        { id: '1', time: '09:00', duration: '50 min', title: 'Meet with Sophia', description: 'Discuss my graduation plan', participants: ['Lucy', 'Sophia'], month:2, day:28,year:2025, finished: false},
-        { id: '2', time: '11:00', duration: '60 min', title: 'School Advisor', description: 'Internship visa', participants: ['Lucy', 'Kay'], month:2, day:19,year:2025, finished: true},
-        { id: '3', time: '11:00', duration: '40 min', title: 'School Advisor', description: 'Discuss my graduation plan', participants: ['Lucy', 'Kay'], month:2, day:25,year:2025, finished: false},
-        { id: '4', time: '11:00', duration: '30 min', title: 'School Advisor', description: 'Internship visa', participants: ['Lucy', 'Kay'], month:2, day:23,year:2025, finished: false}
+        { id: '1', time: '09:00', duration: '50 min', title: 'Meet with Sophia', 
+            description: 'Discuss my graduation plan', participants: ['Lucy', 'Sophia'], 
+            month:2, day:28,year:2025, finished: false, 
+            todos:[{task: 'revise my resume', status:false}, 
+                {task: 'list all the experience bullet points', status:false}]},
+        { id: '2', time: '11:00', duration: '60 min', title: 'School Advisor', 
+            description: 'Internship visa', participants: ['Lucy', 'Kay'], 
+            month:2, day:19,year:2025, finished: true,
+            todos:[{task: 'revise my resume', status:false}, 
+                {task: 'list all the experience bullet points', status:false}]},
+        { id: '3', time: '11:00', duration: '40 min', title: 'School Advisor', 
+            description: 'Discuss my graduation plan', participants: ['Lucy', 'Kay'], 
+            month:2, day:25,year:2025, finished: false,
+            todos:[{task: 'revise my resume', status:false}, 
+                {task: 'list all the experience bullet points', status:false}]},
+        { id: '4', time: '11:00', duration: '30 min', title: 'School Advisor', 
+            description: 'Internship visa', participants: ['Lucy', 'Kay'], 
+            month:2, day:23,year:2025, finished: false, 
+            todos:[{task: 'revise my resume', status:false}, 
+                {task: 'list all the experience bullet points', status:false}]}
     ];
 
     const [selectedDate, setSelectedDate] = useState('');
@@ -183,7 +203,12 @@ const BoardDetailsScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
             </ScrollView>
             <BoardMembers members={board.users}></BoardMembers>
-            <TouchableOpacity style={styles.searchInput}>
+            <TouchableOpacity 
+                style={styles.searchInput}
+                onPress={()=>{
+                    fetchSchemaStructure()
+                }}
+            >
                 <Text style={{color:'lightgray'}}>Ask Peadbo AI...</Text>
             </TouchableOpacity>
             
