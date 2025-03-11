@@ -3,6 +3,70 @@ import { initializeApp, getApps } from 'firebase/app';
 import { setDoc, getDocs, addDoc, doc, getFirestore, collection, onSnapshot, getDoc, deleteDoc, updateDoc, query, where } from 'firebase/firestore';
 import { getStorage, ref, deleteObject } from 'firebase/storage';
 import { firebaseConfig } from "./Secrets";
+import { GraphQLAPI } from '@aws-amplify/api-graphql';
+import { amplifyAPI } from './Secrets'; 
+
+import { generateClient } from 'aws-amplify/api';
+import * as queries from './graphql/queries';
+
+
+///////////////////////////////////////////////////////////////////////////////////
+//                                                                               //
+//        ✅ Use direct fetch() for schema introspection or diagnostics          //
+// Use Amplify's GraphQLAPI.graphql() for regular AppSync queries and mutations. //
+//                                                                               //
+///////////////////////////////////////////////////////////////////////////////////
+
+//---- check database scheme ------
+const introspectionQuery = `
+  query Introspect {
+    __schema {
+      types {
+        name
+        kind
+        fields {
+          name
+          type {
+            name
+            kind
+            ofType {
+              name
+              kind
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+
+export const fetchSchemaStructure = async () => {
+  console.log('API when fetching schema:', GraphQLAPI);
+  try {
+      // const result = await GraphQLAPI.graphql({ query: introspectionQuery });
+      // console.log('Schema:', JSON.stringify(result.data.__schema, null, 2));
+      const response = await fetch(amplifyAPI.API.GraphQL.endpoint, {
+        method: 'POST',
+        headers: {
+            'x-api-key': amplifyAPI.API.GraphQL.apiKey,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            query: introspectionQuery
+        })
+      });
+      const json = await response.json();
+      console.log('Direct fetch response:', JSON.stringify(json, null, 2));
+  } catch (error) {
+      console.error('Failed to fetch schema:', error);
+  }
+};
+
+const client = generateClient();
+const result = await client.graphql({ query: queries.listPeadboTasks });
+// console.log('Tasks:', result.data.listPeadboTasks.items);
+
 
 // ---------------------- Set up firebase ------------------------
 let app;
@@ -14,7 +78,6 @@ if (apps.length == 0) {
 }
 const db = getFirestore(app);
 const storage = getStorage(app);
-
 
 //-------------------- User ---------------------
 export const subscribeToUserUpdates = (dispatch) => {
