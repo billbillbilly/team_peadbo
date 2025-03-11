@@ -1,66 +1,117 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList } from 'react-native';
-
-const advisors = [
-  { id: 1, name: 'David Carter', expertise: 'Design, Project, Leadership', experience: '8 Years Experience' },
-  { id: 2, name: 'Sophia Bennett', expertise: 'Advisor, Networking', experience: '7 Years Experience' },
-  { id: 3, name: 'Emma Hayes', expertise: 'Design, Project, Leadership', experience: '6 Years Experience' },
-];
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Platform } from 'react-native';
+import * as Contacts from 'expo-contacts';
 
 export default function PickAdvisorsScreen({ navigation, route }) {
   const { focus, boardName, description } = route.params;
   const [selectedAdvisors, setSelectedAdvisors] = useState([]);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [contacts, setContacts] = useState([]);
+  const [showContacts, setShowContacts] = useState(false);
 
-  const handleContinue = () => {
-    navigation.navigate('CreateInvitationScreen', { focus, boardName, description, advisors: selectedAdvisors });
-  };
+  useEffect(() => {
+    const requestPermission = async () => {
+      const { status } = await Contacts.requestPermissionsAsync();
+      if (status === 'granted') {
+        loadContacts();
+      } else {
+        console.log('Permission denied');
+      }
+    };
 
-  const toggleAdvisor = (advisor) => {
-    if (selectedAdvisors.includes(advisor)) {
-      setSelectedAdvisors(selectedAdvisors.filter((a) => a.id !== advisor.id));
-    } else {
-      setSelectedAdvisors([...selectedAdvisors, advisor]);
+    requestPermission();
+  }, []);
+
+  const loadContacts = async () => {
+    const { data } = await Contacts.getContactsAsync({
+      fields: [Contacts.Fields.Emails],
+    });
+
+    if (data.length > 0) {
+      setContacts(data);
+      console.log('Contacts loaded:', data);
     }
   };
 
-  return (
-    <View style={styles.container}>
+  const handleContinue = () => {
+    navigation.navigate('CreateInvitationScreen', { focus, boardName, description, advisors: selectedAdvisors, firstName, lastName, email });
+  };
+
+  const selectContact = (contact) => {
+    setSelectedAdvisors([...selectedAdvisors, contact]);
+    setShowContacts(false);
+  };
+
+  const renderHeader = () => (
+    <View>
       <View style={styles.header}>
         <Text style={styles.title}>Pick Your Advisors</Text>
         <View style={styles.stepIndicator}>
           {[1, 2, 3, 4, 5].map((step) => (
             <View
               key={step}
-              style={[
-                styles.stepCircle,
-                step === 3 && styles.activeStepCircle,
-              ]}
+              style={[styles.stepCircle, step === 3 && styles.activeStepCircle]}
             >
-              <Text
-                style={[
-                  styles.stepNumber,
-                  step === 3 && styles.activeStepNumber,
-                ]}
-              >
+              <Text style={[styles.stepNumber, step === 3 && styles.activeStepNumber]}>
                 {step}
               </Text>
             </View>
           ))}
         </View>
       </View>
-      <FlatList
-        data={advisors}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[styles.advisorItem, selectedAdvisors.includes(item) && styles.selectedAdvisor]}
-            onPress={() => toggleAdvisor(item)}
-          >
-            <Text style={styles.advisorName}>{item.name}</Text>
-            <Text style={styles.advisorExpertise}>{item.expertise}</Text>
-            <Text style={styles.advisorExperience}>{item.experience}</Text>
-          </TouchableOpacity>
-        )}
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => setShowContacts(true)}
+      >
+        <Text style={styles.addButtonText}>Add Advisor from Contacts</Text>
+      </TouchableOpacity>
+      {showContacts && (
+        <FlatList
+          data={contacts}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.contactItem}
+              onPress={() => selectContact(item)}
+            >
+              <Text style={styles.contactName}>
+                {item.name}
+              </Text>
+              <Text style={styles.contactEmail}>
+                {item.emails && item.emails.length > 0 ? item.emails[0].email : 'No Email'}
+              </Text>
+            </TouchableOpacity>
+          )}
+        />
+      )}
+    </View>
+  );
+
+  const renderFooter = () => (
+    <View style={styles.footerContainer}>
+      <Text style={styles.subtitle}>Or enter their information manually:</Text>
+      <View style={styles.nameContainer}>
+        <TextInput
+          style={[styles.input, styles.halfInput]}
+          placeholder="First Name"
+          value={firstName}
+          onChangeText={setFirstName}
+        />
+        <TextInput
+          style={[styles.input, styles.halfInput]}
+          placeholder="Last Name"
+          value={lastName}
+          onChangeText={setLastName}
+        />
+      </View>
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
       />
       <TouchableOpacity
         style={[styles.continueButton, selectedAdvisors.length === 0 && styles.disabledButton]}
@@ -70,6 +121,25 @@ export default function PickAdvisorsScreen({ navigation, route }) {
         <Text style={styles.continueButtonText}>Continue</Text>
       </TouchableOpacity>
     </View>
+  );
+
+  return (
+    <FlatList
+      data={selectedAdvisors}
+      keyExtractor={(item) => item.id.toString()}
+      ListHeaderComponent={renderHeader}
+      ListFooterComponent={renderFooter}
+      renderItem={({ item }) => (
+        <View style={styles.advisorItem}>
+          <Text style={styles.advisorName}>
+            {item.name}
+          </Text>
+          <Text style={styles.advisorEmail}>
+            {item.emails && item.emails.length > 0 ? item.emails[0].email : 'No Email'}
+          </Text>
+        </View>
+      )}
+    />
   );
 }
 
@@ -85,11 +155,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+  },
+  addButton: {
+    backgroundColor: '#1EA896',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 40,
+    width: '95%',
+    alignSelf: 'center',
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 18,
   },
   advisorItem: {
     padding: 15,
@@ -97,28 +179,46 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 10,
     marginBottom: 10,
-  },
-  selectedAdvisor: {
-    backgroundColor: 'rgba(30, 168, 150, 0.2)',
-    borderColor: '#1EA896',
+    alignSelf: 'center',
+    width: '95%',
   },
   advisorName: {
     fontSize: 18,
     fontWeight: 'bold',
+    alignSelf: 'center',
   },
-  advisorExpertise: {
+  advisorEmail: {
     fontSize: 16,
     color: '#666',
+    alignSelf: 'center',
   },
-  advisorExperience: {
-    fontSize: 14,
-    color: '#999',
+  nameContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '95%',
+    alignSelf: 'center',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 10,
+    fontSize: 16,
+    alignSelf: 'center',
+    width: '95%',
+  },
+  halfInput: {
+    flex: 1,
+    margin: 2.5,
   },
   continueButton: {
     backgroundColor: '#1EA896',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
+    width: '95%',
+    alignSelf: 'center',
   },
   disabledButton: {
     backgroundColor: '#ccc',
@@ -151,5 +251,31 @@ const styles = StyleSheet.create({
   },
   activeStepNumber: {
     color: '#fff',
+  },
+  contactItem: {
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  contactName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  contactEmail: {
+    fontSize: 16,
+    color: '#666',
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    marginTop: 50,
+    alignSelf: 'center',
+  },
+  footerContainer: {
+    width: '100%',
+    alignSelf: 'center',
   },
 });
