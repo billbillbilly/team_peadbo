@@ -1,3 +1,4 @@
+
 import { NavigationContainer } from '@react-navigation/native';
 import { Icon } from '@rneui/themed';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -19,6 +20,7 @@ import FocusScreen from './screens/Board_Creation_Screens/FocusScreen';
 import CreateInvitationScreen from './screens/Board_Creation_Screens/CreateInvitationScreen';
 import TimeAvailabilityScreen from './screens/Board_Creation_Screens/TimeAvailabilityScreen';
 import Review from './screens/Board_Creation_Screens/ReviewScreen';
+import SendNotificationScreen from './screens/Board_Creation_Screens/SendNotificationScreen';
 
 import BoardDetailScreen from './screens/Board_Detail_Screens/BoardDetailScreen';
 import EventScreen from './screens/Board_Detail_Screens/EventScreen';
@@ -104,8 +106,10 @@ const HomeTabStack = (props) => {
             <Stack.Screen name='BoardDetailsScreen' component={BoardDetailsScreen}/>
             <Stack.Screen name='AdvisorSelectionScreen' component={AdvisorSelectionScreen}/>
             <Stack.Screen name='CreateInvitationScreen' component={CreateInvitationScreen}/>
+            <Stack.Screen name='SendNotificationScreen' component={SendNotificationScreen} />
             <Stack.Screen name='TimeAvailabilityScreen' component={TimeAvailabilityScreen}/>
             <Stack.Screen name='ReviewScreen' component={Review}/>
+            <Stack.Screen name='SendNotificationScreen' component={SendNotificationScreen} />
             {/* boad management */}
             <Stack.Screen name='BoardDetail' component={BoardDetailScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
             <Stack.Screen name='EventScreen' component={EventScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
@@ -175,7 +179,7 @@ const DynamicTabsNavigator = () => {
   
     return (
       <Tabs.Navigator
-          initialRouteName='Login'
+          initialRouteName='Home'
           screenOptions={({ route }) => ({
               headerShown: false,
               tabBarStyle: { display: route.name === 'Login' || route.name === 'Signup' ? 'none' : 'flex' },
