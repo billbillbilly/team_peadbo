@@ -188,13 +188,25 @@ const DynamicTabsNavigator = () => {
           <Tabs.Screen
               name="Login"
               component={LoginScreen}
-              options={{  tabBarButton: () => null }}
+              options={{  tabBarIcon: ({ color, size }) => (
+                <Icon name="home" type="font-awesome" color={color} size={size} />
+            ), }}
+          />
+
+<Tabs.Screen
+              name="Signup"
+              component={SignupScreen}
+              options={{  tabBarIcon: ({ color, size }) => (
+                <Icon name="home" type="font-awesome" color={color} size={size} />
+            ), }}
           />
   
           <Tabs.Screen
-              name="Signup"
-              component={SignupScreen}
-              options={{  tabBarButton: () => null }}
+              name="NewUserOnboarding"
+                component={OnboardingStack}
+                options={{ tabBarIcon: ({ color, size }) => (
+                    <Icon name="home" type="font-awesome" color={color} size={size} />
+                ), }}
           />
 
           <Tabs.Screen
