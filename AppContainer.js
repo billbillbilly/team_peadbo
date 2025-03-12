@@ -8,9 +8,12 @@ import { configureStore } from '@reduxjs/toolkit';
 import userSlice from './Reducer';
 
 import ProfileScreen from './screens/ProfileScreen';
-// import SettingsScreen from './screens/SettingsScreen';
-// import NotificationsScreen from './screens/NotificationsScreen';
-// import PreferencesScreen from './screens/PreferencesScreen';
+import SettingsScreen from './screens/ProfileScreens/SettingsScreen';
+import NotificationsScreen from './screens/ProfileScreens/NotificationScreen';
+import UpgradePlanScreen from './screens/ProfileScreens/UpgradePlanScreen';
+import BillingScreen from './screens/ProfileScreens/BillingScreen';
+import FAQScreen from './screens/ProfileScreens/FAQScreen';
+import ContactSupportScreen from './screens/ProfileScreens/ContactSupportScreen';
 
 import HomeScreen from './screens/HomeScreen';
 import CommunicationStyleScreen from './screens/Onboarding_Screens/CommunicationStyleScreen';
@@ -157,9 +160,12 @@ const UserTabStack = (props) => {
             },
         }}>
             <Stack.Screen name='Profile' component={ProfileScreen}/>
-            {/* <Stack.Screen name='Settings' component={SettingsScreen}/> */}
-            {/* <Stack.Screen name='Notifications' component={NotificationsScreen}/> */}
-            {/* <Stack.Screen name='Preferences' component={PreferencesScreen}/> */}
+            <Stack.Screen name='Settings' component={SettingsScreen}/>
+            <Stack.Screen name='Notifications' component={NotificationsScreen}/>
+            <Stack.Screen name='UpgradePlan' component={UpgradePlanScreen} />
+            <Stack.Screen name='Billing' component={BillingScreen} />
+            <Stack.Screen name='FAQ' component={FAQScreen} />
+            <Stack.Screen name='ContactSupport' component={ContactSupportScreen} />
         </Stack.Navigator>
     )
 }

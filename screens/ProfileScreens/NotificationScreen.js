@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Switch, StyleSheet } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateProfileSetting } from '../Reducer'; // Updated import path
+import { updateProfileSetting } from '../../Reducer'; 
 
 const NotificationsScreen = () => {
     const dispatch = useDispatch();

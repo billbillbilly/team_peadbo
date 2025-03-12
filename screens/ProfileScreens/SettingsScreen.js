@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Switch, Modal, TextInput, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, Alert } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateProfileSetting } from '../Reducer'; // Updated import path
+import { updateProfileSetting } from '../../Reducer'; // Updated import path
 
 const SettingsScreen = ({ navigation }) => {
     const dispatch = useDispatch();
@@ -9,6 +9,7 @@ const SettingsScreen = ({ navigation }) => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [activeModal, setActiveModal] = useState('');
     const [inputValue, setInputValue] = useState('');
+    const [oldValue, setOldValue] = useState('');
     const appVersion = "1.0.0"; // Update dynamically if needed
 
     const toggleModal = (modalName) => {
@@ -23,41 +24,23 @@ const SettingsScreen = ({ navigation }) => {
             {/* Account Settings */}
             <Text style={styles.sectionTitle}>Account Settings</Text>
             <TouchableOpacity style={styles.settingItem} onPress={() => toggleModal('ChangePassword')}>
-                <Text style={styles.settingText}>Change Password 🔒</Text>
+                <Text style={styles.settingText}>🔒 Change Password</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.settingItem} onPress={() => toggleModal('UpdateEmail')}>
-                <Text style={styles.settingText}>Update Email Address 📧</Text>
-            </TouchableOpacity>
-
-            {/* App Preferences */}
-            <Text style={styles.sectionTitle}>App Preferences</Text>
-            <View style={styles.settingRow}>
-                <Text>Dark Mode 🌙</Text>
-                <Switch 
-                    value={profileSettings.darkMode} 
-                    onValueChange={(value) => dispatch(updateProfileSetting({ key: 'darkMode', value }))}
-                />
-            </View>
-            <TouchableOpacity style={styles.settingItem} onPress={() => toggleModal('LanguageSelection')}>
-                <Text style={styles.settingText}>Language Selection 🌍</Text>
+                <Text style={styles.settingText}>📧 Update Email Address</Text>
             </TouchableOpacity>
 
             {/* Help & Support */}
             <Text style={styles.sectionTitle}>Help & Support</Text>
             <View style={styles.settingItem}>
-                <Text style={styles.settingText}>View App Version ℹ️</Text>
+                <Text style={styles.settingText}>ℹ️ View App Version</Text>
                 <Text style={styles.appVersion}>{appVersion}</Text>
             </View>
             <TouchableOpacity style={styles.settingItem} onPress={() => toggleModal('ContactSupport')}>
-                <Text style={styles.settingText}>Contact Support 📞</Text>
+                <Text style={styles.settingText}>📞 Contact Support</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.settingItem} onPress={() => toggleModal('FAQs')}>
-                <Text style={styles.settingText}>FAQs ❓</Text>
-            </TouchableOpacity>
-
-            {/* Notifications */}
-            <TouchableOpacity style={styles.settingItem} onPress={() => navigation.navigate('Notifications')}>
-                <Text style={styles.settingText}>Notifications 🔔</Text>
+                <Text style={styles.settingText}>❓ FAQs</Text>
             </TouchableOpacity>
 
             {/* Modal Overlays */}
@@ -71,10 +54,18 @@ const SettingsScreen = ({ navigation }) => {
                     <View style={styles.modalContainer}>
                         {activeModal === 'ChangePassword' && (
                             <View>
-                                <Text style={styles.modalTitle}>Change Password 🔒</Text>
+                                <Text style={styles.modalTitle}>🔒 Change Password</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Enter old password"
+                                    placeholderTextColor="#999"  // Set placeholder color to gray
+                                    value={oldValue}
+                                    onChangeText={setOldValue}
+                                />
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Enter new password"
+                                    placeholderTextColor="#999"  // Set placeholder color to gray
                                     value={inputValue}
                                     onChangeText={setInputValue}
                                 />
@@ -90,10 +81,18 @@ const SettingsScreen = ({ navigation }) => {
                         )}
                         {activeModal === 'UpdateEmail' && (
                             <View>
-                                <Text style={styles.modalTitle}>Update Email 📧</Text>
+                                <Text style={styles.modalTitle}>📧 Update Email</Text>
                                 <TextInput
                                     style={styles.input}
-                                    placeholder="Enter new email address"
+                                    placeholder="Enter old email"
+                                    placeholderTextColor="#999"  // Set placeholder color to gray
+                                    value={oldValue}
+                                    onChangeText={setOldValue}
+                                />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Enter new email"
+                                    placeholderTextColor="#999"  // Set placeholder color to gray
                                     value={inputValue}
                                     onChangeText={setInputValue}
                                 />
@@ -107,28 +106,9 @@ const SettingsScreen = ({ navigation }) => {
                                 </TouchableOpacity>
                             </View>
                         )}
-                        {activeModal === 'LanguageSelection' && (
-                            <View>
-                                <Text style={styles.modalTitle}>Select Language 🌍</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Select your preferred language"
-                                    value={inputValue}
-                                    onChangeText={setInputValue}
-                                />
-                                <TouchableOpacity 
-                                    style={styles.modalButton}
-                                    onPress={() => { 
-                                        Alert.alert('Language updated successfully');
-                                        setIsModalVisible(false);
-                                    }}>
-                                    <Text style={styles.modalButtonText}>Submit</Text>
-                                </TouchableOpacity>
-                            </View>
-                        )}
                         {activeModal === 'ContactSupport' && (
                             <View>
-                                <Text style={styles.modalTitle}>Contact Support 📞</Text>
+                                <Text style={styles.modalTitle}>📞 Contact Support</Text>
                                 <Text style={styles.input}>For any assistance, please reach out to support@peadbo.com</Text>
                                 <TouchableOpacity 
                                     style={styles.modalButton}
@@ -139,7 +119,7 @@ const SettingsScreen = ({ navigation }) => {
                         )}
                         {activeModal === 'FAQs' && (
                             <View>
-                                <Text style={styles.modalTitle}>FAQs ❓</Text>
+                                <Text style={styles.modalTitle}>❓ FAQs</Text>
                                 <Text style={styles.input}>Find answers to your questions on our website!</Text>
                                 <TouchableOpacity 
                                     style={styles.modalButton}
@@ -172,4 +152,5 @@ const styles = StyleSheet.create({
 });
 
 export default SettingsScreen;
+
 

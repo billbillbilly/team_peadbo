@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Switch } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { loadProfileSettings, updateProfileSetting } from '../Reducer';
 
@@ -13,7 +13,7 @@ function ProfileScreen({ navigation }) {
   }, [dispatch]);
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       {/* Profile Header */}
       <View style={styles.profileHeader}>
         <Image 
@@ -28,47 +28,26 @@ function ProfileScreen({ navigation }) {
       <View style={styles.aboutSection}>
         <Text style={styles.aboutTitle}>About</Text>
         <View style={styles.tagsContainer}>
-          <Text style={styles.tag}>UI Design</Text>
-          <Text style={styles.tag}>Projects</Text>
-          <Text style={styles.tag}>Management</Text>
+          <Text style={[styles.tag, styles.uiDesignTag]}>UI Design</Text>
+          <Text style={[styles.tag, styles.projectsTag]}>Projects</Text>
+          <Text style={[styles.tag, styles.managementTag]}>Management</Text>
         </View>
         <Text style={styles.aboutText}>
-          Balabala... xxx xxx xxx xxxx xxxxxx, xxxx xx xxxx xxx xxx, xxxxxxx xxxxx.
+          I am a student at the University of Michigan, Ann Arbor. Passionate about technology, design, and project management. Always looking to collaborate on exciting new projects that challenge my skills and creativity.
         </Text>
       </View>
 
       {/* Profile Menu List */}
       <View style={styles.menuList}>
-        <MenuItem title="Upgrade the Plan" />
+        <MenuItem title="Upgrade the Plan" onPress={() => navigation.navigate('UpgradePlan')} />
         <MenuItem title="My Peadbo" />
         <MenuItem title="Settings" onPress={() => navigation.navigate('Settings')} />
-        <MenuItem title="Billing" />
+        <MenuItem title="Billing" onPress={() => navigation.navigate('Billing')} />
         <MenuItem title="Notifications" onPress={() => navigation.navigate('Notifications')} />
-        <MenuItem title="Help" />
-        <MenuItem title="FAQ" />
-        <MenuItem title="Contact Support" />
+        <MenuItem title="Contact Support" onPress={() => navigation.navigate('ContactSupport')} /> {/* Contact Support */}
         <MenuItem title="Logout" isLogout />
       </View>
-
-      {/* Profile Settings */}
-      <View style={styles.settingsSection}>
-        <View style={styles.settingRow}>
-          <Text>Enable Notifications</Text>
-          <Switch 
-            value={profileSettings.notificationsEnabled} 
-            onValueChange={(value) => dispatch(updateProfileSetting({ key: 'notificationsEnabled', value }))}
-          />
-        </View>
-
-        <View style={styles.settingRow}>
-          <Text>Dark Mode</Text>
-          <Switch 
-            value={profileSettings.darkMode} 
-            onValueChange={(value) => dispatch(updateProfileSetting({ key: 'darkMode', value }))}
-          />
-        </View>
-      </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -79,7 +58,6 @@ const MenuItem = ({ title, onPress, isLogout }) => (
   </TouchableOpacity>
 );
 
-// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -122,13 +100,21 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   tag: {
-    backgroundColor: '#EFEFEF',
     paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: 15,
     marginRight: 10,
     fontSize: 12,
-    color: '#555',
+    color: '#fff',
+  },
+  uiDesignTag: {
+    backgroundColor: '#FF6347', // Tomato
+  },
+  projectsTag: {
+    backgroundColor: '#4682B4', // SteelBlue
+  },
+  managementTag: {
+    backgroundColor: '#32CD32', // LimeGreen
   },
   aboutText: {
     fontSize: 14,
@@ -153,18 +139,11 @@ const styles = StyleSheet.create({
     color: 'red',
     fontWeight: 'bold',
   },
-  settingsSection: {
-    marginTop: 20,
-    paddingHorizontal: 20,
-  },
-  settingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
-  },
 });
 
 export default ProfileScreen;
+
+
+
+
+
