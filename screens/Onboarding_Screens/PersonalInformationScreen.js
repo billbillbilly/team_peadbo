@@ -7,7 +7,7 @@ import {
   TextInput,
   ScrollView,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import DropDownPicker from 'react-native-dropdown-picker';
 
 const PersonalInformationScreen = ({ navigation }) => {
   const [resume, setResume] = useState(null);
@@ -17,9 +17,19 @@ const PersonalInformationScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [city, setCity] = useState('');
   const [stateVal, setStateVal] = useState('');
-  const [education, setEducation] = useState('');
 
-  // Add upload logic
+  // Replace education Picker with DropDownPicker states
+  const [openEducation, setOpenEducation] = useState(false);
+  const [valueEducation, setValueEducation] = useState(null);
+  const [educationItems, setEducationItems] = useState([
+    { label: 'Select Education Level', value: null },
+    { label: 'Associate', value: 'associate' },
+    { label: "Bachelor's", value: 'bachelor' },
+    { label: "Master's", value: 'master' },
+    { label: 'PhD', value: 'phd' },
+  ]);
+
+  // Upload logic
   const handleResumeUpload = () => {
     console.log('Resume upload triggered');
   };
@@ -29,7 +39,10 @@ const PersonalInformationScreen = ({ navigation }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
+    <ScrollView
+      contentContainerStyle={styles.scrollContainer}
+      keyboardShouldPersistTaps="handled"
+    >
       <View style={styles.container}>
         <View style={styles.stepIndicatorContainer}>
           <View style={[styles.dotBase, styles.filledDot]} />
@@ -105,19 +118,21 @@ const PersonalInformationScreen = ({ navigation }) => {
         />
 
         <Text style={styles.subHeaderTitle}>Education</Text>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={education}
-            onValueChange={(value) => setEducation(value)}
-            style={styles.picker}
-          >
-            <Picker.Item label="Select Education Level" value="" />
-            <Picker.Item label="Associate" value="associate" />
-            <Picker.Item label="Bachelor's" value="bachelor" />
-            <Picker.Item label="Master's" value="master" />
-            <Picker.Item label="PhD" value="phd" />
-          </Picker>
-        </View>
+        <DropDownPicker
+          open={openEducation}
+          value={valueEducation}
+          items={educationItems}
+          setOpen={setOpenEducation}
+          setValue={setValueEducation}
+          setItems={setEducationItems}
+          placeholder="Select Education Level"
+          style={styles.picker}
+          dropDownContainerStyle={styles.dropDownContainer}
+          onChangeValue={(value) => {
+            console.log('Selected education:', value);
+          }}
+          listMode="MODAL" // Use modal to avoid nested VirtualizedLists
+        />
 
         <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
           <Text style={styles.nextButtonText}>Next</Text>
@@ -140,6 +155,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9F9F9',
     padding: 20,
     alignItems: 'flex-start',
+    zIndex: 0,
   },
   stepIndicatorContainer: {
     flexDirection: 'row',
@@ -208,19 +224,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 10,
   },
-  pickerContainer: {
-    backgroundColor: '#fff',
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 10,
-    justifyContent: 'center',
-    height: 50,
-  },
   picker: {
     width: '100%',
-    height: 50, 
-    fontSize: 14,
+    height: 50,
+    borderColor: '#ccc',
+    borderWidth: 1,
+  },
+  dropDownContainer: {
+    borderColor: '#ccc',
+    borderWidth: 1,
+    zIndex: 1000,
   },
   nextButton: {
     alignSelf: 'center',
