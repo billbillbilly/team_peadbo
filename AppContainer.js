@@ -38,7 +38,7 @@ const BoardCreationStack = (props) => {
 
     return (
         <Stack.Navigator initialRouteName='FocusScreen' screenOptions={{ 
-            headerShown: true, 
+            headerShown: false, 
             headerTitle: '',
             headerStyle: {
                 backgroundColor: '#F9F9F9',
@@ -109,7 +109,7 @@ const HomeTabStack = (props) => {
             <Stack.Screen name='SendNotificationScreen' component={SendNotificationScreen} />
             <Stack.Screen name='TimeAvailabilityScreen' component={TimeAvailabilityScreen}/>
             <Stack.Screen name='ReviewScreen' component={Review}/>
-            <Stack.Screen name='SendNotificationScreen' component={SendNotificationScreen} />
+            {/* <Stack.Screen name='SendNotificationScreen' component={SendNotificationScreen} /> */}
             {/* boad management */}
             <Stack.Screen name='BoardDetail' component={BoardDetailScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
             <Stack.Screen name='EventScreen' component={EventScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
@@ -188,13 +188,13 @@ const DynamicTabsNavigator = () => {
           <Tabs.Screen
               name="Login"
               component={LoginScreen}
-              options={{ tabBarButton: () => null }}
+              options={{  tabBarButton: () => null }}
           />
   
           <Tabs.Screen
               name="Signup"
               component={SignupScreen}
-              options={{ tabBarButton: () => null }}
+              options={{  tabBarButton: () => null }}
           />
 
           <Tabs.Screen

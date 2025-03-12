@@ -1,15 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Platform } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Modal, Platform } from 'react-native';
 import * as Contacts from 'expo-contacts';
+import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 export default function PickAdvisorsScreen({ navigation, route }) {
   const { focus, boardName, description } = route.params;
   const [selectedAdvisors, setSelectedAdvisors] = useState([]);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
   const [contacts, setContacts] = useState([]);
   const [showContacts, setShowContacts] = useState(false);
+
+  const firstNameRef = useRef('');
+  const lastNameRef = useRef('');
+  const emailRef = useRef('');
 
   useEffect(() => {
     const requestPermission = async () => {
@@ -36,12 +39,24 @@ export default function PickAdvisorsScreen({ navigation, route }) {
   };
 
   const handleContinue = () => {
-    navigation.navigate('CreateInvitationScreen', { focus, boardName, description, advisors: selectedAdvisors, firstName, lastName, email });
+    navigation.navigate('CreateInvitationScreen', { focus, boardName, description, advisors: selectedAdvisors, firstName: firstNameRef.current, lastName: lastNameRef.current, email: emailRef.current });
   };
 
   const selectContact = (contact) => {
     setSelectedAdvisors([...selectedAdvisors, contact]);
     setShowContacts(false);
+  };
+
+  const handleAddAdvisor = () => {
+    const newAdvisor = {
+      id: Date.now().toString(),
+      name: `${firstNameRef.current} ${lastNameRef.current}`,
+      emails: [{ email: emailRef.current }],
+    };
+    setSelectedAdvisors([...selectedAdvisors, newAdvisor]);
+    firstNameRef.current = '';
+    lastNameRef.current = '';
+    emailRef.current = '';
   };
 
   const renderHeader = () => (
@@ -67,64 +82,82 @@ export default function PickAdvisorsScreen({ navigation, route }) {
       >
         <Text style={styles.addButtonText}>Add Advisor from Contacts</Text>
       </TouchableOpacity>
-      {showContacts && (
-        <FlatList
-          data={contacts}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.contactItem}
-              onPress={() => selectContact(item)}
-            >
-              <Text style={styles.contactName}>
-                {item.name}
-              </Text>
-              <Text style={styles.contactEmail}>
-                {item.emails && item.emails.length > 0 ? item.emails[0].email : 'No Email'}
-              </Text>
-            </TouchableOpacity>
-          )}
-        />
-      )}
+      <Modal
+        visible={showContacts}
+        animationType="slide"
+        onRequestClose={() => setShowContacts(false)}
+      >
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Select a Contact</Text>
+          <FlatList
+            data={contacts}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.contactItem}
+                onPress={() => selectContact(item)}
+              >
+                <Text style={styles.contactName}>
+                  {item.name}
+                </Text>
+                <Text style={styles.contactEmail}>
+                  {item.emails && item.emails.length > 0 ? item.emails[0].email : 'No Email'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setShowContacts(false)}
+          >
+            <Text style={styles.closeButtonText}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+      <View style={styles.footerContainer}>
+        <Text style={styles.subtitle}>Or enter their information manually:</Text>
+        <View style={styles.nameContainer}>
+          <TextInput
+            style={[styles.input, styles.halfInput]}
+            placeholder="First Name"
+            defaultValue={firstNameRef.current}
+            onChangeText={(text) => (firstNameRef.current = text)}
+          />
+          <TextInput
+            style={[styles.input, styles.halfInput]}
+            placeholder="Last Name"
+            defaultValue={lastNameRef.current}
+            onChangeText={(text) => (lastNameRef.current = text)}
+          />
+        </View>
+        <View style={styles.emailContainer}>
+          <TextInput
+            style={[styles.input, styles.emailInput]}
+            placeholder="Email"
+            defaultValue={emailRef.current}
+            onChangeText={(text) => (emailRef.current = text)}
+            keyboardType="email-address"
+          />
+          <TouchableOpacity style={styles.addIcon} onPress={handleAddAdvisor}>
+            <Icon name="add-circle-outline" size={30} color="#1EA896" />
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 
   const renderFooter = () => (
-    <View style={styles.footerContainer}>
-      <Text style={styles.subtitle}>Or enter their information manually:</Text>
-      <View style={styles.nameContainer}>
-        <TextInput
-          style={[styles.input, styles.halfInput]}
-          placeholder="First Name"
-          value={firstName}
-          onChangeText={setFirstName}
-        />
-        <TextInput
-          style={[styles.input, styles.halfInput]}
-          placeholder="Last Name"
-          value={lastName}
-          onChangeText={setLastName}
-        />
-      </View>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-      />
-      <TouchableOpacity
-        style={[styles.continueButton, selectedAdvisors.length === 0 && styles.disabledButton]}
-        onPress={handleContinue}
-        disabled={selectedAdvisors.length === 0}
-      >
-        <Text style={styles.continueButtonText}>Continue</Text>
-      </TouchableOpacity>
-    </View>
+    <TouchableOpacity
+      style={[styles.continueButton, selectedAdvisors.length === 0 && styles.disabledButton]}
+      onPress={handleContinue}
+      disabled={selectedAdvisors.length === 0}
+    >
+      <Text style={styles.continueButtonText}>Continue</Text>
+    </TouchableOpacity>
   );
 
   return (
-    <FlatList
+    <KeyboardAwareFlatList
       data={selectedAdvisors}
       keyExtractor={(item) => item.id.toString()}
       ListHeaderComponent={renderHeader}
@@ -198,6 +231,12 @@ const styles = StyleSheet.create({
     width: '95%',
     alignSelf: 'center',
   },
+  emailContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '95%',
+    alignSelf: 'center',
+  },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -206,11 +245,17 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontSize: 16,
     alignSelf: 'center',
-    width: '95%',
   },
   halfInput: {
     flex: 1,
     margin: 2.5,
+  },
+  emailInput: {
+    flex: 1,
+    marginRight: 10,
+  },
+  addIcon: {
+    padding: 5,
   },
   continueButton: {
     backgroundColor: '#1EA896',
@@ -277,5 +322,27 @@ const styles = StyleSheet.create({
   footerContainer: {
     width: '100%',
     alignSelf: 'center',
+  },
+  modalContainer: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#fff',
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  closeButton: {
+    backgroundColor: '#1EA896',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontSize: 18,
   },
 });
