@@ -157,8 +157,9 @@ const BoardDetailsScreen = ({ navigation, route }) => {
                     showsHorizontalScrollIndicator={false} 
                     decelerationRate={"fast"}
                     pagingEnabled={true}
-                >
-                    {/* {dateList.map((day, index) => (
+                 >   
+                 {/* Comment the code below when done */}
+                    {dateList.map((day, index) => (
                         <TouchableOpacity 
                             key={index} 
                             onPress={() => {setSelectedDate(`${day}`)}}
@@ -167,7 +168,7 @@ const BoardDetailsScreen = ({ navigation, route }) => {
                             <Text style={[styles.dateText, styles.dateItem, selectedDate === `${day}` && styles.selectedDate]}>{day}</Text>
                             <Text style={[styles.dateEventItem]}>.</Text>
                         </TouchableOpacity>
-                    ))} */}
+                    ))}
                     <RenderHorizontalCalender 
                         events={events}
                         dateList={dateList} 
