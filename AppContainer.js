@@ -7,6 +7,10 @@ import { configureStore } from '@reduxjs/toolkit';
 
 import userSlice from './Reducer';
 
+import ProfileScreen from './screens/ProfileScreen';
+// import SettingsScreen from './screens/SettingsScreen';
+// import NotificationsScreen from './screens/NotificationsScreen';
+// import PreferencesScreen from './screens/PreferencesScreen';
 
 import HomeScreen from './screens/HomeScreen';
 import CommunicationStyleScreen from './screens/Onboarding_Screens/CommunicationStyleScreen';
@@ -49,8 +53,6 @@ const BoardCreationStack = (props) => {
         </Stack.Navigator>
     )
 }
-
-
 
 // Onboarding Stack
 const OnboardingStack = (props) => {
@@ -140,21 +142,24 @@ const NewsTabStack = (props) => {
     )
 }
 
-// User Tab Stack
+// User Tab Stack (Updated with Profile Screen, but commented out Settings/Notifications/Preferences)
 const UserTabStack = (props) => {
     const Stack = createNativeStackNavigator();
     const { navigation, route } = props;
     const dispatch = useDispatch();
   
     return (
-        <Stack.Navigator initialRouteName='Usersettings' screenOptions={{ 
+        <Stack.Navigator initialRouteName='Profile' screenOptions={{ 
             headerShown: true, 
             headerTitle: '',
             headerStyle: {
                 backgroundColor: '#F9F9F9',
             },
         }}>
-            <Stack.Screen name='Usersettings' component={HomeScreen}/>
+            <Stack.Screen name='Profile' component={ProfileScreen}/>
+            {/* <Stack.Screen name='Settings' component={SettingsScreen}/> */}
+            {/* <Stack.Screen name='Notifications' component={NotificationsScreen}/> */}
+            {/* <Stack.Screen name='Preferences' component={PreferencesScreen}/> */}
         </Stack.Navigator>
     )
 }
@@ -164,35 +169,10 @@ const DynamicTabsNavigator = () => {
 
   return (
     <Tabs.Navigator
-        // Change Initial Route Here
-        
-        // initialRouteName='Onboarding'
-        // initialRouteName='BoardCreation'
         screenOptions={{
             headerShown: false,
         }}
     >
-     {/* Uncomment this to add Onboarding Tab -- use for modifications to the screens */}
-        {/* <Tabs.Screen
-            name="Onboarding"
-            component={OnboardingStack}
-            options={{
-                tabBarIcon: ({ color, size }) => (
-                    <Icon name="user" type="font-awesome" color={color} size={size} />
-                ),
-            }}
-        /> */}
-
-        {/* Uncomment this to add Board Creation Tab -- use for modifications to the screens */}
-        {/* <Tabs.Screen
-            name="BoardCreation"
-            component={BoardCreationStack}
-            options={{
-                tabBarIcon: ({ color, size }) => (
-                    <Icon name="list" type="font-awesome" color={color} size={size} />
-                ),
-            }}
-        /> */}
         <Tabs.Screen
             name="Home"
             component={HomeTabStack}
@@ -234,9 +214,6 @@ const DynamicTabsNavigator = () => {
 }
 
 const AppContainer = () => {
-    const dispatch = useDispatch();
-    const Tabs = createBottomTabNavigator();
-
     return(
         <Provider store={store}>
         <NavigationContainer>
