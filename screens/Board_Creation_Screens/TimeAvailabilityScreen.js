@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert } from 'react-native';
-import { Calendar } from 'react-native-calendars'; // Calendar from react-native-calendars
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert, Linking } from 'react-native';
+import { Calendar } from 'react-native-calendars';
 import * as Notifications from 'expo-notifications';
-import * as ExpoCalendar from 'expo-calendar'; // Renamed to ExpoCalendar
+import * as ExpoCalendar from 'expo-calendar';
 
 export default function TimeAvailabilityScreen({ navigation, route }) {
   const { focus, boardName, description, advisors, message } = route.params;
@@ -10,16 +10,45 @@ export default function TimeAvailabilityScreen({ navigation, route }) {
   const [selectedTime, setSelectedTime] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [calendarVisible, setCalendarVisible] = useState(true);
+  const [notificationPermission, setNotificationPermission] = useState(null);
+  const [calendarPermission, setCalendarPermission] = useState(null);
 
   // Request notification permissions
   useEffect(() => {
     const requestNotificationPermissions = async () => {
       const { status } = await Notifications.requestPermissionsAsync();
+      setNotificationPermission(status);
       if (status !== 'granted') {
-        Alert.alert('Permission to send notifications was denied.');
+        Alert.alert(
+          'Notification Permission Denied',
+          'Please enable notifications in your device settings to receive reminders.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => Linking.openSettings() },
+          ]
+        );
       }
     };
     requestNotificationPermissions();
+  }, []);
+
+  // Request calendar permissions
+  useEffect(() => {
+    const requestCalendarPermissions = async () => {
+      const { status } = await ExpoCalendar.requestCalendarPermissionsAsync();
+      setCalendarPermission(status);
+      if (status !== 'granted') {
+        Alert.alert(
+          'Calendar Permission Denied',
+          'Please enable calendar access in your device settings to add events.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => Linking.openSettings() },
+          ]
+        );
+      }
+    };
+    requestCalendarPermissions();
   }, []);
 
   // Handle task creation
@@ -31,8 +60,34 @@ export default function TimeAvailabilityScreen({ navigation, route }) {
       time,
     };
     setTasks([...tasks, newTask]);
-    await scheduleNotification(newTask); // Schedule a notification for the task
-    await addEventToCalendar(newTask); // Add the task to the phone's calendar
+
+    // Schedule notification if permission is granted
+    if (notificationPermission === 'granted') {
+      await scheduleNotification(newTask);
+    } else {
+      Alert.alert(
+        'Notifications Disabled',
+        'Please enable notifications in your device settings to receive reminders.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Open Settings', onPress: () => Linking.openSettings() },
+        ]
+      );
+    }
+
+    // Add event to calendar if permission is granted
+    if (calendarPermission === 'granted') {
+      await addEventToCalendar(newTask);
+    } else {
+      Alert.alert(
+        'Calendar Access Disabled',
+        'Please enable calendar access in your device settings to add events.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Open Settings', onPress: () => Linking.openSettings() },
+        ]
+      );
+    }
   };
 
   // Convert 12-hour time to 24-hour time
@@ -70,14 +125,14 @@ export default function TimeAvailabilityScreen({ navigation, route }) {
   // Add the task to the phone's calendar
   const addEventToCalendar = async (task) => {
     try {
-      const { status } = await ExpoCalendar.requestCalendarPermissionsAsync(); // Use ExpoCalendar
+      const { status } = await ExpoCalendar.requestCalendarPermissionsAsync();
       if (status === 'granted') {
-        const calendars = await ExpoCalendar.getCalendarsAsync(); // Use ExpoCalendar
+        const calendars = await ExpoCalendar.getCalendarsAsync();
         const defaultCalendar = calendars.find((cal) => cal.isPrimary);
 
         if (defaultCalendar) {
           const time24Hour = convertTo24HourFormat(task.time);
-          await ExpoCalendar.createEventAsync(defaultCalendar.id, { // Use ExpoCalendar
+          await ExpoCalendar.createEventAsync(defaultCalendar.id, {
             title: task.title,
             startDate: new Date(`${task.date}T${time24Hour}`),
             endDate: new Date(`${task.date}T${time24Hour}`),
