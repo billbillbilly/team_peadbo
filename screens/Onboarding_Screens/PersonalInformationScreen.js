@@ -6,10 +6,21 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import DropDownPicker from 'react-native-dropdown-picker';
+import * as DocumentPicker from 'expo-document-picker';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { setDoc, getFirestore, doc } from 'firebase/firestore';
+import { app } from '../../Secrets';
 
-const PersonalInformationScreen = ({ navigation }) => {
+const storage = getStorage(app);
+const db = getFirestore(app);
+const defaultUserId = 'user1';
+
+export default function PersonalInformationScreen({ navigation }) {
   const [resume, setResume] = useState(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -17,126 +28,192 @@ const PersonalInformationScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [city, setCity] = useState('');
   const [stateVal, setStateVal] = useState('');
-  const [education, setEducation] = useState('');
 
-  // Add upload logic
-  const handleResumeUpload = () => {
-    console.log('Resume upload triggered');
+
+  const [openEducation, setOpenEducation] = useState(false);
+  const [valueEducation, setValueEducation] = useState(null);
+  const [educationItems, setEducationItems] = useState([
+    { label: 'Select Education Level', value: null },
+    { label: 'Associate', value: 'associate' },
+    { label: "Bachelor's", value: 'bachelor' },
+    { label: "Master's", value: 'master' },
+    { label: 'PhD', value: 'phd' },
+  ]);
+
+  /**
+   * Pick a PDF and upload to Firebase Storage
+   */
+  const handleResumeUpload = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: 'application/pdf' });
+      if (result.type === 'success') {
+        const response = await fetch(result.uri);
+        const blob = await response.blob();
+
+        const storageRef = ref(storage, `resumes/${defaultUserId}_${result.name}`);
+        await uploadBytes(storageRef, blob);
+        const downloadURL = await getDownloadURL(storageRef);
+
+        console.log('Resume uploaded. URL:', downloadURL);
+        setResume(downloadURL);
+      }
+    } catch (error) {
+      console.error('Error uploading resume:', error);
+      Alert.alert('Upload failed', 'Could not upload resume');
+    }
   };
 
-  const handleNext = () => {
-    navigation.navigate('CommunicationStyleScreen');
+  /**
+   * Save all fields to Firestore, without requiring resume
+   */
+  const handleNext = async () => {
+    if (!firstName || !lastName || !phone || !email || !city || !stateVal || !valueEducation) {
+      Alert.alert('Error', 'Please fill all personal information fields');
+      return;
+    }
+
+    try {
+      console.log('Saving document to Firestore. Resume:', resume);
+      await setDoc(
+        doc(db, 'peadbo', defaultUserId),
+        {
+          resume,
+          firstName,
+          lastName,
+          phone,
+          email,
+          city,
+          state: stateVal,
+          education: valueEducation,
+        },
+        { merge: true }
+      );
+      console.log('Document saved successfully');
+
+      Alert.alert('Success', 'Personal information saved');
+      navigation.navigate('CommunicationStyleScreen');
+    } catch (error) {
+      console.error('Error saving personal information:', error);
+      Alert.alert('Error', 'Could not save personal information');
+    }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.container}>
-        <View style={styles.stepIndicatorContainer}>
-          <View style={[styles.dotBase, styles.filledDot]} />
-          <View style={[styles.dotBase, styles.partialDot]} />
-          <View style={styles.dotBase} />
-          <View style={styles.dotBase} />
-          <View style={styles.dotBase} />
-        </View>
-
-        <Text style={styles.headerTitle}>Resume Input</Text>
-        <TouchableOpacity
-          style={styles.resumeUpload}
-          onPress={handleResumeUpload}
-        >
-          <Text style={styles.uploadText}>
-            {resume ? 'Resume Uploaded' : 'Upload your resume'}
-          </Text>
-        </TouchableOpacity>
-
-        <Text style={styles.subHeaderTitle}>Personal Information</Text>
-        <View style={styles.inputRow}>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="First Name"
-              value={firstName}
-              onChangeText={setFirstName}
-            />
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={80} // Adjust for your layout
+    >
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.container}>
+          {/* Step Indicators */}
+          <View style={styles.stepIndicatorContainer}>
+            <View style={[styles.dotBase, styles.filledDot]} />
+            <View style={[styles.dotBase, styles.partialDot]} />
+            <View style={styles.dotBase} />
+            <View style={styles.dotBase} />
+            <View style={styles.dotBase} />
           </View>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Last Name"
-              value={lastName}
-              onChangeText={setLastName}
-            />
+
+          <Text style={styles.headerTitle}>Resume Input</Text>
+          <TouchableOpacity style={styles.resumeUpload} onPress={handleResumeUpload}>
+            <Text style={styles.uploadText}>
+              {resume ? 'Resume Uploaded' : 'Upload your resume'}
+            </Text>
+          </TouchableOpacity>
+
+          <Text style={styles.subHeaderTitle}>Personal Information</Text>
+
+          <View style={styles.inputRow}>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="First Name"
+                value={firstName}
+                onChangeText={setFirstName}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Last Name"
+                value={lastName}
+                onChangeText={setLastName}
+              />
+            </View>
           </View>
-        </View>
 
-        <View style={styles.inputRow}>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="City"
-              value={city}
-              onChangeText={setCity}
-            />
+          <View style={styles.inputRow}>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="City"
+                value={city}
+                onChangeText={setCity}
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="State"
+                value={stateVal}
+                onChangeText={setStateVal}
+              />
+            </View>
           </View>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="State"
-              value={stateVal}
-              onChangeText={setStateVal}
-            />
-          </View>
-        </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Phone Number"
-          keyboardType="phone-pad"
-          value={phone}
-          onChangeText={setPhone}
-        />
+          <TextInput
+            style={styles.input}
+            placeholder="Phone Number"
+            keyboardType="phone-pad"
+            value={phone}
+            onChangeText={setPhone}
+          />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email Address"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-        />
+          <TextInput
+            style={styles.input}
+            placeholder="Email Address"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+          />
 
-        <Text style={styles.subHeaderTitle}>Education</Text>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={education}
-            onValueChange={(value) => setEducation(value)}
+          <Text style={styles.subHeaderTitle}>Education</Text>
+          <DropDownPicker
+            listMode="SCROLLVIEW" 
+            open={openEducation}
+            value={valueEducation}
+            items={educationItems}
+            setOpen={setOpenEducation}
+            setValue={setValueEducation}
+            setItems={setEducationItems}
+            placeholder="Select Education Level"
             style={styles.picker}
-          >
-            <Picker.Item label="Select Education Level" value="" />
-            <Picker.Item label="Associate" value="associate" />
-            <Picker.Item label="Bachelor's" value="bachelor" />
-            <Picker.Item label="Master's" value="master" />
-            <Picker.Item label="PhD" value="phd" />
-          </Picker>
+            dropDownContainerStyle={styles.dropDownContainer}
+          />
+
+          <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+            <Text style={styles.nextButtonText}>Next</Text>
+          </TouchableOpacity>
         </View>
-
-        <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-          <Text style={styles.nextButtonText}>Next</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
-};
-
-export default PersonalInformationScreen;
+}
 
 const DOT_SIZE = 12;
 
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
+    paddingBottom: 20,
   },
   container: {
-    flex: 1,
     backgroundColor: '#F9F9F9',
     padding: 20,
     alignItems: 'flex-start',
@@ -208,19 +285,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 10,
   },
-  pickerContainer: {
-    backgroundColor: '#fff',
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 10,
-    justifyContent: 'center',
-    height: 50,
-  },
   picker: {
-    width: '100%',
-    height: 50, 
-    fontSize: 14,
+    borderColor: '#CCC',
+    marginBottom: 20,
+  },
+  dropDownContainer: {
+    borderColor: '#CCC',
+    zIndex: 1000,
   },
   nextButton: {
     alignSelf: 'center',

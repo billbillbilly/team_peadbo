@@ -164,7 +164,7 @@ const BoardDetailsScreen = ({ navigation, route }) => {
                     showsHorizontalScrollIndicator={false} 
                     decelerationRate={"fast"}
                     pagingEnabled={true}
-                >
+                 >
                     {/* {dateList.map((day, index) => (
                         <TouchableOpacity 
                             key={index} 
