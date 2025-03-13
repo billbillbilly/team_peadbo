@@ -12,9 +12,9 @@ const RenderEvent = (props) => {
         </View>
         <View style={styles.eventDetails}>
             <TouchableOpacity onPress={() => navigation.navigate('EventScreen', {event:item})}>
-            <Text style={styles.eventTitle}>{item.title}</Text>
-            <Text style={styles.eventDescription}>{item.description}</Text>
-            <Text style={styles.eventParticipants}>{item.participants.join(', ')}</Text>
+                <Text style={styles.eventTitle}>{item.title}</Text>
+                <Text style={styles.eventDescription}>{item.description}</Text>
+                <Text style={styles.eventParticipants}>{item.participants.join(', ')}</Text>
             </TouchableOpacity>
         </View>
     </View>
