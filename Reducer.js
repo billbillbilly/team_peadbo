@@ -1,7 +1,11 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { initializeApp, getApps } from 'firebase/app';
-import { setDoc, getDocs, addDoc, doc, getFirestore, collection, onSnapshot, getDoc, deleteDoc, updateDoc, query, where } from 'firebase/firestore';
-import { getStorage, ref, deleteObject } from 'firebase/storage';
+import { 
+  setDoc, getDocs, addDoc, doc, getFirestore, collection, 
+  onSnapshot, getDoc, deleteDoc, updateDoc, query, where 
+} from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { firebaseConfig } from "./Secrets";
 import { GraphQLAPI } from '@aws-amplify/api-graphql';
 import { amplifyAPI } from './Secrets'; 
@@ -71,7 +75,7 @@ const client = generateClient();
 // ---------------------- Set up firebase ------------------------
 let app;
 const apps = getApps();
-if (apps.length == 0) {
+if (apps.length === 0) {
   app = initializeApp(firebaseConfig);
 } else {
   app = apps[0];
@@ -79,75 +83,88 @@ if (apps.length == 0) {
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-//-------------------- User ---------------------
 export const subscribeToUserUpdates = (dispatch) => {
   let snapshotUnsubscribe = undefined;
   if (snapshotUnsubscribe) {
     snapshotUnsubscribe();
   }
   snapshotUnsubscribe = onSnapshot(collection(db, 'peadbo'), usersSnapshot => {
-    const updatedUsers = usersSnapshot.docs.map(uSnap => {
-      return uSnap.data();
-    });
+    const updatedUsers = usersSnapshot.docs.map(uSnap => uSnap.data());
     dispatch(loadUsers(updatedUsers));
   });
-}
+};
 
 export const setUser = createAsyncThunk(
-  'add/setUser',
+  'user/setUser',
   async (authUser) => {
     const userSnap = await getDoc(doc(db, 'peadbo', authUser.uid));
-    const user = userSnap.data();
-    return user;
+    return userSnap.exists() ? userSnap.data() : null;
   }
-)
+);
 
 export const addUser = createAsyncThunk(
-  'app/addUser',
+  'user/addUser',
   async (user) => {
-    // new user
     const userToAdd = {
       displayName: user.displayName,
       email: user.email,
       key: user.uid
     };
-    // add the new user to the firebase
     await setDoc(doc(db, 'peadbo', user.uid), userToAdd);
-    const userDocRef = doc(db, 'peadbo', user.uid);
-
-    // Add a document to the subcollection
-    // const subcollectionRef = collection(userDocRef, 'image');
-    // await addDoc(subcollectionRef, {
-    //   imageName: 'void',
-    //   path: 'void',
-    //   date: Date.now(),
-    // });
   }
-)
+);
 
 export const loadUsers = createAsyncThunk(
-  'app/loadUsers',
-  async (users) => {
-    return [...users];
+  'user/loadUsers',
+  async () => {
+    const usersSnap = await getDocs(collection(db, 'peadbo'));
+    return usersSnap.docs.map(doc => doc.data());
   }
-)
+);
 
-// ---------------------- Async Thunk Templates!!! ------------------------
-// fetch user from Firebase
+// ---------------------- Profile Settings & Persistence ---------------------
+
+export const loadProfileSettings = createAsyncThunk(
+  'user/loadProfileSettings',
+  async () => {
+    try {
+      const savedSettings = await AsyncStorage.getItem('profileSettings');
+      return savedSettings ? JSON.parse(savedSettings) : { notificationsEnabled: true, darkMode: false };
+    } catch (error) {
+      console.error("Error loading profile settings:", error);
+      return { notificationsEnabled: true, darkMode: false };
+    }
+  }
+);
+
+export const updateProfileSetting = createAsyncThunk(
+  'user/updateProfileSetting',
+  async ({ key, value }) => {
+    try {
+      const settings = await AsyncStorage.getItem('profileSettings');
+      const newSettings = settings ? JSON.parse(settings) : {};
+      newSettings[key] = value;
+      await AsyncStorage.setItem('profileSettings', JSON.stringify(newSettings));
+      return newSettings;
+    } catch (error) {
+      console.error("Error updating profile settings:", error);
+      return {};
+    }
+  }
+);
+
+// ---------------------- Fetch & Manage User Data ---------------------
+
 export const fetchUserImagesThunk = createAsyncThunk(
   'app/fetchUserImages',
   async (id) => {
     try {
-      // Reference to the user's document
       const userDocRef = doc(db, 'peadbo', id);
-      // Reference to the user's 'image' subcollection
       const imageCollectionRef = collection(userDocRef, 'image');
-      // Fetch all documents from the 'image' subcollection
       const querySnapshot = await getDocs(imageCollectionRef);
-      // Map documents to a list of objects
       const imageList = querySnapshot.docs.map((doc) => ({
-        id: doc.id, // Document ID
-        ...doc.data(), // Document data
+        id: doc.id,
+        ...doc.data(),
       })).filter((image) => image.path !== 'void');
       return imageList;
     } catch (error) {
@@ -157,25 +174,12 @@ export const fetchUserImagesThunk = createAsyncThunk(
   }
 );
 
-// Async thunk to fetch contacts from Firebase
 export const fetchListThunk = createAsyncThunk(
   'lists/fetchList',
   async () => {
     const listsRef = collection(db, 'list');
     const querySnapshot = await getDocs(listsRef);
-
-    if (!querySnapshot.empty) {
-      // Map each document to an object with its data and ID
-      const listBoards = querySnapshot.docs.map(doc => ({
-        ...doc.data(),
-        key: doc.id
-      }));
-      // Return the list of contacts as `listBoards`
-      return listBoards;
-    } else {
-      // Return an empty array if no documents found
-      return []; 
-    }
+    return querySnapshot.docs.map(doc => ({ ...doc.data(), key: doc.id })) || [];
   }
 );
 
@@ -183,17 +187,17 @@ export const addThunk = createAsyncThunk(
   'lists/add',
   async (item) => {
     const itemRef = collection(db, 'lists');
-    const itemSnap = await addDoc(itemRef, {...item, key: Date.now()+Math.random()});
-    return {key:contactSnap.id, item};
+    const itemSnap = await addDoc(itemRef, { ...item, key: Date.now() + Math.random() });
+    return { key: itemSnap.id, item };
   }
 );
 
 export const updateThunk = createAsyncThunk(
   'lists/update',
-  async ({ key, updateditem }) => {
+  async ({ key, updatedItem }) => {
     const docRef = doc(db, 'list', key);
-    await updateDoc(docRef, updateditem);
-    return {key, updateditem};
+    await updateDoc(docRef, updatedItem);
+    return { key, updatedItem };
   }
 );
 
@@ -206,7 +210,8 @@ export const deleteThunk = createAsyncThunk(
   }
 );
 
-// ---------------------- Slice Template!!! ------------------------
+// ---------------------- Redux Slice Definition ------------------------
+
 const userSlice = createSlice({
   name: 'user',
   initialState: {
@@ -231,38 +236,40 @@ const userSlice = createSlice({
   reducers: {
     selectItem: (state, action) => {
       const key = action.payload;
-      state.selectedItem = key !== -1 ? state.listBoards.find(item => item.key === key) : initItem;
+      state.selectedItem = key !== -1 ? state.listBoards.find(item => item.key === key) : null;
     },
   },
   extraReducers: (builder) => {
     builder
       .addCase(setUser.fulfilled, (state, action) => {
-        state.currentUser = action.payload;
+        state.currentUser = action.payload || { displayName: "Unknown", email: "", key: "" };
       })
-      .addCase(addThunk.fulfilled, (state, action) => {
-        const { key, item } = action.payload;
-        state.listBoards.push({...item, key:key});
+      .addCase(loadProfileSettings.fulfilled, (state, action) => {
+        state.profileSettings = action.payload;
       })
-      .addCase(updateThunk.fulfilled, (state, action) => {
-        const {key, updatedItem} = action.payload;
-        state.listBoards = state.listBoards.map(item => item.key === key ? { ...updatedItem, key:key } : item);
+      .addCase(updateProfileSetting.fulfilled, (state, action) => {
+        state.profileSettings = action.payload;
       })
-      .addCase(deleteThunk.fulfilled, (state, action) => {
-        const key = action.payload;
-        state.listBoards = state.listBoards.filter(item => item.key !== key);
+      .addCase(loadUsers.fulfilled, (state, action) => {
+        state.listBoards = action.payload;
+      })
+      .addCase(fetchUserImagesThunk.fulfilled, (state, action) => {
+        state.userImages = action.payload;
       })
       .addCase(fetchListThunk.fulfilled, (state, action) => {
-        state.listBoards = action.payload; // Set listBoards from Firebase
-        if (state.listBoards.length >= 1 && Array.isArray(state.listBoards[0].groups)) {
-          const g = state.listBoards[0].groups.map(
-            item => ({...item,isAssigned: false})
-          )
-          state.newContact = {...initContact, groups:g};
-          state.resetContact = {...initContact, groups:g};
-          state.groups = g;
-        }
+        state.listBoards = action.payload;
       })
+      .addCase(addThunk.fulfilled, (state, action) => {
+        state.listBoards.push({ ...action.payload.item, key: action.payload.key });
+      })
+      .addCase(updateThunk.fulfilled, (state, action) => {
+        state.listBoards = state.listBoards.map(item => item.key === action.payload.key ? { ...action.payload.updatedItem, key: action.payload.key } : item);
+      })
+      .addCase(deleteThunk.fulfilled, (state, action) => {
+        state.listBoards = state.listBoards.filter(item => item.key !== action.payload);
+      });
   },
 });
 
+export const { selectItem } = userSlice.actions;
 export default userSlice.reducer;
