@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import { loadProfileSettings, updateProfileSetting } from '../Reducer';
+import { loadProfileSettings, updateProfileSetting } from '../../Reducer';
 
 function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -17,7 +17,7 @@ function ProfileScreen({ navigation }) {
       {/* Profile Header */}
       <View style={styles.profileHeader}>
         <Image 
-          source={{ uri: 'https://via.placeholder.com/100' }} // Replace with actual user image
+          source={{ uri: 'https://via.placeholder.com/100' }} /* Replace with actual user image */
           style={styles.profileImage} 
         />
         <Text style={styles.profileName}>{currentUser.displayName || "User Name"}</Text>
@@ -53,8 +53,13 @@ function ProfileScreen({ navigation }) {
 
 // Menu Item Component for reusability
 const MenuItem = ({ title, onPress, isLogout }) => (
-  <TouchableOpacity style={[styles.menuItem, isLogout && styles.logout]} onPress={onPress}>
-    <Text style={[styles.menuText, isLogout && styles.logoutText]}>{title}</Text>
+  <TouchableOpacity 
+    style={[styles.menuItem, isLogout && styles.logout]} 
+    onPress={onPress}
+  >
+    <Text style={[styles.menuText, isLogout && styles.logoutText]}>
+      {title}
+    </Text>
   </TouchableOpacity>
 );
 
@@ -142,8 +147,3 @@ const styles = StyleSheet.create({
 });
 
 export default ProfileScreen;
-
-
-
-
-
