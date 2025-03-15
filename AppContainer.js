@@ -56,8 +56,6 @@ const BoardCreationStack = (props) => {
     )
 }
 
-
-
 // Onboarding Stack
 const OnboardingStack = (props) => {
     const Stack = createNativeStackNavigator();
@@ -155,21 +153,27 @@ const NewsTabStack = (props) => {
     )
 }
 
-// User Tab Stack
+// User Tab Stack (Updated with Profile Screen, but commented out Settings/Notifications/Preferences)
 const UserTabStack = (props) => {
     const Stack = createNativeStackNavigator();
     const { navigation, route } = props;
     const dispatch = useDispatch();
   
     return (
-        <Stack.Navigator initialRouteName='Usersettings' screenOptions={{ 
+        <Stack.Navigator initialRouteName='Profile' screenOptions={{ 
             headerShown: true, 
             headerTitle: '',
             headerStyle: {
                 backgroundColor: '#F9F9F9',
             },
         }}>
-            <Stack.Screen name='Usersettings' component={HomeScreen} options={{ headerShown: false}}/>
+            <Stack.Screen name='Profile' component={ProfileScreen}/>
+            <Stack.Screen name='Settings' component={SettingsScreen}/>
+            <Stack.Screen name='Notifications' component={NotificationsScreen}/>
+            <Stack.Screen name='UpgradePlan' component={UpgradePlanScreen} />
+            <Stack.Screen name='Billing' component={BillingScreen} />
+            <Stack.Screen name='FAQ' component={FAQScreen} />
+            <Stack.Screen name='ContactSupport' component={ContactSupportScreen} />
         </Stack.Navigator>
     )
 }
@@ -238,9 +242,6 @@ const DynamicTabsNavigator = () => {
 };
 
 const AppContainer = () => {
-    const dispatch = useDispatch();
-    const Tabs = createBottomTabNavigator();
-
     return(
         <Provider store={store}>
         <NavigationContainer>
