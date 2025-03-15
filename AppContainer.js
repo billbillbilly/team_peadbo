@@ -20,6 +20,14 @@ import FocusScreen from './screens/Board_Creation_Screens/FocusScreen';
 import CreateInvitationScreen from './screens/Board_Creation_Screens/CreateInvitationScreen';
 import TimeAvailabilityScreen from './screens/Board_Creation_Screens/TimeAvailabilityScreen';
 import Review from './screens/Board_Creation_Screens/ReviewScreen';
+
+import SettingsScreen from './screens/ProfileScreens/SettingsScreen';
+import NotificationScreen from './screens/ProfileScreens/NotificationScreen';
+import UpgradePlanScreen from './screens/ProfileScreens/UpgradePlanScreen';
+import BillingScreen from './screens/ProfileScreens/BillingScreen';
+import FAQScreen from './screens/ProfileScreens/FAQScreen';
+import ContactSupportScreen from './screens/ProfileScreens/ContactSupportScreen';
+
 import SendNotificationScreen from './screens/Board_Creation_Screens/SendNotificationScreen';
 
 import BoardDetailScreen from './screens/Board_Detail_Screens/BoardDetailScreen';
@@ -160,16 +168,15 @@ const UserTabStack = (props) => {
     const dispatch = useDispatch();
   
     return (
-        <Stack.Navigator initialRouteName='Profile' screenOptions={{ 
+        <Stack.Navigator initialRouteName='Settings' screenOptions={{ 
             headerShown: true, 
             headerTitle: '',
             headerStyle: {
                 backgroundColor: '#F9F9F9',
             },
         }}>
-            <Stack.Screen name='Profile' component={ProfileScreen}/>
             <Stack.Screen name='Settings' component={SettingsScreen}/>
-            <Stack.Screen name='Notifications' component={NotificationsScreen}/>
+            <Stack.Screen name='Notifications' component={NotificationScreen}/>
             <Stack.Screen name='UpgradePlan' component={UpgradePlanScreen} />
             <Stack.Screen name='Billing' component={BillingScreen} />
             <Stack.Screen name='FAQ' component={FAQScreen} />
