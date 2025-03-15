@@ -1,85 +1,288 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert, Linking } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { ScrollView } from 'react-native';
+import * as Notifications from 'expo-notifications';
+import * as ExpoCalendar from 'expo-calendar';
 
-export default function SetTimeAvailabilityScreen({ navigation, route }) {
+export default function TimeAvailabilityScreen({ navigation, route }) {
   const { focus, boardName, description, advisors, message } = route.params;
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [calendarVisible, setCalendarVisible] = useState(true);
+  const [notificationPermission, setNotificationPermission] = useState(null);
+  const [calendarPermission, setCalendarPermission] = useState(null);
 
-  const handleContinue = () => {
+  // Request notification permissions
+  useEffect(() => {
+    const requestNotificationPermissions = async () => {
+      const { status } = await Notifications.requestPermissionsAsync();
+      setNotificationPermission(status);
+      if (status !== 'granted') {
+        Alert.alert(
+          'Notification Permission Denied',
+          'Please enable notifications in your device settings to receive reminders.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => Linking.openSettings() },
+          ]
+        );
+      }
+    };
+    requestNotificationPermissions();
+  }, []);
+
+  // Request calendar permissions
+  useEffect(() => {
+    const requestCalendarPermissions = async () => {
+      const { status } = await ExpoCalendar.requestCalendarPermissionsAsync();
+      setCalendarPermission(status);
+      if (status !== 'granted') {
+        Alert.alert(
+          'Calendar Permission Denied',
+          'Please enable calendar access in your device settings to add events.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => Linking.openSettings() },
+          ]
+        );
+      }
+    };
+    requestCalendarPermissions();
+  }, []);
+
+  // Handle task creation
+  const handleCreateTask = async (date, time) => {
+    const newTask = {
+      id: Date.now().toString(),
+      title: `Meeting on ${date}`,
+      date,
+      time,
+    };
+    setTasks([...tasks, newTask]);
+
+    // Schedule notification if permission is granted
+    if (notificationPermission === 'granted') {
+      await scheduleNotification(newTask);
+    } else {
+      Alert.alert(
+        'Notifications Disabled',
+        'Please enable notifications in your device settings to receive reminders.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Open Settings', onPress: () => Linking.openSettings() },
+        ]
+      );
+    }
+
+    // Add event to calendar if permission is granted
+    if (calendarPermission === 'granted') {
+      await addEventToCalendar(newTask);
+    } else {
+      Alert.alert(
+        'Calendar Access Disabled',
+        'Please enable calendar access in your device settings to add events.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Open Settings', onPress: () => Linking.openSettings() },
+        ]
+      );
+    }
+  };
+
+  // Convert 12-hour time to 24-hour time
+  const convertTo24HourFormat = (time) => {
+    const [timePart, modifier] = time.split(' ');
+    let [hours, minutes] = timePart.split(':');
+    if (hours === '12') {
+      hours = '00';
+    }
+    if (modifier === 'PM') {
+      hours = parseInt(hours, 10) + 12;
+    }
+    return `${hours}:${minutes}:00`;
+  };
+
+  // Schedule a notification for the task
+  const scheduleNotification = async (task) => {
+    try {
+      const time24Hour = convertTo24HourFormat(task.time);
+      const triggerDate = new Date(`${task.date}T${time24Hour}`);
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Upcoming Task',
+          body: `Don't forget: ${task.title} at ${task.time}`,
+        },
+        trigger: {
+          date: triggerDate,
+        },
+      });
+    } catch (error) {
+      Alert.alert('Failed to schedule notification', error.message);
+    }
+  };
+
+  // Add the task to the phone's calendar
+  const addEventToCalendar = async (task) => {
+    try {
+      const { status } = await ExpoCalendar.requestCalendarPermissionsAsync();
+      if (status === 'granted') {
+        const calendars = await ExpoCalendar.getCalendarsAsync();
+        const defaultCalendar = calendars.find((cal) => cal.isPrimary);
+
+        if (defaultCalendar) {
+          const time24Hour = convertTo24HourFormat(task.time);
+          await ExpoCalendar.createEventAsync(defaultCalendar.id, {
+            title: task.title,
+            startDate: new Date(`${task.date}T${time24Hour}`),
+            endDate: new Date(`${task.date}T${time24Hour}`),
+            timeZone: 'UTC',
+          });
+        } else {
+          Alert.alert('No default calendar found');
+        }
+      } else {
+        Alert.alert('Calendar permission denied');
+      }
+    } catch (error) {
+      Alert.alert('Failed to add event to calendar', error.message);
+    }
+  };
+
+  // Handle continue button press
+  const handleContinue = async () => {
     if (selectedDate && selectedTime) {
+      await handleCreateTask(selectedDate, selectedTime); // Create a task for the selected date/time
       navigation.navigate('ReviewScreen', { focus, boardName, description, advisors, message, selectedDate, selectedTime });
     }
   };
 
+  // Marked dates for the calendar
+  const markedDates = tasks.reduce((acc, task) => {
+    acc[task.date] = { marked: true, dotColor: '#1EA896' };
+    return acc;
+  }, {});
+
+  if (selectedDate) {
+    markedDates[selectedDate] = { selected: true, marked: true, dotColor: '#1EA896' };
+  }
+
   return (
-    <ScrollView>
-        <View style={styles.container}>
-          <Text style={styles.title}>Set Time Availability</Text>
-          <Text style={styles.subtitle}>Let's pick a date for your first meeting! You can always change it later.</Text>
-          <View style={styles.calendar}>
-            <Calendar
-              onDayPress={(day) => setSelectedDate(day.dateString)}
-              markedDates={selectedDate ? { [selectedDate]: { selected: true } } : {}}
-            />
-          </View>
-          <View style={styles.timeSlots}>
-            <Text style={styles.timeSlotTitle}>Morning</Text>
-            <View style={styles.timeSlotContainer}>
-              <TouchableOpacity
-                style={[styles.timeSlot, selectedTime === '9:00' && styles.selectedTimeSlot]}
-                onPress={() => setSelectedTime('9:00')}
+    <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Set Time Availability</Text>
+        <View style={styles.stepIndicator}>
+          {[1, 2, 3, 4, 5].map((step) => (
+            <View
+              key={step}
+              style={[
+                styles.stepCircle,
+                step === 4 && styles.activeStepCircle,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.stepNumber,
+                  step === 4 && styles.activeStepNumber,
+                ]}
               >
-                <Text style={styles.timeSlotText}>9:00</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.timeSlot, selectedTime === '10:00' && styles.selectedTimeSlot]}
-                onPress={() => setSelectedTime('10:00')}
-              >
-                <Text style={styles.timeSlotText}>10:00</Text>
-              </TouchableOpacity>
+                {step}
+              </Text>
             </View>
-            <Text style={styles.timeSlotTitle}>Afternoon</Text>
-            <View style={styles.timeSlotContainer}>
-              <TouchableOpacity
-                style={[styles.timeSlot, selectedTime === '14:00' && styles.selectedTimeSlot]}
-                onPress={() => setSelectedTime('14:00')}
-              >
-                <Text style={styles.timeSlotText}>14:00</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.timeSlot, selectedTime === '15:00' && styles.selectedTimeSlot]}
-                onPress={() => setSelectedTime('15:00')}
-              >
-                <Text style={styles.timeSlotText}>15:00</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.timeSlot, selectedTime === '16:00' && styles.selectedTimeSlot]}
-                onPress={() => setSelectedTime('16:00')}
-              >
-                <Text style={styles.timeSlotText}>16:00</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          ))}
+        </View>
+      </View>
+
+      <Text style={styles.subtitle}>Let's pick a date and time for your first meeting. You can always change it later.</Text>
+
+      {/* Toggle Calendar Visibility */}
+      <View style={styles.toggleContainer}>
+        <Text style={styles.toggleText}>Show Calendar</Text>
+        <Switch
+          value={calendarVisible}
+          onValueChange={(value) => setCalendarVisible(value)}
+          trackColor={{ false: '#ccc', true: '#1EA896' }}
+        />
+      </View>
+
+      {/* Calendar */}
+      {calendarVisible && (
+        <View style={styles.calendar}>
+          <Calendar
+            onDayPress={(day) => setSelectedDate(day.dateString)}
+            markedDates={markedDates}
+            theme={{
+              selectedDayBackgroundColor: '#1EA896',
+              selectedDayTextColor: '#fff',
+              arrowColor: '#1EA896',
+              todayTextColor: '#1EA896',
+            }}
+          />
+        </View>
+      )}
+
+      {/* Time Slots */}
+      <View style={styles.timeSlots}>
+        <Text style={styles.timeSlotTitle}>Morning</Text>
+        <View style={styles.timeSlotContainer}>
           <TouchableOpacity
-            style={[styles.continueButton, (!selectedDate || !selectedTime) && styles.disabledButton]}
-            onPress={handleContinue}
-            disabled={!selectedDate || !selectedTime}
+            style={[styles.timeSlot, selectedTime === '9:00 AM' && styles.selectedTimeSlot]}
+            onPress={() => setSelectedTime('9:00 AM')}
           >
-            <Text style={styles.continueButtonText}>Continue</Text>
+            <Text style={styles.timeSlotText}>9:00 AM</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.timeSlot, selectedTime === '10:00 AM' && styles.selectedTimeSlot]}
+            onPress={() => setSelectedTime('10:00 AM')}
+          >
+            <Text style={styles.timeSlotText}>10:00 AM</Text>
           </TouchableOpacity>
         </View>
+        <Text style={styles.timeSlotTitle}>Afternoon</Text>
+        <View style={styles.timeSlotContainer}>
+          <TouchableOpacity
+            style={[styles.timeSlot, selectedTime === '2:00 PM' && styles.selectedTimeSlot]}
+            onPress={() => setSelectedTime('2:00 PM')}
+          >
+            <Text style={styles.timeSlotText}>2:00 PM</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.timeSlot, selectedTime === '3:00 PM' && styles.selectedTimeSlot]}
+            onPress={() => setSelectedTime('3:00 PM')}
+          >
+            <Text style={styles.timeSlotText}>3:00 PM</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.timeSlot, selectedTime === '4:00 PM' && styles.selectedTimeSlot]}
+            onPress={() => setSelectedTime('4:00 PM')}
+          >
+            <Text style={styles.timeSlotText}>4:00 PM</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Continue Button */}
+      <TouchableOpacity
+        style={[styles.continueButton, (!selectedDate || !selectedTime) && styles.disabledButton]}
+        onPress={handleContinue}
+        disabled={!selectedDate || !selectedTime}
+      >
+        <Text style={styles.continueButtonText}>Continue</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
 
+const circleSize = 40;
+
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     padding: 20,
     backgroundColor: '#fff',
+  },
+  header: {
+    alignItems: 'center',
   },
   title: {
     fontSize: 24,
@@ -90,6 +293,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     marginBottom: 20,
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  toggleText: {
+    fontSize: 16,
+    marginRight: 10,
   },
   calendar: {
     marginBottom: 20,
@@ -116,14 +328,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   selectedTimeSlot: {
-    backgroundColor: '#e0f7fa',
-    borderColor: '#00bcd4',
+    backgroundColor: 'rgba(30, 168, 150, 0.2)',
+    borderColor: '#1EA896',
   },
   timeSlotText: {
     fontSize: 16,
   },
   continueButton: {
-    backgroundColor: '#00bcd4',
+    backgroundColor: '#1EA896',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -134,5 +346,30 @@ const styles = StyleSheet.create({
   continueButtonText: {
     color: '#fff',
     fontSize: 18,
+  },
+  stepIndicator: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '80%',
+    marginBottom: 20,
+  },
+  stepCircle: {
+    width: circleSize,
+    height: circleSize,
+    borderRadius: circleSize / 2,
+    backgroundColor: '#EEE',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  activeStepCircle: {
+    backgroundColor: '#1EA896',
+  },
+  stepNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  activeStepNumber: {
+    color: '#fff',
   },
 });

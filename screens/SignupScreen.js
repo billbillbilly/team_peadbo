@@ -9,11 +9,13 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
-import { signIn } from '../AuthManager';
+import { signUp } from '../AuthManager'; // Ensure this handles user creation
 
-const LoginScreen = ({ navigation }) => {
+const SignupScreen = ({ navigation }) => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
 
@@ -22,9 +24,9 @@ const LoginScreen = ({ navigation }) => {
     return emailRegex.test(email);
   };
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please enter both email and password');
+  const handleSignup = async () => {
+    if (!name || !email || !password || !confirmPassword) {
+      Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
@@ -33,14 +35,25 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters long');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await signIn(email, password);
-      navigation.replace('Home'); // Redirect to HomeScreen after successful login
+      await signUp(name, email, password);
+      Alert.alert('Success', 'Account created successfully');
+      navigation.replace('Home'); // Redirect to HomeScreen
     } catch (error) {
       console.error(error);
-      Alert.alert('Login failed', error.message || 'Invalid email or password');
+      Alert.alert('Signup failed', error.message || 'Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -50,12 +63,20 @@ const LoginScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.backgroundOverlay} />
 
-      {/* App Logo */}
+      {/* Logo */}
       <Image source={require('../assets/Peadbo_Standard_Logo.png')} style={styles.logo} />
 
-      {/* Login Form */}
-      <View style={styles.loginBox}>
-        <Text style={styles.title}>Login</Text>
+      {/* Signup Form */}
+      <View style={styles.signupBox}>
+        <Text style={styles.title}>Create A New Peadbo Account</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Full Name"
+          value={name}
+          onChangeText={setName}
+          autoCapitalize="words"
+        />
 
         <TextInput
           style={styles.input}
@@ -80,31 +101,27 @@ const LoginScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Forgot Password */}
-        <View style={styles.forgotPasswordContainer}>
-          <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-            <Text style={styles.link}>Forgot Password?</Text>
-          </TouchableOpacity>
-        </View>
+        <TextInput
+          style={styles.input}
+          placeholder="Confirm Password"
+          secureTextEntry
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          autoCapitalize="none"
+        />
 
-        {/* Login Button */}
+        {/* Signup Button */}
         <TouchableOpacity
           style={[styles.button, loading && styles.disabledButton]}
-          onPress={handleLogin}
+          onPress={handleSignup}
           disabled={loading}
         >
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Login</Text>}
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign Up</Text>}
         </TouchableOpacity>
 
-        {/* Google Sign-in Button */}
-        <TouchableOpacity style={styles.googleButton} onPress={() => console.log('Google Sign-In pressed')}>
-          <Image source={require('../assets/icon.png')} style={styles.googleIcon} />
-          <Text style={styles.googleButtonText}>Sign in with Google</Text>
-        </TouchableOpacity>
-
-        {/* Sign Up Navigation */}
-        <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-          <Text style={styles.signUpText}>Don't have an account? <Text style={styles.link}>Sign Up</Text></Text>
+        {/* Back to Login */}
+        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+          <Text style={styles.loginText}>Already have an account? <Text style={styles.link}>Login</Text></Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -131,7 +148,7 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginBottom: 50,
   },
-  loginBox: {
+  signupBox: {
     width: '90%',
     backgroundColor: '#FFFFFF',
     borderRadius: 10,
@@ -148,6 +165,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     color: '#333',
+    textAlign: 'center',
   },
   input: {
     width: '100%',
@@ -178,11 +196,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     color: '#777',
   },
-  forgotPasswordContainer: {
-    width: '100%',
-    alignItems: 'flex-end',
-    marginBottom: 15,
-  },
   button: {
     width: '100%',
     height: 45,
@@ -200,28 +213,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  googleButton: {
-    flexDirection: 'row',
-    width: '100%',
-    height: 45,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 5,
-    marginTop: 10,
-  },
-  googleIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 10,
-  },
-  googleButtonText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  signUpText: {
+  loginText: {
     marginTop: 15,
     color: '#777',
   },
@@ -231,4 +223,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginScreen;
+export default SignupScreen;

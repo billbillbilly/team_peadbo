@@ -1,4 +1,3 @@
-
 import { getAuth, createUserWithEmailAndPassword, 
   signInWithEmailAndPassword,
   updateProfile,

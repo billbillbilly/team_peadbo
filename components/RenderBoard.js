@@ -1,13 +1,18 @@
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useDispatch } from 'react-redux';
 
-const renderBoard = (props) => {
+const RenderBoard = (props) => {
   const { item, navigation } = props;
   return (
     <View style={styles.boardCard}>
       <View style={styles.boardHeader}>
-        <Text style={styles.boardTitle}>{item.title}</Text>
-        <Text style={[styles.boardType, item.type=="Personal"? {}:{backgroundColor:"#e7c2ff"}]}>{item.type}</Text>
+        <View style={styles.boardHeader}>
+          <Text style={styles.boardTitle}>{item.title}</Text>
+          <Text style={[styles.boardType, item.type=="Personal"? {}:{backgroundColor:"#e7c2ff"}]}>{item.type}</Text>
+        </View>
+        <TouchableOpacity onPress={() => navigation.navigate('BoardDetail', { board: item })}>
+          <Text>...</Text>
+        </TouchableOpacity>
       </View>
       <Text style={styles.boardDescription}>{item.description}</Text>
       <View style={styles.userImages}>
@@ -42,6 +47,7 @@ const styles = StyleSheet.create({
   boardTitle: {
     fontSize: 16,
     fontWeight: 'bold',
+    marginRight: 15,
   },
   boardType: {
     backgroundColor: '#f7ed92',
@@ -67,4 +73,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default renderBoard;
+export default RenderBoard;

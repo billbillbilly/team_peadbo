@@ -1,66 +1,210 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList } from 'react-native';
-
-const advisors = [
-  { id: 1, name: 'David Carter', expertise: 'Design, Project, Leadership', experience: '8 Years Experience' },
-  { id: 2, name: 'Sophia Bennett', expertise: 'Advisor, Networking', experience: '7 Years Experience' },
-  { id: 3, name: 'Emma Hayes', expertise: 'Design, Project, Leadership', experience: '6 Years Experience' },
-];
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Modal, Platform } from 'react-native';
+import * as Contacts from 'expo-contacts';
+import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 export default function PickAdvisorsScreen({ navigation, route }) {
   const { focus, boardName, description } = route.params;
   const [selectedAdvisors, setSelectedAdvisors] = useState([]);
+  const [contacts, setContacts] = useState([]);
+  const [showContacts, setShowContacts] = useState(false);
 
-  const handleContinue = () => {
-    navigation.navigate('CreateInvitationScreen', { focus, boardName, description, advisors: selectedAdvisors });
-  };
+  const firstNameRef = useRef('');
+  const lastNameRef = useRef('');
+  const emailRef = useRef('');
 
-  const toggleAdvisor = (advisor) => {
-    if (selectedAdvisors.includes(advisor)) {
-      setSelectedAdvisors(selectedAdvisors.filter((a) => a.id !== advisor.id));
-    } else {
-      setSelectedAdvisors([...selectedAdvisors, advisor]);
+  useEffect(() => {
+    const requestPermission = async () => {
+      const { status } = await Contacts.requestPermissionsAsync();
+      if (status === 'granted') {
+        loadContacts();
+      } else {
+        console.log('Permission denied');
+      }
+    };
+
+    requestPermission();
+  }, []);
+
+  const loadContacts = async () => {
+    const { data } = await Contacts.getContactsAsync({
+      fields: [Contacts.Fields.Emails],
+    });
+
+    if (data.length > 0) {
+      setContacts(data);
+      console.log('Contacts loaded:', data);
     }
   };
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Pick Your Advisors</Text>
-      <FlatList
-        data={advisors}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[styles.advisorItem, selectedAdvisors.includes(item) && styles.selectedAdvisor]}
-            onPress={() => toggleAdvisor(item)}
-          >
-            <Text style={styles.advisorName}>{item.name}</Text>
-            <Text style={styles.advisorExpertise}>{item.expertise}</Text>
-            <Text style={styles.advisorExperience}>{item.experience}</Text>
-          </TouchableOpacity>
-        )}
-      />
+  const handleContinue = () => {
+    navigation.navigate('CreateInvitationScreen', { focus, boardName, description, advisors: selectedAdvisors, firstName: firstNameRef.current, lastName: lastNameRef.current, email: emailRef.current });
+  };
+
+  const selectContact = (contact) => {
+    setSelectedAdvisors([...selectedAdvisors, contact]);
+    setShowContacts(false);
+  };
+
+  const handleAddAdvisor = () => {
+    const newAdvisor = {
+      id: Date.now().toString(),
+      name: `${firstNameRef.current} ${lastNameRef.current}`,
+      emails: [{ email: emailRef.current }],
+    };
+    setSelectedAdvisors([...selectedAdvisors, newAdvisor]);
+    firstNameRef.current = '';
+    lastNameRef.current = '';
+    emailRef.current = '';
+  };
+
+  const renderHeader = () => (
+    <View>
+      <View style={styles.header}>
+        <Text style={styles.title}>Pick Your Advisors</Text>
+        <View style={styles.stepIndicator}>
+          {[1, 2, 3, 4, 5].map((step) => (
+            <View
+              key={step}
+              style={[styles.stepCircle, step === 3 && styles.activeStepCircle]}
+            >
+              <Text style={[styles.stepNumber, step === 3 && styles.activeStepNumber]}>
+                {step}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </View>
       <TouchableOpacity
-        style={[styles.continueButton, selectedAdvisors.length === 0 && styles.disabledButton]}
-        onPress={handleContinue}
-        disabled={selectedAdvisors.length === 0}
+        style={styles.addButton}
+        onPress={() => setShowContacts(true)}
       >
-        <Text style={styles.continueButtonText}>Continue</Text>
+        <Text style={styles.addButtonText}>Add Advisor from Contacts</Text>
       </TouchableOpacity>
+      <Modal
+        visible={showContacts}
+        animationType="slide"
+        onRequestClose={() => setShowContacts(false)}
+      >
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Select a Contact</Text>
+          <FlatList
+            data={contacts}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.contactItem}
+                onPress={() => selectContact(item)}
+              >
+                <Text style={styles.contactName}>
+                  {item.name}
+                </Text>
+                <Text style={styles.contactEmail}>
+                  {item.emails && item.emails.length > 0 ? item.emails[0].email : 'No Email'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setShowContacts(false)}
+          >
+            <Text style={styles.closeButtonText}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+      <View style={styles.footerContainer}>
+        <Text style={styles.subtitle}>Or enter their information manually:</Text>
+        <View style={styles.nameContainer}>
+          <TextInput
+            style={[styles.input, styles.halfInput]}
+            placeholder="First Name"
+            defaultValue={firstNameRef.current}
+            onChangeText={(text) => (firstNameRef.current = text)}
+          />
+          <TextInput
+            style={[styles.input, styles.halfInput]}
+            placeholder="Last Name"
+            defaultValue={lastNameRef.current}
+            onChangeText={(text) => (lastNameRef.current = text)}
+          />
+        </View>
+        <View style={styles.emailContainer}>
+          <TextInput
+            style={[styles.input, styles.emailInput]}
+            placeholder="Email"
+            defaultValue={emailRef.current}
+            onChangeText={(text) => (emailRef.current = text)}
+            keyboardType="email-address"
+          />
+          <TouchableOpacity style={styles.addIcon} onPress={handleAddAdvisor}>
+            <Icon name="add-circle-outline" size={30} color="#1EA896" />
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
+  );
+
+  const renderFooter = () => (
+    <TouchableOpacity
+      style={[styles.continueButton, selectedAdvisors.length === 0 && styles.disabledButton]}
+      onPress={handleContinue}
+      disabled={selectedAdvisors.length === 0}
+    >
+      <Text style={styles.continueButtonText}>Continue</Text>
+    </TouchableOpacity>
+  );
+
+  return (
+    <KeyboardAwareFlatList
+      data={selectedAdvisors}
+      keyExtractor={(item) => item.id.toString()}
+      ListHeaderComponent={renderHeader}
+      ListFooterComponent={renderFooter}
+      renderItem={({ item }) => (
+        <View style={styles.advisorItem}>
+          <Text style={styles.advisorName}>
+            {item.name}
+          </Text>
+          <Text style={styles.advisorEmail}>
+            {item.emails && item.emails.length > 0 ? item.emails[0].email : 'No Email'}
+          </Text>
+        </View>
+      )}
+    />
   );
 }
 
+const circleSize = 40;
+
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     padding: 20,
     backgroundColor: '#fff',
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 20,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+  },
+  addButton: {
+    backgroundColor: '#1EA896',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 40,
+    width: '95%',
+    alignSelf: 'center',
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 18,
   },
   advisorItem: {
     padding: 15,
@@ -68,33 +212,136 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 10,
     marginBottom: 10,
-  },
-  selectedAdvisor: {
-    backgroundColor: '#e0f7fa',
-    borderColor: '#00bcd4',
+    alignSelf: 'center',
+    width: '95%',
   },
   advisorName: {
     fontSize: 18,
     fontWeight: 'bold',
+    alignSelf: 'center',
   },
-  advisorExpertise: {
+  advisorEmail: {
     fontSize: 16,
     color: '#666',
+    alignSelf: 'center',
   },
-  advisorExperience: {
-    fontSize: 14,
-    color: '#999',
+  nameContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '95%',
+    alignSelf: 'center',
+  },
+  emailContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '95%',
+    alignSelf: 'center',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 10,
+    fontSize: 16,
+    alignSelf: 'center',
+  },
+  halfInput: {
+    flex: 1,
+    margin: 2.5,
+  },
+  emailInput: {
+    flex: 1,
+    marginRight: 10,
+  },
+  addIcon: {
+    padding: 5,
   },
   continueButton: {
-    backgroundColor: '#00bcd4',
+    backgroundColor: '#1EA896',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
+    width: '95%',
+    alignSelf: 'center',
   },
   disabledButton: {
     backgroundColor: '#ccc',
   },
   continueButtonText: {
+    color: '#fff',
+    fontSize: 18,
+  },
+  stepIndicator: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '80%',
+    marginBottom: 20,
+  },
+  stepCircle: {
+    width: circleSize,
+    height: circleSize,
+    borderRadius: circleSize / 2,
+    backgroundColor: '#EEE',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  activeStepCircle: {
+    backgroundColor: '#1EA896',
+  },
+  stepNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  activeStepNumber: {
+    color: '#fff',
+  },
+  contactItem: {
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  contactName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  contactEmail: {
+    fontSize: 16,
+    color: '#666',
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    marginTop: 50,
+    alignSelf: 'center',
+  },
+  footerContainer: {
+    width: '100%',
+    alignSelf: 'center',
+  },
+  modalContainer: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#fff',
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  closeButton: {
+    backgroundColor: '#1EA896',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  closeButtonText: {
     color: '#fff',
     fontSize: 18,
   },

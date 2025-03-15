@@ -2,7 +2,11 @@ import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, View, FlatList, TouchableOpacity, Text, TextInput } from "react-native";
 import { userSlice } from '../Reducer';
-import renderBoard from "../components/renderBoard";
+import RenderBoard from "../components/RenderBoard";
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import { app } from '../Secrets';
+
+const db = getFirestore(app);
 
 
 function HomeScreen(props) {
@@ -29,6 +33,16 @@ function HomeScreen(props) {
       },
     ];
 
+    // Fetch boards from Firestore
+  useEffect(() => {
+    const fetchBoards = async () => {
+      const querySnapshot = await getDocs(collection(db, 'boards'));
+      const boardsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setBoards(boardsData);
+    };
+    fetchBoards();
+  }, []);
+
     // useEffect(() => {
     //     if (currentUser.key) {
     //       dispatch(fetchUserBoardsThunk(currentUser.key));
@@ -51,7 +65,7 @@ function HomeScreen(props) {
           <FlatList
             data={boards}
             scrollEnabled={false}
-            renderItem={renderBoard}
+            renderItem={({ item }) => <RenderBoard item={item} navigation={navigation} />}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.listContent}
           />
@@ -68,7 +82,7 @@ function HomeScreen(props) {
           <FlatList
             data={boards}
             scrollEnabled={false}
-            renderItem={renderBoard}
+            renderItem={({ item }) => <RenderBoard item={item} navigation={navigation} />}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.listContent}
           />
@@ -89,6 +103,7 @@ function HomeScreen(props) {
       padding: 10,
       borderBottomColor: '#DDD',
       paddingBottom: 0,
+      marginTop: 50
     },
     scrollContent: {
       flex: 1,
@@ -129,4 +144,4 @@ function HomeScreen(props) {
     },
   });
   
-  export default HomeScreen;
+export default HomeScreen;
