@@ -21,6 +21,7 @@ import CreateInvitationScreen from './screens/Board_Creation_Screens/CreateInvit
 import TimeAvailabilityScreen from './screens/Board_Creation_Screens/TimeAvailabilityScreen';
 import Review from './screens/Board_Creation_Screens/ReviewScreen';
 
+import ProfileScreen from './screens/ProfileScreens/ProfileScreen';
 import SettingsScreen from './screens/ProfileScreens/SettingsScreen';
 import NotificationScreen from './screens/ProfileScreens/NotificationScreen';
 import UpgradePlanScreen from './screens/ProfileScreens/UpgradePlanScreen';
@@ -168,13 +169,14 @@ const UserTabStack = (props) => {
     const dispatch = useDispatch();
   
     return (
-        <Stack.Navigator initialRouteName='Settings' screenOptions={{ 
+        <Stack.Navigator initialRouteName='Profile' screenOptions={{ 
             headerShown: true, 
             headerTitle: '',
             headerStyle: {
                 backgroundColor: '#F9F9F9',
             },
         }}>
+            <Stack.Screen name='Profile' component={ProfileScreen}/>
             <Stack.Screen name='Settings' component={SettingsScreen}/>
             <Stack.Screen name='Notifications' component={NotificationScreen}/>
             <Stack.Screen name='UpgradePlan' component={UpgradePlanScreen} />
