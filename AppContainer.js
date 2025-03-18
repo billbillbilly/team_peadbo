@@ -20,6 +20,15 @@ import FocusScreen from './screens/Board_Creation_Screens/FocusScreen';
 import CreateInvitationScreen from './screens/Board_Creation_Screens/CreateInvitationScreen';
 import TimeAvailabilityScreen from './screens/Board_Creation_Screens/TimeAvailabilityScreen';
 import Review from './screens/Board_Creation_Screens/ReviewScreen';
+
+import ProfileScreen from './screens/ProfileScreens/ProfileScreen';
+import SettingsScreen from './screens/ProfileScreens/SettingsScreen';
+import NotificationScreen from './screens/ProfileScreens/NotificationScreen';
+import UpgradePlanScreen from './screens/ProfileScreens/UpgradePlanScreen';
+import BillingScreen from './screens/ProfileScreens/BillingScreen';
+import FAQScreen from './screens/ProfileScreens/FAQScreen';
+import ContactSupportScreen from './screens/ProfileScreens/ContactSupportScreen';
+
 import SendNotificationScreen from './screens/Board_Creation_Screens/SendNotificationScreen';
 
 import BoardDetailScreen from './screens/Board_Detail_Screens/BoardDetailScreen';
@@ -55,8 +64,6 @@ const BoardCreationStack = (props) => {
         </Stack.Navigator>
     )
 }
-
-
 
 // Onboarding Stack
 const OnboardingStack = (props) => {
@@ -155,21 +162,27 @@ const NewsTabStack = (props) => {
     )
 }
 
-// User Tab Stack
+// User Tab Stack (Updated with Profile Screen, but commented out Settings/Notifications/Preferences)
 const UserTabStack = (props) => {
     const Stack = createNativeStackNavigator();
     const { navigation, route } = props;
     const dispatch = useDispatch();
   
     return (
-        <Stack.Navigator initialRouteName='Usersettings' screenOptions={{ 
+        <Stack.Navigator initialRouteName='Profile' screenOptions={{ 
             headerShown: true, 
             headerTitle: '',
             headerStyle: {
                 backgroundColor: '#F9F9F9',
             },
         }}>
-            <Stack.Screen name='Usersettings' component={HomeScreen} options={{ headerShown: false}}/>
+            <Stack.Screen name='Profile' component={ProfileScreen}/>
+            <Stack.Screen name='Settings' component={SettingsScreen}/>
+            <Stack.Screen name='Notifications' component={NotificationScreen}/>
+            <Stack.Screen name='UpgradePlan' component={UpgradePlanScreen} />
+            <Stack.Screen name='Billing' component={BillingScreen} />
+            <Stack.Screen name='FAQ' component={FAQScreen} />
+            <Stack.Screen name='ContactSupport' component={ContactSupportScreen} />
         </Stack.Navigator>
     )
 }
@@ -188,13 +201,25 @@ const DynamicTabsNavigator = () => {
           <Tabs.Screen
               name="Login"
               component={LoginScreen}
-              options={{  tabBarButton: () => null }}
+              options={{  tabBarIcon: ({ color, size }) => (
+                <Icon name="home" type="font-awesome" color={color} size={size} />
+            ), }}
+          />
+
+<Tabs.Screen
+              name="Signup"
+              component={SignupScreen}
+              options={{  tabBarIcon: ({ color, size }) => (
+                <Icon name="home" type="font-awesome" color={color} size={size} />
+            ), }}
           />
   
           <Tabs.Screen
-              name="Signup"
-              component={SignupScreen}
-              options={{  tabBarButton: () => null }}
+              name="NewUserOnboarding"
+                component={OnboardingStack}
+                options={{ tabBarIcon: ({ color, size }) => (
+                    <Icon name="home" type="font-awesome" color={color} size={size} />
+                ), }}
           />
 
           <Tabs.Screen
@@ -238,9 +263,6 @@ const DynamicTabsNavigator = () => {
 };
 
 const AppContainer = () => {
-    const dispatch = useDispatch();
-    const Tabs = createBottomTabNavigator();
-
     return(
         <Provider store={store}>
         <NavigationContainer>
