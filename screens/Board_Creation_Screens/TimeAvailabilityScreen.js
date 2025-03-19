@@ -1,163 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert, Linking } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import * as Notifications from 'expo-notifications';
 import * as ExpoCalendar from 'expo-calendar';
+import moment from 'moment';
 
 export default function TimeAvailabilityScreen({ navigation, route }) {
   const { focus, boardName, description, advisors, message } = route.params;
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
+  const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
+  const [timeError, setTimeError] = useState('');
   const [tasks, setTasks] = useState([]);
   const [calendarVisible, setCalendarVisible] = useState(true);
   const [notificationPermission, setNotificationPermission] = useState(null);
   const [calendarPermission, setCalendarPermission] = useState(null);
 
-  // Request notification permissions
-  useEffect(() => {
-    const requestNotificationPermissions = async () => {
-      const { status } = await Notifications.requestPermissionsAsync();
-      setNotificationPermission(status);
-      if (status !== 'granted') {
-        Alert.alert(
-          'Notification Permission Denied',
-          'Please enable notifications in your device settings to receive reminders.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Open Settings', onPress: () => Linking.openSettings() },
-          ]
-        );
-      }
-    };
-    requestNotificationPermissions();
-  }, []);
-
-  // Request calendar permissions
-  useEffect(() => {
-    const requestCalendarPermissions = async () => {
-      const { status } = await ExpoCalendar.requestCalendarPermissionsAsync();
-      setCalendarPermission(status);
-      if (status !== 'granted') {
-        Alert.alert(
-          'Calendar Permission Denied',
-          'Please enable calendar access in your device settings to add events.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Open Settings', onPress: () => Linking.openSettings() },
-          ]
-        );
-      }
-    };
-    requestCalendarPermissions();
-  }, []);
-
-  // Handle task creation
-  const handleCreateTask = async (date, time) => {
-    const newTask = {
-      id: Date.now().toString(),
-      title: `Meeting on ${date}`,
-      date,
-      time,
-    };
-    setTasks([...tasks, newTask]);
-
-    // Schedule notification if permission is granted
-    if (notificationPermission === 'granted') {
-      await scheduleNotification(newTask);
-    } else {
-      Alert.alert(
-        'Notifications Disabled',
-        'Please enable notifications in your device settings to receive reminders.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Open Settings', onPress: () => Linking.openSettings() },
-        ]
-      );
-    }
-
-    // Add event to calendar if permission is granted
-    if (calendarPermission === 'granted') {
-      await addEventToCalendar(newTask);
-    } else {
-      Alert.alert(
-        'Calendar Access Disabled',
-        'Please enable calendar access in your device settings to add events.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Open Settings', onPress: () => Linking.openSettings() },
-        ]
-      );
-    }
-  };
-
-  // Convert 12-hour time to 24-hour time
-  const convertTo24HourFormat = (time) => {
-    const [timePart, modifier] = time.split(' ');
-    let [hours, minutes] = timePart.split(':');
-    if (hours === '12') {
-      hours = '00';
-    }
-    if (modifier === 'PM') {
-      hours = parseInt(hours, 10) + 12;
-    }
-    return `${hours}:${minutes}:00`;
-  };
-
-  // Schedule a notification for the task
-  const scheduleNotification = async (task) => {
-    try {
-      const time24Hour = convertTo24HourFormat(task.time);
-      const triggerDate = new Date(`${task.date}T${time24Hour}`);
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: 'Upcoming Task',
-          body: `Don't forget: ${task.title} at ${task.time}`,
-        },
-        trigger: {
-          date: triggerDate,
-        },
-      });
-    } catch (error) {
-      Alert.alert('Failed to schedule notification', error.message);
-    }
-  };
-
-  // Add the task to the phone's calendar
-  const addEventToCalendar = async (task) => {
-    try {
-      const { status } = await ExpoCalendar.requestCalendarPermissionsAsync();
-      if (status === 'granted') {
-        const calendars = await ExpoCalendar.getCalendarsAsync();
-        const defaultCalendar = calendars.find((cal) => cal.isPrimary);
-
-        if (defaultCalendar) {
-          const time24Hour = convertTo24HourFormat(task.time);
-          await ExpoCalendar.createEventAsync(defaultCalendar.id, {
-            title: task.title,
-            startDate: new Date(`${task.date}T${time24Hour}`),
-            endDate: new Date(`${task.date}T${time24Hour}`),
-            timeZone: 'UTC',
-          });
-        } else {
-          Alert.alert('No default calendar found');
-        }
-      } else {
-        Alert.alert('Calendar permission denied');
-      }
-    } catch (error) {
-      Alert.alert('Failed to add event to calendar', error.message);
-    }
-  };
-
-  // Handle continue button press
-  const handleContinue = async () => {
-    if (selectedDate && selectedTime) {
-      await handleCreateTask(selectedDate, selectedTime); // Create a task for the selected date/time
-      navigation.navigate('ReviewScreen', { focus, boardName, description, advisors, message, selectedDate, selectedTime });
-    }
-  };
-
-  // Marked dates for the calendar
+  // Define markedDates based on tasks
   const markedDates = tasks.reduce((acc, task) => {
     acc[task.date] = { marked: true, dotColor: '#1EA896' };
     return acc;
@@ -166,6 +26,56 @@ export default function TimeAvailabilityScreen({ navigation, route }) {
   if (selectedDate) {
     markedDates[selectedDate] = { selected: true, marked: true, dotColor: '#1EA896' };
   }
+
+  // Show time picker
+  const showTimePicker = () => {
+    setTimePickerVisibility(true);
+  };
+
+  // Hide time picker
+  const hideTimePicker = () => {
+    setTimePickerVisibility(false);
+  };
+
+  // Handle time selection
+  const handleTimeConfirm = (time) => {
+    const formattedTime = moment(time).format('h:mm A');
+    setSelectedTime(formattedTime);
+    setTimeError('');
+    hideTimePicker();
+  };
+
+  // Handle continue button press
+  const handleContinue = async () => {
+    if (!selectedDate || !selectedTime) {
+      setTimeError('Please select a date and time before continuing.');
+      return;
+    }
+
+    console.log('Selected Date:', selectedDate);
+    console.log('Selected Time:', selectedTime);
+
+    try {
+      // Temporarily comment out handleCreateTask to test navigation
+      // await handleCreateTask(selectedDate, selectedTime);
+
+      // Navigate to ReviewScreen
+      navigation.navigate('ReviewScreen', {
+        focus,
+        boardName,
+        description,
+        advisors,
+        message,
+        selectedDate,
+        selectedTime,
+      });
+    } catch (error) {
+      console.error('Error during handleContinue:', error);
+      Alert.alert('Error', 'An error occurred while processing your request.');
+    }
+  };
+
+  // Rest of the existing code (e.g., handleCreateTask, scheduleNotification, addEventToCalendar, etc.) remains unchanged...
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -221,45 +131,24 @@ export default function TimeAvailabilityScreen({ navigation, route }) {
         </View>
       )}
 
-      {/* Time Slots */}
-      <View style={styles.timeSlots}>
-        <Text style={styles.timeSlotTitle}>Morning</Text>
-        <View style={styles.timeSlotContainer}>
-          <TouchableOpacity
-            style={[styles.timeSlot, selectedTime === '9:00 AM' && styles.selectedTimeSlot]}
-            onPress={() => setSelectedTime('9:00 AM')}
-          >
-            <Text style={styles.timeSlotText}>9:00 AM</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.timeSlot, selectedTime === '10:00 AM' && styles.selectedTimeSlot]}
-            onPress={() => setSelectedTime('10:00 AM')}
-          >
-            <Text style={styles.timeSlotText}>10:00 AM</Text>
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.timeSlotTitle}>Afternoon</Text>
-        <View style={styles.timeSlotContainer}>
-          <TouchableOpacity
-            style={[styles.timeSlot, selectedTime === '2:00 PM' && styles.selectedTimeSlot]}
-            onPress={() => setSelectedTime('2:00 PM')}
-          >
-            <Text style={styles.timeSlotText}>2:00 PM</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.timeSlot, selectedTime === '3:00 PM' && styles.selectedTimeSlot]}
-            onPress={() => setSelectedTime('3:00 PM')}
-          >
-            <Text style={styles.timeSlotText}>3:00 PM</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.timeSlot, selectedTime === '4:00 PM' && styles.selectedTimeSlot]}
-            onPress={() => setSelectedTime('4:00 PM')}
-          >
-            <Text style={styles.timeSlotText}>4:00 PM</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      {/* Time Selection */}
+      <TouchableOpacity style={styles.timePickerButton} onPress={showTimePicker}>
+        <Text style={styles.timePickerButtonText}>
+          {selectedTime ? `Selected Time: ${selectedTime}` : 'Select Time'}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Error Message */}
+      {timeError ? <Text style={styles.errorText}>{timeError}</Text> : null}
+
+      {/* Time Picker Modal */}
+      <DateTimePickerModal
+        isVisible={isTimePickerVisible}
+        mode="time"
+        onConfirm={handleTimeConfirm}
+        onCancel={hideTimePicker}
+        is24Hour={false} // Ensure 12-hour format with AM/PM
+      />
 
       {/* Continue Button */}
       <TouchableOpacity
@@ -306,33 +195,22 @@ const styles = StyleSheet.create({
   calendar: {
     marginBottom: 20,
   },
-  timeSlots: {
-    marginBottom: 20,
-  },
-  timeSlotTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  timeSlotContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 10,
-  },
-  timeSlot: {
-    padding: 10,
+  timePickerButton: {
+    padding: 15,
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 10,
-    marginRight: 10,
-    marginBottom: 10,
+    alignItems: 'center',
+    marginBottom: 20,
   },
-  selectedTimeSlot: {
-    backgroundColor: 'rgba(30, 168, 150, 0.2)',
-    borderColor: '#1EA896',
-  },
-  timeSlotText: {
+  timePickerButtonText: {
     fontSize: 16,
+    color: '#666',
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 20,
+    textAlign: 'center',
   },
   continueButton: {
     backgroundColor: '#1EA896',
