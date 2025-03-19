@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Modal, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Modal } from 'react-native';
 import * as Contacts from 'expo-contacts';
-import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 export default function PickAdvisorsScreen({ navigation, route }) {
   const { focus, boardName, description } = route.params;
   const [selectedAdvisors, setSelectedAdvisors] = useState([]);
   const [contacts, setContacts] = useState([]);
+  const [filteredContacts, setFilteredContacts] = useState([]);
   const [showContacts, setShowContacts] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   const firstNameRef = useRef('');
   const lastNameRef = useRef('');
@@ -34,12 +36,17 @@ export default function PickAdvisorsScreen({ navigation, route }) {
 
     if (data.length > 0) {
       setContacts(data);
-      console.log('Contacts loaded:', data);
+      setFilteredContacts(data); // Initialize filteredContacts with all contacts
     }
   };
 
-  const handleContinue = () => {
-    navigation.navigate('CreateInvitationScreen', { focus, boardName, description, advisors: selectedAdvisors, firstName: firstNameRef.current, lastName: lastNameRef.current, email: emailRef.current });
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    const filtered = contacts.filter((contact) => {
+      const contactName = contact.name ? contact.name.toLowerCase() : '';
+      return contactName.includes(query.toLowerCase());
+    });
+    setFilteredContacts(filtered);
   };
 
   const selectContact = (contact) => {
@@ -82,38 +89,6 @@ export default function PickAdvisorsScreen({ navigation, route }) {
       >
         <Text style={styles.addButtonText}>Add Advisor from Contacts</Text>
       </TouchableOpacity>
-      <Modal
-        visible={showContacts}
-        animationType="slide"
-        onRequestClose={() => setShowContacts(false)}
-      >
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Select a Contact</Text>
-          <FlatList
-            data={contacts}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.contactItem}
-                onPress={() => selectContact(item)}
-              >
-                <Text style={styles.contactName}>
-                  {item.name}
-                </Text>
-                <Text style={styles.contactEmail}>
-                  {item.emails && item.emails.length > 0 ? item.emails[0].email : 'No Email'}
-                </Text>
-              </TouchableOpacity>
-            )}
-          />
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setShowContacts(false)}
-          >
-            <Text style={styles.closeButtonText}>Close</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
       <View style={styles.footerContainer}>
         <Text style={styles.subtitle}>Or enter their information manually:</Text>
         <View style={styles.nameContainer}>
@@ -144,12 +119,20 @@ export default function PickAdvisorsScreen({ navigation, route }) {
         </View>
       </View>
     </View>
+    
   );
 
   const renderFooter = () => (
     <TouchableOpacity
       style={[styles.continueButton, selectedAdvisors.length === 0 && styles.disabledButton]}
-      onPress={handleContinue}
+      onPress={() =>
+        navigation.navigate('CreateInvitationScreen', {
+          focus,
+          boardName,
+          description,
+          advisors: selectedAdvisors,
+        })
+      }
       disabled={selectedAdvisors.length === 0}
     >
       <Text style={styles.continueButtonText}>Continue</Text>
@@ -157,22 +140,88 @@ export default function PickAdvisorsScreen({ navigation, route }) {
   );
 
   return (
-    <KeyboardAwareFlatList
-      data={selectedAdvisors}
-      keyExtractor={(item) => item.id.toString()}
-      ListHeaderComponent={renderHeader}
-      ListFooterComponent={renderFooter}
-      renderItem={({ item }) => (
-        <View style={styles.advisorItem}>
-          <Text style={styles.advisorName}>
-            {item.name}
-          </Text>
-          <Text style={styles.advisorEmail}>
-            {item.emails && item.emails.length > 0 ? item.emails[0].email : 'No Email'}
-          </Text>
+    <>
+      <FlatList
+        data={selectedAdvisors}
+        keyExtractor={(item) => item.id.toString()}
+        ListHeaderComponent={renderHeader}
+        ListFooterComponent={renderFooter}
+        renderItem={({ item }) => (
+          <View style={styles.advisorItem}>
+            <Text style={styles.advisorName}>{item.name}</Text>
+            <Text style={styles.advisorEmail}>
+              {item.emails && item.emails.length > 0 ? item.emails[0].email : 'No Email'}
+            </Text>
+          </View>
+        )}
+      />
+
+      {/* Contact Modal */}
+      <Modal
+        visible={showContacts}
+        animationType="slide"
+        onRequestClose={() => setShowContacts(false)}
+      >
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Select a Contact</Text>
+
+          {/* Search Bar */}
+          {isSearching ? (
+            <View style={styles.searchContainer}>
+              <TextInput
+                style={styles.searchBar}
+                placeholder="Search by name"
+                value={searchQuery}
+                onChangeText={handleSearch}
+              />
+              <TouchableOpacity
+                style={styles.cancelSearchButton}
+                onPress={() => {
+                  setIsSearching(false);
+                  setSearchQuery('');
+                  setFilteredContacts(contacts); // Reset to all contacts
+                }}
+              >
+                <Text style={styles.cancelSearchText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.searchButton}
+              onPress={() => setIsSearching(true)}
+            >
+              <Icon name="search" size={24} color="#fff" />
+              <Text style={styles.searchButtonText}>Search</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Contact List */}
+          <FlatList
+            data={filteredContacts}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.contactItem}
+                onPress={() => selectContact(item)}
+              >
+                <Text style={styles.contactName}>{item.name}</Text>
+                <Text style={styles.contactEmail}>
+                  {item.emails && item.emails.length > 0 ? item.emails[0].email : 'No Email'}
+                </Text>
+              </TouchableOpacity>
+            )}
+            keyboardShouldPersistTaps="handled"
+          />
+
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setShowContacts(false)}
+          >
+            <Text style={styles.closeButtonText}>Close</Text>
+          </TouchableOpacity>
         </View>
-      )}
-    />
+      </Modal>
+    </>
   );
 }
 
@@ -344,5 +393,39 @@ const styles = StyleSheet.create({
   closeButtonText: {
     color: '#fff',
     fontSize: 18,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  searchBar: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 10,
+    fontSize: 16,
+  },
+  cancelSearchButton: {
+    marginLeft: 10,
+    padding: 10,
+  },
+  cancelSearchText: {
+    color: '#1EA896',
+    fontSize: 16,
+  },
+  searchButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1EA896',
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  searchButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    marginLeft: 5,
   },
 });
