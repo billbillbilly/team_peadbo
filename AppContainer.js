@@ -10,6 +10,7 @@ import userSlice from './Reducer';
 
 import LoginScreen from './screens/LoginScreen';  // Import LoginScreen
 import HomeScreen from './screens/HomeScreen';
+import ContactsScreen from './screens/ContactsScreen';
 import SignupScreen from './screens/SignupScreen';
 import CommunicationStyleScreen from './screens/Onboarding_Screens/CommunicationStyleScreen';
 import PersonalInformationScreen from './screens/Onboarding_Screens/PersonalInformationScreen';
@@ -138,7 +139,7 @@ const ContactTabStack = (props) => {
                 backgroundColor: '#F9F9F9',
             },
         }}>
-            <Stack.Screen name='Contacts' component={HomeScreen}/>
+            <Stack.Screen name='Contacts' component={ContactsScreen} />
         </Stack.Navigator>
     )
 }
