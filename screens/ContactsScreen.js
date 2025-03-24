@@ -1,30 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, TouchableOpacity, Text, TextInput, StyleSheet, Modal } from "react-native";
+import { View, FlatList, TouchableOpacity, Text, TextInput, StyleSheet, Modal, Alert } from "react-native";
 import * as Contacts from 'expo-contacts';
-import Icon from 'react-native-vector-icons/Ionicons';
 
 function ContactsScreen({ navigation }) {
   // State for contacts and search
-  const [contacts, setContacts] = useState([]);
+  const [contacts, setContacts] = useState([]); // Start with an empty list
   const [filteredContacts, setFilteredContacts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [showAddContactModal, setShowAddContactModal] = useState(false);
+  const [showPhoneContactsModal, setShowPhoneContactsModal] = useState(false);
+  const [phoneContacts, setPhoneContacts] = useState([]);
 
-  // Fetch contacts from the device
+  // Request permission and load phone contacts
   useEffect(() => {
-    const fetchContacts = async () => {
+    const requestPermission = async () => {
       const { status } = await Contacts.requestPermissionsAsync();
       if (status === 'granted') {
-        const { data } = await Contacts.getContactsAsync({
-          fields: [Contacts.Fields.Emails],
-        });
-        setContacts(data);
-        setFilteredContacts(data); // Initialize filteredContacts with all contacts
+        loadPhoneContacts();
+      } else {
+        Alert.alert('Permission Denied', 'Cannot access phone contacts without permission.');
       }
     };
-    fetchContacts();
+
+    requestPermission();
   }, []);
+
+  const loadPhoneContacts = async () => {
+    const { data } = await Contacts.getContactsAsync({
+      fields: [Contacts.Fields.Emails],
+    });
+
+    if (data.length > 0) {
+      setPhoneContacts(data);
+    }
+  };
 
   // Handle search functionality
   const handleSearch = (query) => {
@@ -34,6 +44,23 @@ function ContactsScreen({ navigation }) {
       return contactName.includes(query.toLowerCase());
     });
     setFilteredContacts(filtered);
+  };
+
+  // Handle adding a new contact
+  const handleAddContact = (newContact) => {
+    setContacts([...contacts, newContact]);
+    setFilteredContacts([...contacts, newContact]); // Update filtered contacts
+    setShowAddContactModal(false); // Close the modal
+  };
+
+  // Handle selecting a contact from phone contacts
+  const selectPhoneContact = (contact) => {
+    const newContact = {
+      name: contact.name,
+      email: contact.emails && contact.emails.length > 0 ? contact.emails[0].email : 'No Email',
+    };
+    handleAddContact(newContact);
+    setShowPhoneContactsModal(false); // Close the modal
   };
 
   return (
@@ -54,16 +81,24 @@ function ContactsScreen({ navigation }) {
         <Text style={styles.addContactText}>+ Add Contact</Text>
       </TouchableOpacity>
 
+      {/* Add from Phone Contacts Button */}
+      <TouchableOpacity
+        style={styles.addContactButton}
+        onPress={() => setShowPhoneContactsModal(true)}
+      >
+        <Text style={styles.addContactText}>+ Add from Phone Contacts</Text>
+      </TouchableOpacity>
+
       {/* Contact List */}
       {filteredContacts.length > 0 ? (
         <FlatList
           data={filteredContacts}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => (
             <View style={styles.contactItem}>
               <Text style={styles.contactName}>{item.name}</Text>
               <Text style={styles.contactEmail}>
-                {item.emails && item.emails.length > 0 ? item.emails[0].email : 'No Email'}
+                {item.email ? item.email : 'No Email'}
               </Text>
             </View>
           )}
@@ -81,15 +116,81 @@ function ContactsScreen({ navigation }) {
       >
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Add a New Contact</Text>
-          {/* Add your form or logic for adding a new contact here */}
+          <AddContactForm onAddContact={handleAddContact} onClose={() => setShowAddContactModal(false)} />
+        </View>
+      </Modal>
+
+      {/* Phone Contacts Modal */}
+      <Modal
+        visible={showPhoneContactsModal}
+        animationType="slide"
+        onRequestClose={() => setShowPhoneContactsModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Select a Contact</Text>
+          <FlatList
+            data={phoneContacts}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.contactItem}
+                onPress={() => selectPhoneContact(item)}
+              >
+                <Text style={styles.contactName}>{item.name}</Text>
+                <Text style={styles.contactEmail}>
+                  {item.emails && item.emails.length > 0 ? item.emails[0].email : 'No Email'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
           <TouchableOpacity
             style={styles.closeButton}
-            onPress={() => setShowAddContactModal(false)}
+            onPress={() => setShowPhoneContactsModal(false)}
           >
             <Text style={styles.closeButtonText}>Close</Text>
           </TouchableOpacity>
         </View>
       </Modal>
+    </View>
+  );
+}
+
+// Component for adding a new contact manually
+function AddContactForm({ onAddContact, onClose }) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+
+  const handleSubmit = () => {
+    if (name.trim() === '') {
+      alert('Name is required');
+      return;
+    }
+    onAddContact({ name, email });
+    setName('');
+    setEmail('');
+  };
+
+  return (
+    <View>
+      <TextInput
+        style={styles.input}
+        placeholder="Name"
+        value={name}
+        onChangeText={setName}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+      />
+      <TouchableOpacity style={styles.addButton} onPress={handleSubmit}>
+        <Text style={styles.addButtonText}>Add Contact</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+        <Text style={styles.closeButtonText}>Close</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -153,16 +254,36 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
-  closeButton: {
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 10,
+    fontSize: 16,
+  },
+  addButton: {
     backgroundColor: '#1EA896',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
-    marginTop: 20,
+    marginBottom: 10,
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  closeButton: {
+    backgroundColor: '#ccc',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 10,
   },
   closeButtonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
   },
 });
 
