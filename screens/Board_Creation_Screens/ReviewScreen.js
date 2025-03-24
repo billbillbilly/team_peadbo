@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import moment from 'moment';
 
 export default function ReviewScreen({ navigation, route }) {
-  const { focus, boardName, description, advisors, selectedDate, selectedTime } = route.params;
+  const { focus, boardName, boardDescription, boardDuration, boardFrequency, advisors, selectedDate, selectedTime } = route.params;
   const [acknowledged, setAcknowledged] = useState(false);
 
   const handleConfirm = () => {
@@ -14,16 +15,25 @@ export default function ReviewScreen({ navigation, route }) {
     navigation.goBack();
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
+  // Format date and time
+  const formatDateTime = (dateString, timeString) => {
+    if (!dateString || !timeString) return '';
+    const date = moment(dateString).format('dddd, MMMM D, YYYY');
+    return `${date}, ${timeString}`;
   };
+
+  // Generate recurring meeting dates
+  const generateRecurringDates = (startDate, time, frequencyMonths = 3, totalMeetings = 4) => {
+    const dates = [];
+    for (let i = 0; i < totalMeetings; i++) {
+      const newDate = moment(startDate).add(i * frequencyMonths, 'months').format('dddd, MMMM D, YYYY');
+      dates.push(`${newDate}, ${time}`);
+    }
+    return dates;
+  };
+
+  // Get recurring meeting dates
+  const recurringDates = generateRecurringDates(selectedDate, selectedTime);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -53,57 +63,33 @@ export default function ReviewScreen({ navigation, route }) {
 
       <Text style={styles.subtitle}>Let's review your board settings before we create it.</Text>
 
+      {/* Board Name */}
       <View style={styles.detailSection}>
         <Text style={styles.sectionLabel}>Name</Text>
         <Text style={styles.sectionContent}>{boardName}</Text>
       </View>
 
+      {/* Board Description */}
       <View style={styles.detailSection}>
         <Text style={styles.sectionLabel}>Description</Text>
-        <Text style={styles.sectionContent}>{description}</Text>
+        <Text style={styles.sectionContent}>{boardDescription}</Text>
       </View>
 
+      {/* Board Focus */}
       <View style={styles.detailSection}>
         <Text style={styles.sectionLabel}>Focus</Text>
         <Text style={styles.sectionContent}>{focus}</Text>
       </View>
 
+      {/* Scheduled Meetings */}
       <View style={styles.detailSection}>
-        <Text style={styles.sectionLabel}>Scheduled Meetings (1 Year | Meeting Quarterly)</Text>
-        <Text style={styles.meetingDate}>{formatDate(selectedDate)}, {selectedTime}</Text>
-        {selectedDate && (
-          <>
-            <Text style={styles.meetingDate}>
-              {new Date(new Date(selectedDate).setMonth(new Date(selectedDate).getMonth() + 3))
-                .toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}, {selectedTime}
-            </Text>
-            <Text style={styles.meetingDate}>
-              {new Date(new Date(selectedDate).setMonth(new Date(selectedDate).getMonth() + 6))
-                .toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}, {selectedTime}
-            </Text>
-            <Text style={styles.meetingDate}>
-              {new Date(new Date(selectedDate).setMonth(new Date(selectedDate).getMonth() + 9))
-                .toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}, {selectedTime}
-            </Text>
-          </>
-        )}
+        <Text style={styles.sectionLabel}>Scheduled Meetings ({boardDuration} | {boardFrequency})</Text>
+        {recurringDates.map((date, index) => (
+          <Text key={index} style={styles.meetingDate}>{date}</Text>
+        ))}
       </View>
 
+      {/* Acknowledgment Checkbox */}
       <View style={styles.checkboxContainer}>
         <TouchableOpacity 
           style={styles.checkbox} 
@@ -116,6 +102,7 @@ export default function ReviewScreen({ navigation, route }) {
         </Text>
       </View>
 
+      {/* Confirm Button */}
       <TouchableOpacity
         style={[styles.confirmButton, !acknowledged && styles.disabledButton]}
         onPress={handleConfirm}
@@ -124,6 +111,7 @@ export default function ReviewScreen({ navigation, route }) {
         <Text style={styles.confirmButtonText}>Confirm</Text>
       </TouchableOpacity>
 
+      {/* Back Button */}
       <TouchableOpacity
         style={styles.backButton}
         onPress={handleBack}
