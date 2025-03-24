@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { View, FlatList, TouchableOpacity, Text, TextInput, StyleSheet, Modal } from "react-native";
+import React, { useState, useEffect } from 'react';
+import { View, FlatList, TouchableOpacity, Text, TextInput, StyleSheet, Modal, Alert } from "react-native";
+import * as Contacts from 'expo-contacts';
 
 function ContactsScreen({ navigation }) {
   // State for contacts and search
@@ -8,6 +9,32 @@ function ContactsScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [showAddContactModal, setShowAddContactModal] = useState(false);
+  const [showPhoneContactsModal, setShowPhoneContactsModal] = useState(false);
+  const [phoneContacts, setPhoneContacts] = useState([]);
+
+  // Request permission and load phone contacts
+  useEffect(() => {
+    const requestPermission = async () => {
+      const { status } = await Contacts.requestPermissionsAsync();
+      if (status === 'granted') {
+        loadPhoneContacts();
+      } else {
+        Alert.alert('Permission Denied', 'Cannot access phone contacts without permission.');
+      }
+    };
+
+    requestPermission();
+  }, []);
+
+  const loadPhoneContacts = async () => {
+    const { data } = await Contacts.getContactsAsync({
+      fields: [Contacts.Fields.Emails],
+    });
+
+    if (data.length > 0) {
+      setPhoneContacts(data);
+    }
+  };
 
   // Handle search functionality
   const handleSearch = (query) => {
@@ -26,6 +53,16 @@ function ContactsScreen({ navigation }) {
     setShowAddContactModal(false); // Close the modal
   };
 
+  // Handle selecting a contact from phone contacts
+  const selectPhoneContact = (contact) => {
+    const newContact = {
+      name: contact.name,
+      email: contact.emails && contact.emails.length > 0 ? contact.emails[0].email : 'No Email',
+    };
+    handleAddContact(newContact);
+    setShowPhoneContactsModal(false); // Close the modal
+  };
+
   return (
     <View style={styles.container}>
       {/* Search Bar */}
@@ -42,6 +79,14 @@ function ContactsScreen({ navigation }) {
         onPress={() => setShowAddContactModal(true)}
       >
         <Text style={styles.addContactText}>+ Add Contact</Text>
+      </TouchableOpacity>
+
+      {/* Add from Phone Contacts Button */}
+      <TouchableOpacity
+        style={styles.addContactButton}
+        onPress={() => setShowPhoneContactsModal(true)}
+      >
+        <Text style={styles.addContactText}>+ Add from Phone Contacts</Text>
       </TouchableOpacity>
 
       {/* Contact List */}
@@ -74,11 +119,43 @@ function ContactsScreen({ navigation }) {
           <AddContactForm onAddContact={handleAddContact} onClose={() => setShowAddContactModal(false)} />
         </View>
       </Modal>
+
+      {/* Phone Contacts Modal */}
+      <Modal
+        visible={showPhoneContactsModal}
+        animationType="slide"
+        onRequestClose={() => setShowPhoneContactsModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Select a Contact</Text>
+          <FlatList
+            data={phoneContacts}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.contactItem}
+                onPress={() => selectPhoneContact(item)}
+              >
+                <Text style={styles.contactName}>{item.name}</Text>
+                <Text style={styles.contactEmail}>
+                  {item.emails && item.emails.length > 0 ? item.emails[0].email : 'No Email'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setShowPhoneContactsModal(false)}
+          >
+            <Text style={styles.closeButtonText}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 }
 
-// Component for adding a new contact
+// Component for adding a new contact manually
 function AddContactForm({ onAddContact, onClose }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
