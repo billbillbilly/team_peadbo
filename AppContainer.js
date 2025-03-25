@@ -34,6 +34,8 @@ import SendNotificationScreen from './screens/Board_Creation_Screens/SendNotific
 
 import BoardDetailScreen from './screens/Board_Detail_Screens/BoardDetailScreen';
 import EventScreen from './screens/Board_Detail_Screens/EventScreen';
+import NewsletterScreen from './screens/News_Letter_Screens/NewsletterScreen';
+import CreateNewsletterScreen from './screens/News_Letter_Screens/CreateNewsletterScreen';
 
 const store = configureStore({
     reducer: {
@@ -158,7 +160,12 @@ const NewsTabStack = (props) => {
                 backgroundColor: '#F9F9F9',
             },
         }}>
-            <Stack.Screen name='Newsletter' component={HomeScreen}/>
+        <Stack.Screen name='Newsletter' component={NewsletterScreen} />
+        <Stack.Screen
+            name='CreateNewsletter'
+            component={CreateNewsletterScreen}
+            options={{ title: 'New Newsletter' }}
+        />
         </Stack.Navigator>
     )
 }
