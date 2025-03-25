@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Alert } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { loadProfileSettings, updateProfileSetting } from '../Reducer';
 
@@ -12,29 +12,19 @@ function ProfileScreen({ navigation }) {
     dispatch(loadProfileSettings());
   }, [dispatch]);
 
+// Logout Handler Function
+
+
   return (
     <ScrollView style={styles.container}>
       {/* Profile Header */}
       <View style={styles.profileHeader}>
         <Image 
-          source={{ uri: 'https://via.placeholder.com/100' }} // Replace with actual user image
+          source={{ uri: 'https://via.placeholder.com/100' }} 
           style={styles.profileImage} 
         />
-        <Text style={styles.profileName}>{currentUser.displayName || "User Name"}</Text>
-        <Text style={styles.profileEmail}>{currentUser.email || "user@example.com"}</Text>
-      </View>
-
-      {/* About Section with Tags */}
-      <View style={styles.aboutSection}>
-        <Text style={styles.aboutTitle}>About</Text>
-        <View style={styles.tagsContainer}>
-          <Text style={[styles.tag, styles.uiDesignTag]}>UI Design</Text>
-          <Text style={[styles.tag, styles.projectsTag]}>Projects</Text>
-          <Text style={[styles.tag, styles.managementTag]}>Management</Text>
-        </View>
-        <Text style={styles.aboutText}>
-          I am a student at the University of Michigan, Ann Arbor. Passionate about technology, design, and project management. Always looking to collaborate on exciting new projects that challenge my skills and creativity.
-        </Text>
+        <Text style={styles.profileName}>{currentUser?.displayName || "User Name"}</Text>
+        <Text style={styles.profileEmail}>{currentUser?.email || "user@example.com"}</Text>
       </View>
 
       {/* Profile Menu List */}
@@ -44,8 +34,10 @@ function ProfileScreen({ navigation }) {
         <MenuItem title="Settings" onPress={() => navigation.navigate('Settings')} />
         <MenuItem title="Billing" onPress={() => navigation.navigate('Billing')} />
         <MenuItem title="Notifications" onPress={() => navigation.navigate('Notifications')} />
-        <MenuItem title="Contact Support" onPress={() => navigation.navigate('ContactSupport')} /> {/* Contact Support */}
-        <MenuItem title="Logout" isLogout />
+        <MenuItem title="Contact Support" onPress={() => navigation.navigate('ContactSupport')} />
+
+        {/* Logout Button */}
+        <MenuItem title="Logout" isLogout onPress={handleLogout} />
       </View>
     </ScrollView>
   );
@@ -85,41 +77,6 @@ const styles = StyleSheet.create({
     color: '#777',
     marginTop: 5,
   },
-  aboutSection: {
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
-  },
-  aboutTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    marginBottom: 10,
-  },
-  tag: {
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 15,
-    marginRight: 10,
-    fontSize: 12,
-    color: '#fff',
-  },
-  uiDesignTag: {
-    backgroundColor: '#FF6347', // Tomato
-  },
-  projectsTag: {
-    backgroundColor: '#4682B4', // SteelBlue
-  },
-  managementTag: {
-    backgroundColor: '#32CD32', // LimeGreen
-  },
-  aboutText: {
-    fontSize: 14,
-    color: '#777',
-  },
   menuList: {
     padding: 10,
   },
@@ -142,6 +99,7 @@ const styles = StyleSheet.create({
 });
 
 export default ProfileScreen;
+
 
 
 

@@ -1,4 +1,3 @@
-
 import { NavigationContainer } from '@react-navigation/native';
 import { Icon } from '@rneui/themed';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -12,16 +11,6 @@ import LoginScreen from './screens/LoginScreen';  // Import LoginScreen
 import HomeScreen from './screens/HomeScreen';
 import ContactsScreen from './screens/ContactsScreen';
 import SignupScreen from './screens/SignupScreen';
-import CommunicationStyleScreen from './screens/Onboarding_Screens/CommunicationStyleScreen';
-import PersonalInformationScreen from './screens/Onboarding_Screens/PersonalInformationScreen';
-
-import AdvisorSelectionScreen from './screens/Board_Creation_Screens/AdvisorSelectionScreen';
-import BoardDetailsScreen from './screens/Board_Creation_Screens/BoardDetailsScreen';
-import FocusScreen from './screens/Board_Creation_Screens/FocusScreen';
-import CreateInvitationScreen from './screens/Board_Creation_Screens/CreateInvitationScreen';
-import TimeAvailabilityScreen from './screens/Board_Creation_Screens/TimeAvailabilityScreen';
-import Review from './screens/Board_Creation_Screens/ReviewScreen';
-
 import ProfileScreen from './screens/ProfileScreens/ProfileScreen';
 import SettingsScreen from './screens/ProfileScreens/SettingsScreen';
 import NotificationScreen from './screens/ProfileScreens/NotificationScreen';
@@ -30,153 +19,16 @@ import BillingScreen from './screens/ProfileScreens/BillingScreen';
 import FAQScreen from './screens/ProfileScreens/FAQScreen';
 import ContactSupportScreen from './screens/ProfileScreens/ContactSupportScreen';
 
-import SendNotificationScreen from './screens/Board_Creation_Screens/SendNotificationScreen';
-
-import BoardDetailScreen from './screens/Board_Detail_Screens/BoardDetailScreen';
-import EventScreen from './screens/Board_Detail_Screens/EventScreen';
-
 const store = configureStore({
     reducer: {
         user: userSlice,
     },
 });
 
-const BoardCreationStack = (props) => {
+const UserTabStack = () => {
     const Stack = createNativeStackNavigator();
-    const { navigation, route } = props;
-    const dispatch = useDispatch();
-
     return (
-        <Stack.Navigator initialRouteName='FocusScreen' screenOptions={{ 
-            headerShown: false, 
-            headerTitle: '',
-            headerStyle: {
-                backgroundColor: '#F9F9F9',
-                shadowOpacity: 0,
-                elevation: 0
-            },
-        }}>
-            <Stack.Screen name='AdvisorSelectionScreen' component={AdvisorSelectionScreen}/>
-            <Stack.Screen name='BoardDetailsScreen' component={BoardDetailsScreen}/>
-            <Stack.Screen name='FocusScreen' component={FocusScreen}/>
-            <Stack.Screen name='CreateInvitationScreen' component={CreateInvitationScreen}/>
-            <Stack.Screen name='TimeAvailabilityScreen' component={TimeAvailabilityScreen}/>
-            <Stack.Screen name='ReviewScreen' component={Review}/>
-        </Stack.Navigator>
-    )
-}
-
-// Onboarding Stack
-const OnboardingStack = (props) => {
-    const Stack = createNativeStackNavigator();
-    const { navigation, route } = props;
-    const dispatch = useDispatch();
-
-    return (
-        <Stack.Navigator initialRouteName='PersonalInformationScreen' screenOptions={{ 
-            headerShown: true, 
-            headerTitle: '',
-            headerStyle: {
-                backgroundColor: '#F9F9F9',
-                shadowOpacity: 0,
-                elevation: 0
-            },
-        }}>
-            <Stack.Screen name='CommunicationStyleScreen' component={CommunicationStyleScreen}/>
-            <Stack.Screen name='PersonalInformationScreen' component={PersonalInformationScreen}/>
-        </Stack.Navigator>
-    )
-}
-
-// Home Tab Stack
-const HomeTabStack = (props) => {
-    const Stack = createNativeStackNavigator();
-    const { navigation, route } = props;
-    const dispatch = useDispatch();
-
-    return (
-        <Stack.Navigator initialRouteName='Home' 
-            screenOptions={{ 
-                headerShown: true, 
-                headerTitle: '',
-                headerStyle: {
-                    backgroundColor: '#F9F9F9',
-                    shadowOpacity: 0,
-                    elevation: 0
-                },
-                tabBarStyle: {
-                    display: 'none',
-                },
-        }}>
-            <Stack.Screen name='Home' component={HomeScreen} options={{ headerShown: false}}/>
-            <Stack.Screen name='BoardCreation' component={BoardCreationStack}/>
-            <Stack.Screen name='FocusScreen' component={FocusScreen}/>
-            <Stack.Screen name='BoardDetailsScreen' component={BoardDetailsScreen}/>
-            <Stack.Screen name='AdvisorSelectionScreen' component={AdvisorSelectionScreen}/>
-            <Stack.Screen name='CreateInvitationScreen' component={CreateInvitationScreen}/>
-            <Stack.Screen name='SendNotificationScreen' component={SendNotificationScreen} />
-            <Stack.Screen name='TimeAvailabilityScreen' component={TimeAvailabilityScreen}/>
-            <Stack.Screen name='ReviewScreen' component={Review}/>
-            {/* <Stack.Screen name='SendNotificationScreen' component={SendNotificationScreen} /> */}
-            {/* boad management */}
-            <Stack.Screen name='BoardDetail' component={BoardDetailScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
-            <Stack.Screen name='EventScreen' component={EventScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
-        </Stack.Navigator>
-    )
-}
-
-// Contact Tab Stack
-const ContactTabStack = (props) => {
-    const Stack = createNativeStackNavigator();
-    const { navigation, route } = props;
-    const dispatch = useDispatch();
-
-    return (
-        <Stack.Navigator initialRouteName='Contacts' screenOptions={{ 
-            headerShown: true, 
-            headerTitle: 'Contacts',
-            headerStyle: {
-                backgroundColor: '#F9F9F9',
-            },
-        }}>
-            <Stack.Screen name='Contacts' component={ContactsScreen} />
-        </Stack.Navigator>
-    )
-}
-
-// Newsletter Tab Stack
-const NewsTabStack = (props) => {
-    const Stack = createNativeStackNavigator();
-    const { navigation, route } = props;
-    const dispatch = useDispatch();
-  
-    return (
-        <Stack.Navigator initialRouteName='Newsletter' screenOptions={{ 
-            headerShown: true, 
-            headerTitle: 'Newsletter',
-            headerStyle: {
-                backgroundColor: '#F9F9F9',
-            },
-        }}>
-            <Stack.Screen name='Newsletter' component={HomeScreen}/>
-        </Stack.Navigator>
-    )
-}
-
-// User Tab Stack (Updated with Profile Screen, but commented out Settings/Notifications/Preferences)
-const UserTabStack = (props) => {
-    const Stack = createNativeStackNavigator();
-    const { navigation, route } = props;
-    const dispatch = useDispatch();
-  
-    return (
-        <Stack.Navigator initialRouteName='Profile' screenOptions={{ 
-            headerShown: true, 
-            headerTitle: '',
-            headerStyle: {
-                backgroundColor: '#F9F9F9',
-            },
-        }}>
+        <Stack.Navigator initialRouteName='Profile'>
             <Stack.Screen name='Profile' component={ProfileScreen}/>
             <Stack.Screen name='Settings' component={SettingsScreen}/>
             <Stack.Screen name='Notifications' component={NotificationScreen}/>
@@ -185,12 +37,11 @@ const UserTabStack = (props) => {
             <Stack.Screen name='FAQ' component={FAQScreen} />
             <Stack.Screen name='ContactSupport' component={ContactSupportScreen} />
         </Stack.Navigator>
-    )
+    );
 }
 
 const DynamicTabsNavigator = () => {
     const Tabs = createBottomTabNavigator();
-  
     return (
       <Tabs.Navigator
           initialRouteName='Home'
@@ -200,32 +51,8 @@ const DynamicTabsNavigator = () => {
           })}
       >
           <Tabs.Screen
-              name="Login"
-              component={LoginScreen}
-              options={{  tabBarIcon: ({ color, size }) => (
-                <Icon name="home" type="font-awesome" color={color} size={size} />
-            ), }}
-          />
-
-<Tabs.Screen
-              name="Signup"
-              component={SignupScreen}
-              options={{  tabBarIcon: ({ color, size }) => (
-                <Icon name="home" type="font-awesome" color={color} size={size} />
-            ), }}
-          />
-  
-          <Tabs.Screen
-              name="NewUserOnboarding"
-                component={OnboardingStack}
-                options={{ tabBarIcon: ({ color, size }) => (
-                    <Icon name="home" type="font-awesome" color={color} size={size} />
-                ), }}
-          />
-
-          <Tabs.Screen
               name="Home"
-              component={HomeTabStack}
+              component={HomeScreen}
               options={{
                   tabBarIcon: ({ color, size }) => (
                       <Icon name="home" type="font-awesome" color={color} size={size} />
@@ -234,7 +61,7 @@ const DynamicTabsNavigator = () => {
           />
           <Tabs.Screen
               name="Contacts"
-              component={ContactTabStack}
+              component={ContactsScreen}
               options={{
                   tabBarIcon: ({ color, size }) => (
                       <Icon name="group" type="font-awesome" color={color} size={size} />
@@ -242,16 +69,7 @@ const DynamicTabsNavigator = () => {
               }}
           />
           <Tabs.Screen
-              name="Letter"
-              component={NewsTabStack}
-              options={{
-                  tabBarIcon: ({ color, size }) => (
-                      <Icon name="list" type="font-awesome" color={color} size={size} />
-                  ),
-              }}
-          />
-          <Tabs.Screen
-              name="Setting"
+              name="Profile"
               component={UserTabStack}
               options={{
                   tabBarIcon: ({ color, size }) => (
@@ -261,24 +79,29 @@ const DynamicTabsNavigator = () => {
           />
       </Tabs.Navigator>
     );
-};
+}
 
-const AppContainer = () => {
-    return(
-        <Provider store={store}>
-        <NavigationContainer>
-            <DynamicTabsNavigator />
-        </NavigationContainer>
-        </Provider>
+const RootStack = () => {
+    const Stack = createNativeStackNavigator();
+    return (
+        <Stack.Navigator initialRouteName='DynamicTabs'>
+            <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="DynamicTabs" component={DynamicTabsNavigator} options={{ headerShown: false }} />
+        </Stack.Navigator>
     );
 }
 
+// Your Original App Structure - Kept as App
 function App() {
     return (
         <Provider store={store}>
-            <AppContainer />
+            <NavigationContainer>
+                <RootStack />
+            </NavigationContainer>
         </Provider>
     );
 }
 
 export default App;
+
+

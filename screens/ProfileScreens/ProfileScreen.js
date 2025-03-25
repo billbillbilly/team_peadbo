@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Alert } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { loadProfileSettings, updateProfileSetting } from '../../Reducer';
 
@@ -12,6 +12,21 @@ function ProfileScreen({ navigation }) {
     dispatch(loadProfileSettings());
   }, [dispatch]);
 
+  // Logout Handler Function
+  const handleLogout = () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to log out?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Yes", onPress: () => {
+            dispatch(updateProfileSetting(null));  // Clear user state
+            navigation.replace('Login');  // Redirect to LoginScreen
+        }}
+      ]
+    );
+  };
+
   return (
     <ScrollView style={styles.container}>
       {/* Profile Header */}
@@ -20,8 +35,8 @@ function ProfileScreen({ navigation }) {
           source={{ uri: 'https://via.placeholder.com/100' }} /* Replace with actual user image */
           style={styles.profileImage} 
         />
-        <Text style={styles.profileName}>{currentUser.displayName || "User Name"}</Text>
-        <Text style={styles.profileEmail}>{currentUser.email || "user@example.com"}</Text>
+        <Text style={styles.profileName}>{currentUser?.displayName || "User Name"}</Text>
+        <Text style={styles.profileEmail}>{currentUser?.email || "user@example.com"}</Text>
       </View>
 
       {/* About Section with Tags */}
@@ -44,8 +59,10 @@ function ProfileScreen({ navigation }) {
         <MenuItem title="Settings" onPress={() => navigation.navigate('Settings')} />
         <MenuItem title="Billing" onPress={() => navigation.navigate('Billing')} />
         <MenuItem title="Notifications" onPress={() => navigation.navigate('Notifications')} />
-        <MenuItem title="Contact Support" onPress={() => navigation.navigate('ContactSupport')} /> {/* Contact Support */}
-        <MenuItem title="Logout" isLogout />
+        <MenuItem title="Contact Support" onPress={() => navigation.navigate('ContactSupport')} />
+        
+        {/* Logout Button */}
+        <MenuItem title="Logout" isLogout onPress={handleLogout} />
       </View>
     </ScrollView>
   );
@@ -113,13 +130,13 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   uiDesignTag: {
-    backgroundColor: '#FF6347', // Tomato
+    backgroundColor: '#FF6347',
   },
   projectsTag: {
-    backgroundColor: '#4682B4', // SteelBlue
+    backgroundColor: '#4682B4',
   },
   managementTag: {
-    backgroundColor: '#32CD32', // LimeGreen
+    backgroundColor: '#32CD32',
   },
   aboutText: {
     fontSize: 14,
