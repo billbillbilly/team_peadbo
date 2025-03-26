@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { Icon } from '@rneui/themed'; // Import Icon component
 import { generateMessage } from '../OpenAIService'; // Import the generateMessage function
 
 const ChatBot = () => {
@@ -78,6 +79,14 @@ const ChatBot = () => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      {/* Help Icon */}
+      <TouchableOpacity
+        style={styles.helpIcon}
+        onPress={() => navigation.navigate('Setting', { screen: 'ContactSupport' })} // Navigate to ContactSupportScreen
+      >
+        <Icon name="help-circle" type="ionicon" size={30} color="#1EA896" />
+      </TouchableOpacity>
+
       {/* Chat Messages */}
       <FlatList
         data={messages}
@@ -159,5 +168,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  helpIcon: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 10,
   },
 });
