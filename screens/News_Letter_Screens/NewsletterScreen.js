@@ -34,12 +34,16 @@ export default function NewsletterScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Newsletter</Text>
-      <TextInput
-        style={styles.search}
-        placeholder="Search here"
-        placeholderTextColor="#999"
-      />
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchField}
+          placeholder="Search here"
+          placeholderTextColor="#999"
+        />
+        <TouchableOpacity style={styles.searchButton}>
+          <Text style={styles.searchButtonText}>Search</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.cardContainer}>
         <TouchableOpacity
@@ -105,15 +109,38 @@ export default function NewsletterScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#FFF' },
-  title: { fontSize: 32, fontWeight: '700', marginBottom: 24 },
-  search: {
-    height: 48,
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#F9F9F9',
+  },
+  searchContainer: {
+    flexDirection: 'row',
     borderWidth: 1,
     borderColor: '#DDD',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    marginBottom: 32,
+    borderRadius: 25,
+    overflow: 'hidden',
+    height: 48,
+    backgroundColor: '#FFF',
+    marginBottom: 20,
+  },
+  searchField: {
+    flex: 1,
+    paddingHorizontal: 16,
+    fontSize: 16,
+  },
+  searchButton: {
+    width: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderLeftWidth: 1,
+    borderLeftColor: '#DDD',
+    backgroundColor: '#FFF',
+  },
+  searchButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
   },
   createCard: {
     flexDirection: 'row',
