@@ -85,3 +85,28 @@ export const generateMessage = async (input) => {
     throw error;
   }
 };
+
+export const generateTemplate = async () => {
+  try {
+    const response = await openAI.post('', {
+        model: 'gpt-4o-mini',  // Using gpt-4o-mini model
+        messages: [
+          {
+            role: 'user',
+            content: 'Generate a professional template for an email that will update your advisors on your professional development progress. This message should be brief and too the point. No longer than half a paragraph.',
+          },
+        ],
+        max_tokens: 500,  // Adjust as needed
+        temperature: 0.7,  // Adjust for creativity/variability (optional)
+      });
+
+    return response.data.choices[0].message.content.trim();
+  } catch (error) {
+    if (error.response && error.response.status === 429) {
+      console.error('Rate limit hit, retrying...');
+    } else {
+      console.error('Error generating text from OpenAI:', error.response ? error.response.data : error.message);
+    }
+    throw error;
+  }
+};
