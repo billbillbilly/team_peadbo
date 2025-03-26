@@ -14,7 +14,14 @@ import { Icon } from '@rneui/themed'; // Import Icon component
 import { generateMessage } from '../OpenAIService'; // Import the generateMessage function
 
 const ChatBot = () => {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([
+    {
+      id: '1', // Unique ID for the default message
+      text: 'Hello! I am the PeadBot and I am here to assist you with all of your professional development questions! How can I help you?', // Default bot message
+      createdAt: new Date(),
+      user: 'bot', // Indicates this is a bot message
+    },
+  ]);
   const [inputText, setInputText] = useState('');
   const navigation = useNavigation();
 
