@@ -5,8 +5,11 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Provider, useSelector, useDispatch } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
+import React from 'react';
 
 import userSlice from './Reducer';
+import ChatBot from './components/ChatBot';
+import FloatingButton from './components/FloatingButton';
 
 import LoginScreen from './screens/LoginScreen';  // Import LoginScreen
 import HomeScreen from './screens/HomeScreen';
@@ -62,6 +65,7 @@ const BoardCreationStack = (props) => {
             <Stack.Screen name='CreateInvitationScreen' component={CreateInvitationScreen}/>
             <Stack.Screen name='TimeAvailabilityScreen' component={TimeAvailabilityScreen}/>
             <Stack.Screen name='ReviewScreen' component={Review}/>
+            <Stack.Screen name="ChatBot" component={ChatBot} />
         </Stack.Navigator>
     )
 }
@@ -121,6 +125,7 @@ const HomeTabStack = (props) => {
             {/* boad management */}
             <Stack.Screen name='BoardDetail' component={BoardDetailScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
             <Stack.Screen name='EventScreen' component={EventScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
+            <Stack.Screen name="ChatBot" component={ChatBot} />
         </Stack.Navigator>
     )
 }
@@ -140,6 +145,7 @@ const ContactTabStack = (props) => {
             },
         }}>
             <Stack.Screen name='Contacts' component={ContactsScreen} />
+            <Stack.Screen name="ChatBot" component={ChatBot} />
         </Stack.Navigator>
     )
 }
@@ -159,6 +165,7 @@ const NewsTabStack = (props) => {
             },
         }}>
             <Stack.Screen name='Newsletter' component={HomeScreen}/>
+            <Stack.Screen name="ChatBot" component={ChatBot} />
         </Stack.Navigator>
     )
 }
@@ -184,6 +191,7 @@ const UserTabStack = (props) => {
             <Stack.Screen name='Billing' component={BillingScreen} />
             <Stack.Screen name='FAQ' component={FAQScreen} />
             <Stack.Screen name='ContactSupport' component={ContactSupportScreen} />
+            <Stack.Screen name="ChatBot" component={ChatBot} />
         </Stack.Navigator>
     )
 }
@@ -264,14 +272,17 @@ const DynamicTabsNavigator = () => {
 };
 
 const AppContainer = () => {
-    return(
+    const navigationRef = React.useRef();
+
+    return (
         <Provider store={store}>
-        <NavigationContainer>
-            <DynamicTabsNavigator />
-        </NavigationContainer>
+            <NavigationContainer ref={navigationRef}>
+                <DynamicTabsNavigator />
+                    <FloatingButton onPress={() => navigationRef.current?.navigate('ChatBot')} />
+            </NavigationContainer>
         </Provider>
     );
-}
+};
 
 function App() {
     return (
