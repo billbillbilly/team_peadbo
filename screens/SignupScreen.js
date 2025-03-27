@@ -10,6 +10,9 @@ import {
   Image,
 } from 'react-native';
 import { signUp } from '../AuthManager'; // Ensure this handles user creation
+import { useGoogleAuth } from '../auth/GoogleAuth';
+import { Icon } from '@rneui/themed';
+
 
 const SignupScreen = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -18,6 +21,8 @@ const SignupScreen = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const { promptAsync, request } = useGoogleAuth(navigation);
+
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -97,7 +102,12 @@ const SignupScreen = ({ navigation }) => {
             autoCapitalize="none"
           />
           <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
-            <Text style={styles.togglePassword}>{passwordVisible ? "👁" : "🙈"}</Text>
+            <Icon
+              name={passwordVisible ? 'eye' : 'eye-off'}
+              type="feather"
+              color="#777"
+              size={20}
+            />
           </TouchableOpacity>
         </View>
 
@@ -118,6 +128,26 @@ const SignupScreen = ({ navigation }) => {
         >
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign Up</Text>}
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.googleButton}
+          onPress={() => {
+            if (request) {
+              promptAsync();
+            } else {
+              Alert.alert(
+                "Google Sign-Up not configured",
+                "Please set up your Google client ID to enable this feature."
+              );
+            }
+          }}
+          disabled={!request}
+        >
+          <Image source={require('../assets/google-icon.png')} style={styles.googleIcon} />
+          <Text style={styles.googleButtonText}>Sign up with Google</Text>
+        </TouchableOpacity>
+
+
 
         {/* Back to Login */}
         <TouchableOpacity onPress={() => navigation.navigate('Login')}>
@@ -220,6 +250,27 @@ const styles = StyleSheet.create({
   link: {
     color: '#007bff',
     fontWeight: 'bold',
+  },
+  googleButton: {
+    flexDirection: 'row',
+    width: '100%',
+    height: 45,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  googleIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 10,
+  },
+  googleButtonText: {
+    fontSize: 16,
+    color: '#333',
   },
 });
 

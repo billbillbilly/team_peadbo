@@ -9,6 +9,8 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
+import { useGoogleAuth } from '../auth/GoogleAuth';
+import { Icon } from '@rneui/themed'; 
 import { signIn } from '../AuthManager';
 
 const LoginScreen = ({ navigation }) => {
@@ -16,6 +18,8 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const { promptAsync, request } = useGoogleAuth(navigation);
+
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -76,7 +80,12 @@ const LoginScreen = ({ navigation }) => {
             autoCapitalize="none"
           />
           <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
-            <Text style={styles.togglePassword}>{passwordVisible ? "👁" : "🙈"}</Text>
+            <Icon
+              name={passwordVisible ? 'eye' : 'eye-off'}
+              type="feather"
+              color="#777"
+              size={20}
+            />
           </TouchableOpacity>
         </View>
 
@@ -97,8 +106,21 @@ const LoginScreen = ({ navigation }) => {
         </TouchableOpacity>
 
         {/* Google Sign-in Button */}
-        <TouchableOpacity style={styles.googleButton} onPress={() => console.log('Google Sign-In pressed')}>
-          <Image source={require('../assets/icon.png')} style={styles.googleIcon} />
+        <TouchableOpacity
+          style={styles.googleButton}
+          onPress={() => {
+            if (request) {
+              promptAsync();
+            } else {
+              Alert.alert(
+                "Google Sign-In not configured",
+                "Please set up your Google client ID to enable this feature."
+              );
+            }
+          }}
+          disabled={!request}
+        >
+          <Image source={require('../assets/google-icon.png')} style={styles.googleIcon} />
           <Text style={styles.googleButtonText}>Sign in with Google</Text>
         </TouchableOpacity>
 
