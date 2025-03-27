@@ -226,68 +226,6 @@ const DynamicTabsNavigator = () => {
           },
         })}
       >
-<<<<<<< HEAD
-          <Tabs.Screen
-              name="Login"
-              component={LoginScreen}
-              options={{  tabBarIcon: ({ color, size }) => (
-                <Icon name="home" type="font-awesome" color={color} size={size} />
-            ), }}
-          />
-
-          <Tabs.Screen
-              name="Signup"
-              component={SignupScreen}
-              options={{  tabBarIcon: ({ color, size }) => (
-                <Icon name="home" type="font-awesome" color={color} size={size} />
-            ), }}
-          />
-  
-          <Tabs.Screen
-              name="NewUserOnboarding"
-              component={OnboardingStack}
-              options={{ tabBarIcon: ({ color, size }) => (
-                  <Icon name="home" type="font-awesome" color={color} size={size} />
-              ), }}
-          />
-
-          <Tabs.Screen
-              name="Home"
-              component={HomeTabStack}
-              options={{
-                  tabBarIcon: ({ color, size }) => (
-                      <Icon name="home" type="font-awesome" color={color} size={size} />
-                  ),
-              }}
-          />
-          <Tabs.Screen
-              name="Contacts"
-              component={ContactTabStack}
-              options={{
-                  tabBarIcon: ({ color, size }) => (
-                      <Icon name="group" type="font-awesome" color={color} size={size} />
-                  ),
-              }}
-          />
-          <Tabs.Screen
-              name="Letter"
-              component={NewsTabStack}
-              options={{
-                  tabBarIcon: ({ color, size }) => (
-                      <Icon name="list" type="font-awesome" color={color} size={size} />
-                  ),
-              }}
-          />
-          <Tabs.Screen
-              name="Setting"
-              component={UserTabStack}
-              options={{
-                  tabBarIcon: ({ color, size }) => (
-                      <Icon name="user" type="font-awesome" color={color} size={size} />
-                  ),
-              }}
-          />
-=======
         <Tabs.Screen
           name="Login"
           component={LoginScreen}
@@ -367,7 +305,6 @@ const DynamicTabsNavigator = () => {
             ),
           }}
         />
->>>>>>> 4cdbcae (Implement Google Auth, Forgot Password, and UI refinements)
       </Tabs.Navigator>
     );
   };

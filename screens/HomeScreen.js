@@ -13,6 +13,7 @@ import { Icon } from '@rneui/themed';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { useDispatch, useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import firebase from 'firebase/compat/app';
 import {
   fetchTasksThunk,
   addTaskThunk,
