@@ -14,6 +14,7 @@ import LoginScreen from './screens/LoginScreen';  // Import LoginScreen
 import HomeScreen from './screens/HomeScreen';
 import ContactsScreen from './screens/ContactsScreen';
 import SignupScreen from './screens/SignupScreen';
+import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
 import CommunicationStyleScreen from './screens/Onboarding_Screens/CommunicationStyleScreen';
 import PersonalInformationScreen from './screens/Onboarding_Screens/PersonalInformationScreen';
 
@@ -212,12 +213,20 @@ const DynamicTabsNavigator = () => {
   
     return (
       <Tabs.Navigator
-          initialRouteName='Home'
-          screenOptions={({ route }) => ({
-              headerShown: false,
-              tabBarStyle: { display: route.name === 'Login' || route.name === 'Signup' ? 'none' : 'flex' },
-          })}
+        initialRouteName="Home"
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarStyle: {
+            display:
+              route.name === 'Login' ||
+              route.name === 'Signup' ||
+              route.name === 'ForgotPassword'
+                ? 'none'
+                : 'flex',
+          },
+        })}
       >
+<<<<<<< HEAD
           <Tabs.Screen
               name="Login"
               component={LoginScreen}
@@ -278,9 +287,91 @@ const DynamicTabsNavigator = () => {
                   ),
               }}
           />
+=======
+        <Tabs.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="home" type="font-awesome" color={color} size={size} />
+            ),
+          }}
+        />
+  
+        <Tabs.Screen
+          name="Signup"
+          component={SignupScreen}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="home" type="font-awesome" color={color} size={size} />
+            ),
+          }}
+        />
+  
+        <Tabs.Screen
+          name="ForgotPassword"
+          component={ForgotPasswordScreen}
+          options={{
+            tabBarButton: () => null, 
+            tabBarStyle: { display: 'none' },
+            headerShown: false,
+          }}
+        />
+  
+        <Tabs.Screen
+          name="NewUserOnboarding"
+          component={OnboardingStack}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="home" type="font-awesome" color={color} size={size} />
+            ),
+          }}
+        />
+  
+        <Tabs.Screen
+          name="Home"
+          component={HomeTabStack}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="home" type="font-awesome" color={color} size={size} />
+            ),
+          }}
+        />
+  
+        <Tabs.Screen
+          name="Contacts"
+          component={ContactTabStack}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="group" type="font-awesome" color={color} size={size} />
+            ),
+          }}
+        />
+  
+        <Tabs.Screen
+          name="Letter"
+          component={NewsTabStack}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="list" type="font-awesome" color={color} size={size} />
+            ),
+          }}
+        />
+  
+        <Tabs.Screen
+          name="Setting"
+          component={UserTabStack}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="user" type="font-awesome" color={color} size={size} />
+            ),
+          }}
+        />
+>>>>>>> 4cdbcae (Implement Google Auth, Forgot Password, and UI refinements)
       </Tabs.Navigator>
     );
-};
+  };
+  
 
 const AppContainer = () => {
     const navigationRef = React.useRef();

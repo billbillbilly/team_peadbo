@@ -27,6 +27,7 @@ export default function HomeScreen({ navigation }) {
 
   // Current user and remote tasks from Redux store
   const currentUser = useSelector((state) => state.user.currentUser);
+  const fallbackUser = firebase.auth().currentUser;
   const remoteTasks = useSelector((state) => state.user.tasks) || [];
 
   // Local tasks state (from AsyncStorage)
@@ -249,7 +250,7 @@ export default function HomeScreen({ navigation }) {
       {/* Header */}
       <View style={styles.fixedHeader}>
         <Text style={styles.greeting}>
-          Hello, {currentUser?.displayName || 'User'}
+          Hello, {currentUser?.displayName || fallbackUser?.displayName || 'Guest'}
         </Text>
         <TextInput
           style={styles.searchInput}
