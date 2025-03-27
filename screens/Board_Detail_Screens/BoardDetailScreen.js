@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Icon } from '@rneui/themed';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, Image, TextInput } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import {fetchSchemaStructure} from '../../Reducer'
+// import {fetchSchemaStructure} from '../../Reducer'
 import RenderEvent from "../../components/RenderEvent";
 import BoardMembers from '../../components/BoardMembers';
 import RenderHorizontalCalender from '../../components/RenderHorizontalCalender';
@@ -213,7 +213,9 @@ const BoardDetailsScreen = ({ navigation, route }) => {
             <TouchableOpacity 
                 style={styles.searchInput}
                 onPress={()=>{
-                    fetchSchemaStructure()
+                    // fetchSchemaStructure()
+                    console.log('go');
+                    navigation.navigate('DatabaseScreen', {a:board})
                 }}
             >
                 <Text style={{color:'lightgray'}}>Ask Peadbo AI...</Text>

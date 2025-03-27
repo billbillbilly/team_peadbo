@@ -1,13 +1,23 @@
-import AppContainer from './AppContainer';
-// import { Amplify } from 'aws-amplify';
+import { Amplify } from 'aws-amplify';
 import { amplifyAPI } from './Secrets'; 
-import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
+import AppContainer from './AppContainer';
+// import config from './src/amplifyconfiguration.json';
+import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink } from '@apollo/client';
+import { setContext } from '@apollo/client/link/context';
+import * as queries from './src/graphql/queries';
+Amplify.configure(amplifyAPI);
 
-// Amplify.configure(amplifyAPI);
+
+// export default function App() {
+//   return (
+//     <AppContainer/>
+//   );
+// }
 
 // Create the HTTP link to AppSync
 const httpLink = createHttpLink({
   uri: amplifyAPI.API.GraphQL.endpoint,
+  credentials: 'same-origin'
 });
 
 // Add the API key to the headers
@@ -23,8 +33,10 @@ const authLink = setContext((_, { headers }) => {
 // Combine auth and http link
 const client = new ApolloClient({
   link: authLink.concat(httpLink),
+  region: amplifyAPI.API.GraphQL.region,
   cache: new InMemoryCache(),
 });
+
 
 export default function App() {
   return (

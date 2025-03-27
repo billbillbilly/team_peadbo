@@ -7,11 +7,14 @@ import {
 import { getStorage } from 'firebase/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { firebaseConfig } from "./Secrets";
-import { GraphQLAPI } from '@aws-amplify/api-graphql';
-import { amplifyAPI } from './Secrets'; 
 
 import { generateClient } from 'aws-amplify/api';
-import * as queries from './graphql/queries';
+import * as queries from './src/graphql/queries';
+
+// import { GraphQLAPI } from '@aws-amplify/api-graphql';
+// import { amplifyAPI } from './Secrets'; 
+
+import { amplifyAPI } from './Secrets'; 
 
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -44,32 +47,20 @@ import * as queries from './graphql/queries';
 //   }
 // `;
 
+const client = generateClient();
 
-// export const fetchSchemaStructure = async () => {
-//   console.log('API when fetching schema:', GraphQLAPI);
-//   try {
-//       // const result = await GraphQLAPI.graphql({ query: introspectionQuery });
-//       // console.log('Schema:', JSON.stringify(result.data.__schema, null, 2));
-//       const response = await fetch(amplifyAPI.API.GraphQL.endpoint, {
-//         method: 'POST',
-//         headers: {
-//             'x-api-key': amplifyAPI.API.GraphQL.apiKey,
-//             'Content-Type': 'application/json'
-//         },
-//         body: JSON.stringify({
-//             query: introspectionQuery
-//         })
-//       });
-//       const json = await response.json();
-//       console.log('Direct fetch response:', JSON.stringify(json, null, 2));
-//   } catch (error) {
-//       console.error('Failed to fetch schema:', error);
-//   }
-// };
+const fetchdata = async () => {
+  try {
+    const result = await client.graphql({ query: queries.listConversations });
+    console.log(result);
+  } catch (error) {
+    console.error('Error fetching conversations:', error);
+  }
+};
 
-// const client = generateClient();
-// const result = await client.graphql({ query: queries.listPeadboTasks });
+
 // console.log('Tasks:', result.data.listPeadboTasks.items);
+
 
 
 // ---------------------- Set up firebase ------------------------
@@ -216,6 +207,9 @@ const userSlice = createSlice({
   name: 'user',
   initialState: {
     currentUser: {displayName: "jack", email: "", key: ""},
+    items: [],
+    loading: false,
+    error: null,
     listBoards: [
       {
         id: '1',
@@ -267,7 +261,8 @@ const userSlice = createSlice({
       })
       .addCase(deleteThunk.fulfilled, (state, action) => {
         state.listBoards = state.listBoards.filter(item => item.key !== action.payload);
-      });
+      })
+      
   },
 });
 

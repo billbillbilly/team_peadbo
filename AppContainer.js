@@ -34,6 +34,7 @@ import SendNotificationScreen from './screens/Board_Creation_Screens/SendNotific
 
 import BoardDetailScreen from './screens/Board_Detail_Screens/BoardDetailScreen';
 import EventScreen from './screens/Board_Detail_Screens/EventScreen';
+import TestDatabaseScreen from './screens/TestDatabaseScreen';
 
 const store = configureStore({
     reducer: {
@@ -121,6 +122,7 @@ const HomeTabStack = (props) => {
             {/* boad management */}
             <Stack.Screen name='BoardDetail' component={BoardDetailScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
             <Stack.Screen name='EventScreen' component={EventScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
+            <Stack.Screen name='DatabaseScreen' component={TestDatabaseScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
         </Stack.Navigator>
     )
 }
