@@ -1,4 +1,3 @@
-
 import { NavigationContainer } from '@react-navigation/native';
 import { Icon } from '@rneui/themed';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -39,6 +38,7 @@ import BoardDetailScreen from './screens/Board_Detail_Screens/BoardDetailScreen'
 import EventScreen from './screens/Board_Detail_Screens/EventScreen';
 import NewsletterScreen from './screens/News_Letter_Screens/NewsletterScreen';
 import CreateNewsletterScreen from './screens/News_Letter_Screens/CreateNewsletterScreen';
+
 
 const store = configureStore({
     reducer: {
@@ -94,14 +94,14 @@ const OnboardingStack = (props) => {
     )
 }
 
-// Home Tab Stack
+// Home Tab Stack - renamed inner "Home" screen to "HomeMain"
 const HomeTabStack = (props) => {
     const Stack = createNativeStackNavigator();
     const { navigation, route } = props;
     const dispatch = useDispatch();
 
     return (
-        <Stack.Navigator initialRouteName='Home' 
+        <Stack.Navigator initialRouteName='HomeMain' 
             screenOptions={{ 
                 headerShown: true, 
                 headerTitle: '',
@@ -114,7 +114,12 @@ const HomeTabStack = (props) => {
                     display: 'none',
                 },
         }}>
-            <Stack.Screen name='Home' component={HomeScreen} options={{ headerShown: false}}/>
+            <Stack.Screen 
+                name='HomeMain' // changed from 'Home' to 'HomeMain'
+                component={HomeScreen} 
+                options={{ headerShown: false}}
+            />
+            
             <Stack.Screen name='BoardCreation' component={BoardCreationStack}/>
             <Stack.Screen name='FocusScreen' component={FocusScreen}/>
             <Stack.Screen name='BoardDetailsScreen' component={BoardDetailsScreen}/>
@@ -123,10 +128,9 @@ const HomeTabStack = (props) => {
             <Stack.Screen name='SendNotificationScreen' component={SendNotificationScreen} />
             <Stack.Screen name='TimeAvailabilityScreen' component={TimeAvailabilityScreen}/>
             <Stack.Screen name='ReviewScreen' component={Review}/>
-            {/* <Stack.Screen name='SendNotificationScreen' component={SendNotificationScreen} /> */}
-            {/* boad management */}
-            <Stack.Screen name='BoardDetail' component={BoardDetailScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
-            <Stack.Screen name='EventScreen' component={EventScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
+            {/* Board management screens */}
+            <Stack.Screen name='BoardDetail' component={BoardDetailScreen} options={{ headerShown: false}}/>
+            <Stack.Screen name='EventScreen' component={EventScreen} options={{ headerShown: false}}/>
             <Stack.Screen name="ChatBot" component={ChatBot} />
         </Stack.Navigator>
     )
@@ -166,18 +170,18 @@ const NewsTabStack = (props) => {
                 backgroundColor: '#F9F9F9',
             },
         }}>
-        <Stack.Screen name='Newsletter' component={NewsletterScreen} />
-        <Stack.Screen
-            name='CreateNewsletter'
-            component={CreateNewsletterScreen}
-            options={{ title: 'New Newsletter' }}
-        />
+            <Stack.Screen name='Newsletter' component={NewsletterScreen} />
+            <Stack.Screen
+                name='CreateNewsletter'
+                component={CreateNewsletterScreen}
+                options={{ title: 'New Newsletter' }}
+            />
             <Stack.Screen name="ChatBot" component={ChatBot} />
         </Stack.Navigator>
     )
 }
 
-// User Tab Stack (Updated with Profile Screen, but commented out Settings/Notifications/Preferences)
+// User Tab Stack
 const UserTabStack = (props) => {
     const Stack = createNativeStackNavigator();
     const { navigation, route } = props;
@@ -222,7 +226,7 @@ const DynamicTabsNavigator = () => {
             ), }}
           />
 
-<Tabs.Screen
+          <Tabs.Screen
               name="Signup"
               component={SignupScreen}
               options={{  tabBarIcon: ({ color, size }) => (
@@ -232,10 +236,10 @@ const DynamicTabsNavigator = () => {
   
           <Tabs.Screen
               name="NewUserOnboarding"
-                component={OnboardingStack}
-                options={{ tabBarIcon: ({ color, size }) => (
-                    <Icon name="home" type="font-awesome" color={color} size={size} />
-                ), }}
+              component={OnboardingStack}
+              options={{ tabBarIcon: ({ color, size }) => (
+                  <Icon name="home" type="font-awesome" color={color} size={size} />
+              ), }}
           />
 
           <Tabs.Screen
@@ -285,7 +289,7 @@ const AppContainer = () => {
         <Provider store={store}>
             <NavigationContainer ref={navigationRef}>
                 <DynamicTabsNavigator />
-                    <FloatingButton onPress={() => navigationRef.current?.navigate('ChatBot')} />
+                <FloatingButton onPress={() => navigationRef.current?.navigate('ChatBot')} />
             </NavigationContainer>
         </Provider>
     );
