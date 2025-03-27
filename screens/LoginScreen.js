@@ -106,7 +106,20 @@ const LoginScreen = ({ navigation }) => {
         </TouchableOpacity>
 
         {/* Google Sign-in Button */}
-        <TouchableOpacity style={styles.googleButton} onPress={() => promptAsync()} disabled={!request}>
+        <TouchableOpacity
+          style={styles.googleButton}
+          onPress={() => {
+            if (request) {
+              promptAsync();
+            } else {
+              Alert.alert(
+                "Google Sign-In not configured",
+                "Please set up your Google client ID to enable this feature."
+              );
+            }
+          }}
+          disabled={!request}
+        >
           <Image source={require('../assets/google-icon.png')} style={styles.googleIcon} />
           <Text style={styles.googleButtonText}>Sign in with Google</Text>
         </TouchableOpacity>

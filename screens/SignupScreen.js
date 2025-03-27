@@ -129,10 +129,24 @@ const SignupScreen = ({ navigation }) => {
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign Up</Text>}
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.googleButton} onPress={() => promptAsync()} disabled={!request}>
-        <Image source={require('../assets/google-icon.png')} style={styles.googleIcon} />
-        <Text style={styles.googleButtonText}>Sign up with Google</Text>
+        <TouchableOpacity
+          style={styles.googleButton}
+          onPress={() => {
+            if (request) {
+              promptAsync();
+            } else {
+              Alert.alert(
+                "Google Sign-Up not configured",
+                "Please set up your Google client ID to enable this feature."
+              );
+            }
+          }}
+          disabled={!request}
+        >
+          <Image source={require('../assets/google-icon.png')} style={styles.googleIcon} />
+          <Text style={styles.googleButtonText}>Sign up with Google</Text>
         </TouchableOpacity>
+
 
 
         {/* Back to Login */}
