@@ -10,10 +10,18 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { Icon } from '@rneui/themed'; // Import Icon component
 import { generateMessage } from '../OpenAIService'; // Import the generateMessage function
 
 const ChatBot = () => {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([
+    {
+      id: '1', // Unique ID for the default message
+      text: 'Hello! I am the PeadBot and I am here to assist you with all of your professional development questions! How can I help you?', // Default bot message
+      createdAt: new Date(),
+      user: 'bot', // Indicates this is a bot message
+    },
+  ]);
   const [inputText, setInputText] = useState('');
   const navigation = useNavigation();
 
@@ -78,6 +86,14 @@ const ChatBot = () => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      {/* Help Icon */}
+      <TouchableOpacity
+        style={styles.helpIcon}
+        onPress={() => navigation.navigate('Setting', { screen: 'ContactSupport' })} // Navigate to ContactSupportScreen
+      >
+        <Icon name="help-circle" type="ionicon" size={30} color="#1EA896" />
+      </TouchableOpacity>
+
       {/* Chat Messages */}
       <FlatList
         data={messages}
@@ -159,5 +175,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  helpIcon: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 10,
   },
 });
