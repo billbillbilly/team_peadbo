@@ -42,6 +42,7 @@ import CreateNewsletterScreen from './screens/News_Letter_Screens/CreateNewslett
 
 
 
+import TestDatabaseScreen from './screens/TestDatabaseScreen';
 
 const store = configureStore({
     reducer: {
@@ -135,6 +136,11 @@ const HomeTabStack = (props) => {
             <Stack.Screen name='BoardDetail' component={BoardDetailScreen} options={{ headerShown: false}}/>
             <Stack.Screen name='EventScreen' component={EventScreen} options={{ headerShown: false}}/>
             <Stack.Screen name="ChatBot" component={ChatBot} />
+            {/* <Stack.Screen name='SendNotificationScreen' component={SendNotificationScreen} /> */}
+            {/* boad management */}
+            <Stack.Screen name='BoardDetail' component={BoardDetailScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
+            <Stack.Screen name='EventScreen' component={EventScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
+            <Stack.Screen name='DatabaseScreen' component={TestDatabaseScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
         </Stack.Navigator>
     )
 }
