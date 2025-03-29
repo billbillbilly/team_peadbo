@@ -1,3 +1,6 @@
+
+import React from 'react';
+import AppContainer from './AppContainer';
 import { Amplify } from 'aws-amplify';
 import { amplifyAPI } from './Secrets'; 
 import AppContainer from './AppContainer';
@@ -5,6 +8,17 @@ import AppContainer from './AppContainer';
 import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import * as queries from './src/graphql/queries';
+import { amplifyAPI, firebaseConfig } from './Secrets';
+
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth'; // Include Firebase Auth
+
+// Initialize Firebase
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
+// Configure AWS Amplify
 Amplify.configure(amplifyAPI);
 
 
