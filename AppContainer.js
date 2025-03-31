@@ -40,6 +40,9 @@ import EventScreen from './screens/Board_Detail_Screens/EventScreen';
 import NewsletterScreen from './screens/News_Letter_Screens/NewsletterScreen';
 import CreateNewsletterScreen from './screens/News_Letter_Screens/CreateNewsletterScreen';
 
+
+
+
 const store = configureStore({
     reducer: {
         user: userSlice,
@@ -127,10 +130,10 @@ const HomeTabStack = (props) => {
             <Stack.Screen name='SendNotificationScreen' component={SendNotificationScreen} />
             <Stack.Screen name='TimeAvailabilityScreen' component={TimeAvailabilityScreen}/>
             <Stack.Screen name='ReviewScreen' component={Review}/>
-            {/* <Stack.Screen name='SendNotificationScreen' component={SendNotificationScreen} /> */}
-            {/* boad management */}
-            <Stack.Screen name='BoardDetail' component={BoardDetailScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
-            <Stack.Screen name='EventScreen' component={EventScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
+            {/* Board management screens */}
+            <Stack.Screen name='BoardDetail' component={BoardDetailScreen} options={{ headerShown: false}}/>
+            <Stack.Screen name='EventScreen' component={EventScreen} options={{ headerShown: false}}/>
+            <Stack.Screen name="ChatBot" component={ChatBot} />
         </Stack.Navigator>
     )
 }

@@ -1,0 +1,16 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-peadbo-dev-110652-authRole",
+      "UnauthRoleArn": "arn:aws:iam::451439061598:role/amplify-peadbo-dev-110652-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::451439061598:role/amplify-peadbo-dev-110652-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-peadbo-dev-110652-deployment",
+      "UnauthRoleName": "amplify-peadbo-dev-110652-unauthRole",
+      "StackName": "amplify-peadbo-dev-110652",
+      "StackId": "arn:aws:cloudformation:us-east-1:451439061598:stack/amplify-peadbo-dev-110652/af134c80-419a-11ed-8fed-129571d55025",
+      "AmplifyAppId": "d2sxjlkb5o7a19",
+      "AuthTriggerTemplateURL": "https://s3.amazonaws.com/amplify-peadbo-dev-110652-deployment/amplify-cfn-templates/auth/auth-trigger-cloudformation-template.json"
+    }
+  }
+}
