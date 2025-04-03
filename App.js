@@ -2,8 +2,6 @@
 import React from 'react';
 import AppContainer from './AppContainer';
 import { Amplify } from 'aws-amplify';
-import { amplifyAPI } from './Secrets'; 
-import AppContainer from './AppContainer';
 // import config from './src/amplifyconfiguration.json';
 import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';

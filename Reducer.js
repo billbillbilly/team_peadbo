@@ -11,7 +11,7 @@ import { GraphQLAPI } from '@aws-amplify/api-graphql';
 import { amplifyAPI } from './Secrets'; 
 
 import { generateClient } from 'aws-amplify/api';
-import * as queries from './graphql/queries';
+import * as queries from './src/graphql/queries';
 
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -200,7 +200,7 @@ const userSlice = createSlice({
           state.tasks[index] = action.payload;
         }
       })
-      .addCase(deleteThunk.fulfilled, (state, action) => {
+      .addCase(deleteTaskThunk.fulfilled, (state, action) => {
         state.listBoards = state.listBoards.filter(item => item.key !== action.payload);
       });
   },
