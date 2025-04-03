@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { initializeApp, getApps } from 'firebase/app';
 import { 
   setDoc, getDocs, addDoc, doc, getFirestore, collection, 
-  onSnapshot, getDoc, deleteDoc, updateDoc, query, where 
+  onSnapshot, getDoc, deleteDoc, updateDoc 
 } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -83,17 +83,9 @@ if (apps.length === 0) {
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-export const subscribeToUserUpdates = (dispatch) => {
-  let snapshotUnsubscribe = undefined;
-  if (snapshotUnsubscribe) {
-    snapshotUnsubscribe();
-  }
-  snapshotUnsubscribe = onSnapshot(collection(db, 'peadbo'), usersSnapshot => {
-    const updatedUsers = usersSnapshot.docs.map(uSnap => uSnap.data());
-    dispatch(loadUsers(updatedUsers));
-  });
-};
+// ---------------------- Thunks Definitions ------------------------
 
+// setUser thunk
 export const setUser = createAsyncThunk(
   'user/setUser',
   async (authUser) => {
@@ -102,116 +94,54 @@ export const setUser = createAsyncThunk(
   }
 );
 
-export const addUser = createAsyncThunk(
-  'user/addUser',
-  async (user) => {
-    const userToAdd = {
-      displayName: user.displayName,
-      email: user.email,
-      key: user.uid
-    };
-    await setDoc(doc(db, 'peadbo', user.uid), userToAdd);
-  }
-);
-
-export const loadUsers = createAsyncThunk(
-  'user/loadUsers',
+// Fetch tasks
+export const fetchTasksThunk = createAsyncThunk(
+  'tasks/fetchTasks',
   async () => {
-    const usersSnap = await getDocs(collection(db, 'peadbo'));
-    return usersSnap.docs.map(doc => doc.data());
+    const snapshot = await getDocs(collection(db, 'tasks'));
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   }
 );
 
-// ---------------------- Profile Settings & Persistence ---------------------
-
-export const loadProfileSettings = createAsyncThunk(
-  'user/loadProfileSettings',
-  async () => {
-    try {
-      const savedSettings = await AsyncStorage.getItem('profileSettings');
-      return savedSettings ? JSON.parse(savedSettings) : { notificationsEnabled: true, darkMode: false };
-    } catch (error) {
-      console.error("Error loading profile settings:", error);
-      return { notificationsEnabled: true, darkMode: false };
-    }
+// Add a task
+export const addTaskThunk = createAsyncThunk(
+  'tasks/addTask',
+  async (task) => {
+    const ref = await addDoc(collection(db, 'tasks'), { ...task, completed: false });
+    return { id: ref.id, ...task, completed: false };
   }
 );
 
-export const updateProfileSetting = createAsyncThunk(
-  'user/updateProfileSetting',
-  async ({ key, value }) => {
-    try {
-      const settings = await AsyncStorage.getItem('profileSettings');
-      const newSettings = settings ? JSON.parse(settings) : {};
-      newSettings[key] = value;
-      await AsyncStorage.setItem('profileSettings', JSON.stringify(newSettings));
-      return newSettings;
-    } catch (error) {
-      console.error("Error updating profile settings:", error);
-      return {};
-    }
+export const updateTaskThunk = createAsyncThunk(
+  'tasks/updateTask',
+  async (updatedTask) => {
+    const { id, ...dataToUpdate } = updatedTask;
+    console.log('Updating task:', id, dataToUpdate); // For debugging
+    const taskRef = doc(db, 'tasks', id);
+    await updateDoc(taskRef, dataToUpdate);
+    return updatedTask; // Return the updated task
   }
 );
 
-// ---------------------- Fetch & Manage User Data ---------------------
-
-export const fetchUserImagesThunk = createAsyncThunk(
-  'app/fetchUserImages',
-  async (id) => {
-    try {
-      const userDocRef = doc(db, 'peadbo', id);
-      const imageCollectionRef = collection(userDocRef, 'image');
-      const querySnapshot = await getDocs(imageCollectionRef);
-      const imageList = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })).filter((image) => image.path !== 'void');
-      return imageList;
-    } catch (error) {
-      console.error('Error fetching user images:', error);
-      throw error; 
-    }
+// Mark a task complete (this one is already there)
+export const completeTaskThunk = createAsyncThunk(
+  'tasks/completeTask',
+  async (taskId) => {
+    await updateDoc(doc(db, 'tasks', taskId), { completed: true });
+    return taskId;
   }
 );
 
-export const fetchListThunk = createAsyncThunk(
-  'lists/fetchList',
-  async () => {
-    const listsRef = collection(db, 'list');
-    const querySnapshot = await getDocs(listsRef);
-    return querySnapshot.docs.map(doc => ({ ...doc.data(), key: doc.id })) || [];
-  }
-);
-
-export const addThunk = createAsyncThunk(
-  'lists/add',
-  async (item) => {
-    const itemRef = collection(db, 'lists');
-    const itemSnap = await addDoc(itemRef, { ...item, key: Date.now() + Math.random() });
-    return { key: itemSnap.id, item };
-  }
-);
-
-export const updateThunk = createAsyncThunk(
-  'lists/update',
-  async ({ key, updatedItem }) => {
-    const docRef = doc(db, 'list', key);
-    await updateDoc(docRef, updatedItem);
-    return { key, updatedItem };
-  }
-);
-
-export const deleteThunk = createAsyncThunk(
-  'lists/delete',
-  async (key) => {
-    const docRef = doc(db, 'lists', key);
-    await deleteDoc(docRef);
-    return key;
+// Delete a task
+export const deleteTaskThunk = createAsyncThunk(
+  'tasks/deleteTask',
+  async (taskId) => {
+    await deleteDoc(doc(db, 'tasks', taskId));
+    return taskId;
   }
 );
 
 // ---------------------- Redux Slice Definition ------------------------
-
 const userSlice = createSlice({
   name: 'user',
   initialState: {
@@ -222,16 +152,24 @@ const userSlice = createSlice({
         title: 'Academic Team',
         description: 'Keep up with team chats, share updates, and stay on top of tasks.',
         type: 'Advisory',
-        users: ['https://randomuser.me/api/portraits/women/1.jpg', 'https://randomuser.me/api/portraits/men/2.jpg', 'https://randomuser.me/api/portraits/men/3.jpg'],
+        users: [
+          'https://randomuser.me/api/portraits/women/1.jpg',
+          'https://randomuser.me/api/portraits/men/2.jpg',
+          'https://randomuser.me/api/portraits/men/3.jpg'
+        ],
       },
       {
         id: '2',
         title: 'Swimming Group',
         description: 'Here’s the update on training plans. Also share the progress!',
         type: 'Personal',
-        users: ['https://randomuser.me/api/portraits/women/4.jpg', 'https://randomuser.me/api/portraits/men/5.jpg'],
+        users: [
+          'https://randomuser.me/api/portraits/women/4.jpg',
+          'https://randomuser.me/api/portraits/men/5.jpg'
+        ],
       },
     ],
+    tasks: [] // This array holds the tasks
   },
   reducers: {
     selectItem: (state, action) => {
@@ -244,31 +182,29 @@ const userSlice = createSlice({
       .addCase(setUser.fulfilled, (state, action) => {
         state.currentUser = action.payload || { displayName: "Unknown", email: "", key: "" };
       })
-      .addCase(loadProfileSettings.fulfilled, (state, action) => {
-        state.profileSettings = action.payload;
+      .addCase(fetchTasksThunk.fulfilled, (state, action) => {
+        state.tasks = action.payload;
       })
-      .addCase(updateProfileSetting.fulfilled, (state, action) => {
-        state.profileSettings = action.payload;
+      .addCase(addTaskThunk.fulfilled, (state, action) => {
+        state.tasks.push(action.payload);
       })
-      .addCase(loadUsers.fulfilled, (state, action) => {
-        state.listBoards = action.payload;
+      .addCase(completeTaskThunk.fulfilled, (state, action) => {
+        const index = state.tasks.findIndex(task => task.id === action.payload);
+        if (index !== -1) {
+          state.tasks[index].completed = true;
+        }
       })
-      .addCase(fetchUserImagesThunk.fulfilled, (state, action) => {
-        state.userImages = action.payload;
-      })
-      .addCase(fetchListThunk.fulfilled, (state, action) => {
-        state.listBoards = action.payload;
-      })
-      .addCase(addThunk.fulfilled, (state, action) => {
-        state.listBoards.push({ ...action.payload.item, key: action.payload.key });
-      })
-      .addCase(updateThunk.fulfilled, (state, action) => {
-        state.listBoards = state.listBoards.map(item => item.key === action.payload.key ? { ...action.payload.updatedItem, key: action.payload.key } : item);
+      .addCase(updateTaskThunk.fulfilled, (state, action) => {
+        const index = state.tasks.findIndex(task => task.id === action.payload.id);
+        if (index !== -1) {
+          state.tasks[index] = action.payload;
+        }
       })
       .addCase(deleteThunk.fulfilled, (state, action) => {
         state.listBoards = state.listBoards.filter(item => item.key !== action.payload);
       });
   },
+  
 });
 
 export const { selectItem } = userSlice.actions;
