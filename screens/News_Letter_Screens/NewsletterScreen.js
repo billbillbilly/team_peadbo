@@ -1,109 +1,100 @@
 import React, { useState } from 'react';
-import {
-  SafeAreaView,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Modal,
-  ScrollView,
-  FlatList,
-} from 'react-native';
+import { SafeAreaView, View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { Icon } from '@rneui/themed';
-import { generateTemplate } from '../../OpenAIService';
+
+// Peadbo color scheme
+const PEADBO_COLORS = {
+  primary: '#1EA896', // Peadbo teal
+  secondary: '#FF715B', // Peadbo coral
+  background: '#F9F9F9',
+  text: '#333333',
+  lightText: '#777777',
+  border: '#DDDDDD',
+  white: '#FFFFFF'
+};
+
+const newsletterData = [
+  {
+    id: '1',
+    title: 'Weekly Update',
+    status: 'Draft',
+    recipients: 120,
+    delivered: 0,
+    opened: 0,
+    clicked: 0,
+    bounced: 0,
+    scheduled: '2025-04-01 10:00'
+  },
+  {
+    id: '2',
+    title: 'Product Launch',
+    status: 'Sent',
+    recipients: 450,
+    delivered: 445,
+    opened: 320,
+    clicked: 210,
+    bounced: 5,
+    scheduled: '2025-03-15 09:00'
+  }
+];
 
 export default function NewsletterScreen({ navigation }) {
-  const [templates, setTemplates] = useState([]); // Array to store multiple templates
-  const [selectedTemplate, setSelectedTemplate] = useState(''); // Template to display in the modal
-  const [isModalVisible, setIsModalVisible] = useState(false); // State to manage modal visibility
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const handleGenerateTemplate = async () => {
-    try {
-      const generatedTemplate = await generateTemplate(); // Call the generateTemplate function
-      setTemplates((prevTemplates) => [...prevTemplates, generatedTemplate]); // Add the new template to the array
-    } catch (error) {
-      console.error('Error generating template:', error);
-    }
-  };
-
-  const openTemplateModal = (template) => {
-    setSelectedTemplate(template); // Set the selected template for the modal
-    setIsModalVisible(true); // Open the modal
-  };
+  const renderItem = ({ item }) => (
+    <TouchableOpacity style={styles.newsletterItem}>
+      <View style={styles.itemHeader}>
+        <Text style={styles.itemTitle}>{item.title}</Text>
+        <Text style={[styles.statusBadge, 
+          item.status === 'Sent' ? styles.sentBadge : styles.draftBadge]}>
+          {item.status}
+        </Text>
+      </View>
+      <View style={styles.statsRow}>
+        <Text style={styles.stat}>Recipients: {item.recipients}</Text>
+        <Text style={styles.stat}>Delivered: {item.delivered}</Text>
+        <Text style={styles.stat}>Opened: {item.opened}</Text>
+      </View>
+      <View style={styles.statsRow}>
+        <Text style={styles.stat}>Clicked: {item.clicked}</Text>
+        <Text style={styles.stat}>Bounced: {item.bounced}</Text>
+        <Text style={styles.stat}>Scheduled: {item.scheduled}</Text>
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
+      <Text style={styles.title}>Newsletters</Text>
+      
       <View style={styles.searchContainer}>
+        <Icon name="search" size={20} color={PEADBO_COLORS.lightText} />
         <TextInput
-          style={styles.searchField}
-          placeholder="Search here"
-          placeholderTextColor="#999"
-        />
-        <TouchableOpacity style={styles.searchButton}>
-          <Text style={styles.searchButtonText}>Search</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.cardContainer}>
-        <TouchableOpacity
-          style={styles.createCard}
-          onPress={() => navigation.navigate('CreateNewsletter')}
-        >
-          <Icon name="plus" type="font-awesome" size={24} />
-          <Text style={styles.createText}>Create new newsletter</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.createCard}
-          onPress={handleGenerateTemplate} // Call the handler to generate the template
-        >
-          <Icon name="plus" type="font-awesome" size={24} />
-          <Text style={styles.createText}>Generate AI newsletter template</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Container for the templates */}
-      <View style={styles.templateContainer}>
-        <FlatList
-          data={templates}
-          keyExtractor={(item, index) => index.toString()} // Use index as key
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.templateCard}
-              onPress={() => openTemplateModal(item)} // Open the modal with the selected template
-            >
-              <Text style={styles.templatePreview}>
-                {item.length > 50 ? `${item.substring(0, 50)}...` : item}
-              </Text>
-            </TouchableOpacity>
-          )}
-          ListEmptyComponent={
-            <Text style={styles.placeholderText}>No templates generated yet.</Text>
-          }
+          style={styles.searchInput}
+          placeholder="Search newsletters..."
+          placeholderTextColor={PEADBO_COLORS.lightText}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
         />
       </View>
 
-      {/* Modal to display the full template */}
-      <Modal
-        visible={isModalVisible}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={() => setIsModalVisible(false)} // Close the modal
+      <TouchableOpacity
+        style={styles.createButton}
+        onPress={() => navigation.navigate('CreateNewsletter')}
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <ScrollView>
-            <Text style={styles.modalTitle}>Generated Template</Text>
-            <Text style={styles.modalContent}>{selectedTemplate}</Text>
-          </ScrollView>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setIsModalVisible(false)} // Close the modal
-          >
-            <Text style={styles.closeButtonText}>Close</Text>
-          </TouchableOpacity>
-        </SafeAreaView>
-      </Modal>
+        <Icon name="add" size={24} color={PEADBO_COLORS.white} />
+        <Text style={styles.createButtonText}>Create Newsletter</Text>
+      </TouchableOpacity>
+
+      <FlatList
+        data={newsletterData}
+        renderItem={renderItem}
+        keyExtractor={item => item.id}
+        contentContainerStyle={styles.listContainer}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>No newsletters found</Text>
+        }
+      />
     </SafeAreaView>
   );
 }
@@ -111,105 +102,94 @@ export default function NewsletterScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#F9F9F9',
+    padding: 16,
+    backgroundColor: PEADBO_COLORS.background,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 24,
+    color: PEADBO_COLORS.text,
   },
   searchContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: PEADBO_COLORS.white,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#DDD',
-    borderRadius: 25,
-    overflow: 'hidden',
+    borderColor: PEADBO_COLORS.border,
+  },
+  searchInput: {
+    flex: 1,
     height: 48,
-    backgroundColor: '#FFF',
-    marginBottom: 20,
+    paddingLeft: 8,
+    color: PEADBO_COLORS.text,
   },
-  searchField: {
-    flex: 1,
-    paddingHorizontal: 16,
-    fontSize: 16,
-  },
-  searchButton: {
-    width: 80,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderLeftWidth: 1,
-    borderLeftColor: '#DDD',
-    backgroundColor: '#FFF',
-  },
-  searchButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-  },
-  createCard: {
+  createButton: {
     flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderStyle: 'dotted',
-    borderColor: '#AAA',
+    backgroundColor: PEADBO_COLORS.primary,
     borderRadius: 8,
-    padding: 24,
-    marginBottom: 16,
-    width: '40%',
-  },
-  createText: { marginLeft: 12, fontSize: 18, fontWeight: '500', alignSelf: 'center' },
-  cardContainer: {
-    flex: 0.15,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  templateContainer: {
-    flex: 1, // Allow the container to take up remaining space
-    marginTop: 16,
-    borderWidth: 1,
-    borderColor: '#DDD',
-    borderRadius: 8,
-    padding: 8,
-    backgroundColor: '#F9F9F9',
-  },
-  templateCard: {
-    marginBottom: 8,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#DDD',
-    borderRadius: 8,
-    backgroundColor: '#FFF',
-  },
-  templatePreview: {
-    fontSize: 16,
-    color: '#333',
-  },
-  placeholderText: {
-    fontSize: 16,
-    color: '#999',
-    textAlign: 'center',
-  },
-  modalContainer: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#FFF',
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
-  modalContent: {
-    fontSize: 16,
-    color: '#333',
-    lineHeight: 24,
-  },
-  closeButton: {
-    marginTop: 16,
     padding: 12,
-    backgroundColor: '#1EA896',
-    borderRadius: 8,
     alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
   },
-  closeButtonText: {
-    color: '#FFF',
+  createButtonText: {
+    color: PEADBO_COLORS.white,
     fontSize: 16,
     fontWeight: '600',
+    marginLeft: 8,
+  },
+  listContainer: {
+    paddingBottom: 16,
+  },
+  newsletterItem: {
+    backgroundColor: PEADBO_COLORS.white,
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: PEADBO_COLORS.border,
+  },
+  itemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  itemTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: PEADBO_COLORS.text,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  sentBadge: {
+    backgroundColor: '#E3FCEF',
+    color: '#006644',
+  },
+  draftBadge: {
+    backgroundColor: '#DEEBFF',
+    color: '#0747A6',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  stat: {
+    fontSize: 14,
+    color: PEADBO_COLORS.lightText,
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 24,
+    color: PEADBO_COLORS.lightText,
   },
 });

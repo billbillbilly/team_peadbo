@@ -1,60 +1,105 @@
-import React, { useState, useEffect } from 'react';
-import { SafeAreaView, View, TextInput, TouchableOpacity, Text, StyleSheet, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { SafeAreaView, ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import * as Contacts from 'expo-contacts';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
-export default function CreateNewsletterScreen() {
-  const [contact, setContact] = useState(null);
-  const [contacts, setContacts] = useState([]);
+const PEADBO_COLORS = {
+  primary: '#1EA896',
+  secondary: '#FF715B',
+  background: '#F9F9F9',
+  text: '#333333',
+  lightText: '#777777',
+  border: '#DDDDDD',
+  white: '#FFFFFF'
+};
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await Contacts.requestPermissionsAsync();
-      if (status === 'granted') {
-        const { data } = await Contacts.getContactsAsync({
-          fields: [Contacts.Fields.Emails],
-        });
-        if (data.length > 0) {
-          setContacts(data);
-        }
-      } else {
-        Alert.alert('Permission Denied', 'Cannot access contacts without permission.');
+export default function CreateNewsletterScreen({ navigation, route }) {
+  const [newsletter, setNewsletter] = useState({
+    title: '',
+    subject: '',
+    schedule: '',
+    recipients: '',
+    template: '',
+    content: route.params?.content || `
+      <p>Greetings,</p>
+      <p>I hope this email finds you well.</p>
+      <p>You are receiving this note because I would like to share some recent updates from my journey.</p>
+      <ul>
+        <li>&lt;List Updates Here&gt;</li>
+      </ul>
+      <p>Thanks so much for taking time out of your busy schedule to read this. I'll be in touch soon!</p>
+    `
+  });
+
+  const handleEditContent = () => {
+    navigation.navigate('RichTextEditor', { 
+      content: newsletter.content,
+      onSave: (newContent) => setNewsletter({...newsletter, content: newContent})
+    });
+  };
+
+  const handlePreview = () => {
+    navigation.navigate('NewsletterPreview', { 
+      newsletter: newsletter,
+      onSave: (updatedNewsletter) => {
+        setNewsletter(updatedNewsletter);
+        // In a real app, you would save to your backend here
+        navigation.navigate('Newsletter', { newNewsletter: updatedNewsletter });
       }
-    })();
-  }, []);
+    });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <TextInput style={styles.searchInput} placeholder="Title" />
-      <TextInput style={styles.searchInput} placeholder="Subject" />
-      <TextInput style={styles.searchInput} placeholder="Schedule at (e.g. 2025-03-30 10:00)" />
-
-      {/* Dropdown populated with phone contacts */}
-      <View style={styles.dropdownContainer}>
-        <Picker
-          selectedValue={contact}
-          onValueChange={(value) => setContact(value)}
-          mode="dropdown"
-          style={styles.dropdown}
-          itemStyle={styles.itemStyle} 
-          dropdownIconColor="#666"
-        >
-          <Picker.Item label="Select Contact" value={null} />
-          {contacts.map((item) => (
-            <Picker.Item key={item.id} label={item.name} value={item.id} />
-          ))}
-        </Picker>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Icon name="arrow-back" size={24} color={PEADBO_COLORS.text} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>New Newsletter</Text>
+        <View style={{ width: 24 }} />
       </View>
 
-      <TextInput
-        style={[styles.searchInput, { height: 100 }]}
-        placeholder="Add preview text..."
-        multiline
-      />
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.sectionTitle}>Newsletter Details</Text>
+        
+        <TextInput 
+          style={styles.input} 
+          placeholder="Title" 
+          value={newsletter.title}
+          onChangeText={(text) => setNewsletter({...newsletter, title: text})}
+        />
+        
+        <TextInput 
+          style={styles.input} 
+          placeholder="Subject" 
+          value={newsletter.subject}
+          onChangeText={(text) => setNewsletter({...newsletter, subject: text})}
+        />
+        
+        <TextInput 
+          style={styles.input} 
+          placeholder="Schedule at (e.g. 2025-03-30 10:00) (optional)" 
+          value={newsletter.schedule}
+          onChangeText={(text) => setNewsletter({...newsletter, schedule: text})}
+        />
 
-      <TouchableOpacity style={styles.addContactButton}>
-        <Text style={styles.addContactText}>Preview</Text>
-      </TouchableOpacity>
+        <Text style={styles.sectionTitle}>Recipients</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter recipients (comma-separated)"
+          placeholderTextColor="#999"
+          value={newsletter.recipients}
+          onChangeText={(text) => setNewsletter({ ...newsletter, recipients: text })}
+        />
+
+        <TouchableOpacity 
+          style={styles.previewButton}
+          onPress={handlePreview}
+          disabled={!newsletter.title || !newsletter.content}
+        >
+          <Text style={styles.previewButtonText}>Preview Newsletter</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -62,48 +107,75 @@ export default function CreateNewsletterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#F9F9F9',
+    backgroundColor: PEADBO_COLORS.background,
   },
-  searchInput: {
-    backgroundColor: '#EFEFEF',
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 20,
-    fontSize: 16,
-  },
-  dropdownContainer: {
-    backgroundColor: '#EFEFEF',
-    borderWidth: 1,
-    borderColor: '#DDD',
-    borderRadius: 10,
-    marginBottom: 20,
-    height: 48,
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  dropdown: {
-    width: '100%',
-    height: '100%',
-  },
-  // iOS-specific styling for Picker items:
-  itemStyle: {
-    color: '#333',
-    fontSize: 16,
-  },
-  addContactButton: {
-    backgroundColor: '#1EA896',
-    padding: 15,
-    borderRadius: 10,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 20,
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: PEADBO_COLORS.border,
+    backgroundColor: PEADBO_COLORS.white,
   },
-  addContactText: {
-    color: '#fff',
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: PEADBO_COLORS.text,
+  },
+  scrollContent: {
+    padding: 16,
+  },
+  sectionTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    marginBottom: 20,
+    color: PEADBO_COLORS.text,
   },
-
-
+  input: {
+    height: 48,
+    borderWidth: 1,
+    borderColor: PEADBO_COLORS.border,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 16,
+    backgroundColor: PEADBO_COLORS.white,
+    color: PEADBO_COLORS.text,
+  },
+  picker: {
+    height: 48,
+    borderWidth: 1,
+    borderColor: PEADBO_COLORS.border,
+    borderRadius: 8,
+    marginBottom: 16,
+    backgroundColor: PEADBO_COLORS.white,
+    color: PEADBO_COLORS.text,
+  },
+  contentButton: {
+    height: 48,
+    borderWidth: 1,
+    borderColor: PEADBO_COLORS.primary,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    backgroundColor: PEADBO_COLORS.white,
+  },
+  contentButtonText: {
+    color: PEADBO_COLORS.primary,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  previewButton: {
+    height: 48,
+    backgroundColor: PEADBO_COLORS.primary,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  previewButtonText: {
+    color: PEADBO_COLORS.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });
-

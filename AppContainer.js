@@ -10,7 +10,7 @@ import userSlice from './Reducer';
 import ChatBot from './components/ChatBot';
 import FloatingButton from './components/FloatingButton';
 
-import LoginScreen from './screens/LoginScreen';  // Import LoginScreen
+import LoginScreen from './screens/LoginScreen';
 import HomeScreen from './screens/HomeScreen';
 import ContactsScreen from './screens/ContactsScreen';
 import SignupScreen from './screens/SignupScreen';
@@ -42,7 +42,6 @@ import CreateNewsletterScreen from './screens/News_Letter_Screens/CreateNewslett
 
 
 
-import TestDatabaseScreen from './screens/TestDatabaseScreen';
 
 const store = configureStore({
     reducer: {
@@ -76,7 +75,6 @@ const BoardCreationStack = (props) => {
     )
 }
 
-// Onboarding Stack
 const OnboardingStack = (props) => {
     const Stack = createNativeStackNavigator();
     const { navigation, route } = props;
@@ -98,7 +96,7 @@ const OnboardingStack = (props) => {
     )
 }
 
-// Home Tab Stack - renamed inner "Home" screen to "HomeMain"
+// Home Tab Stack
 const HomeTabStack = (props) => {
     const Stack = createNativeStackNavigator();
     const { navigation, route } = props;
@@ -136,16 +134,10 @@ const HomeTabStack = (props) => {
             <Stack.Screen name='BoardDetail' component={BoardDetailScreen} options={{ headerShown: false}}/>
             <Stack.Screen name='EventScreen' component={EventScreen} options={{ headerShown: false}}/>
             <Stack.Screen name="ChatBot" component={ChatBot} />
-            {/* <Stack.Screen name='SendNotificationScreen' component={SendNotificationScreen} /> */}
-            {/* boad management */}
-            <Stack.Screen name='BoardDetail' component={BoardDetailScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
-            <Stack.Screen name='EventScreen' component={EventScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
-            <Stack.Screen name='DatabaseScreen' component={TestDatabaseScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
         </Stack.Navigator>
     )
 }
 
-// Contact Tab Stack
 const ContactTabStack = (props) => {
     const Stack = createNativeStackNavigator();
     const { navigation, route } = props;
@@ -165,7 +157,6 @@ const ContactTabStack = (props) => {
     )
 }
 
-// Newsletter Tab Stack
 const NewsTabStack = (props) => {
     const Stack = createNativeStackNavigator();
     const { navigation, route } = props;
@@ -179,18 +170,17 @@ const NewsTabStack = (props) => {
                 backgroundColor: '#F9F9F9',
             },
         }}>
-            <Stack.Screen name='Newsletter' component={NewsletterScreen} />
-            <Stack.Screen
-                name='CreateNewsletter'
-                component={CreateNewsletterScreen}
-                options={{ title: 'New Newsletter' }}
-            />
-            <Stack.Screen name="ChatBot" component={ChatBot} />
+        <Stack.Screen name='Newsletter' component={NewsletterScreen} />
+        <Stack.Screen
+            name='CreateNewsletter'
+            component={CreateNewsletterScreen}
+            options={{ title: 'New Newsletter' }}
+        />
         </Stack.Navigator>
     )
 }
 
-// User Tab Stack
+// User Tab Stack (Updated with Profile Screen, but commented out Settings/Notifications/Preferences)
 const UserTabStack = (props) => {
     const Stack = createNativeStackNavigator();
     const { navigation, route } = props;
@@ -234,85 +224,66 @@ const DynamicTabsNavigator = () => {
           },
         })}
       >
-        <Tabs.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{
-            tabBarIcon: ({ color, size }) => (
-              <Icon name="home" type="font-awesome" color={color} size={size} />
-            ),
-          }}
-        />
+          <Tabs.Screen
+              name="Login"
+              component={LoginScreen}
+              options={{  tabBarIcon: ({ color, size }) => (
+                <Icon name="home" type="font-awesome" color={color} size={size} />
+            ), }}
+          />
+
+<Tabs.Screen
+              name="Signup"
+              component={SignupScreen}
+              options={{  tabBarIcon: ({ color, size }) => (
+                <Icon name="home" type="font-awesome" color={color} size={size} />
+            ), }}
+          />
   
-        <Tabs.Screen
-          name="Signup"
-          component={SignupScreen}
-          options={{
-            tabBarIcon: ({ color, size }) => (
-              <Icon name="home" type="font-awesome" color={color} size={size} />
-            ),
-          }}
-        />
-  
-        <Tabs.Screen
-          name="ForgotPassword"
-          component={ForgotPasswordScreen}
-          options={{
-            tabBarButton: () => null, 
-            tabBarStyle: { display: 'none' },
-            headerShown: false,
-          }}
-        />
-  
-        <Tabs.Screen
-          name="NewUserOnboarding"
-          component={OnboardingStack}
-          options={{
-            tabBarIcon: ({ color, size }) => (
-              <Icon name="home" type="font-awesome" color={color} size={size} />
-            ),
-          }}
-        />
-  
-        <Tabs.Screen
-          name="Home"
-          component={HomeTabStack}
-          options={{
-            tabBarIcon: ({ color, size }) => (
-              <Icon name="home" type="font-awesome" color={color} size={size} />
-            ),
-          }}
-        />
-  
-        <Tabs.Screen
-          name="Contacts"
-          component={ContactTabStack}
-          options={{
-            tabBarIcon: ({ color, size }) => (
-              <Icon name="group" type="font-awesome" color={color} size={size} />
-            ),
-          }}
-        />
-  
-        <Tabs.Screen
-          name="Letter"
-          component={NewsTabStack}
-          options={{
-            tabBarIcon: ({ color, size }) => (
-              <Icon name="list" type="font-awesome" color={color} size={size} />
-            ),
-          }}
-        />
-  
-        <Tabs.Screen
-          name="Setting"
-          component={UserTabStack}
-          options={{
-            tabBarIcon: ({ color, size }) => (
-              <Icon name="user" type="font-awesome" color={color} size={size} />
-            ),
-          }}
-        />
+          <Tabs.Screen
+              name="NewUserOnboarding"
+                component={OnboardingStack}
+                options={{ tabBarIcon: ({ color, size }) => (
+                    <Icon name="home" type="font-awesome" color={color} size={size} />
+                ), }}
+          />
+
+          <Tabs.Screen
+              name="Home"
+              component={HomeTabStack}
+              options={{
+                  tabBarIcon: ({ color, size }) => (
+                      <Icon name="home" type="font-awesome" color={color} size={size} />
+                  ),
+              }}
+          />
+          <Tabs.Screen
+              name="Contacts"
+              component={ContactTabStack}
+              options={{
+                  tabBarIcon: ({ color, size }) => (
+                      <Icon name="group" type="font-awesome" color={color} size={size} />
+                  ),
+              }}
+          />
+          <Tabs.Screen
+              name="Letter"
+              component={NewsTabStack}
+              options={{
+                  tabBarIcon: ({ color, size }) => (
+                      <Icon name="list" type="font-awesome" color={color} size={size} />
+                  ),
+              }}
+          />
+          <Tabs.Screen
+              name="Setting"
+              component={UserTabStack}
+              options={{
+                  tabBarIcon: ({ color, size }) => (
+                      <Icon name="user" type="font-awesome" color={color} size={size} />
+                  ),
+              }}
+          />
       </Tabs.Navigator>
     );
   };
@@ -331,12 +302,4 @@ const AppContainer = () => {
     );
 };
 
-function App() {
-    return (
-        <Provider store={store}>
-            <AppContainer />
-        </Provider>
-    );
-}
-
-export default App;
+export default AppContainer;
