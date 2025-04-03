@@ -208,93 +208,52 @@ export default function PickAdvisorsScreen({ navigation, route }) {
     </TouchableOpacity>
   );
 
-  return (
-    <>
-      <FlatList
-        data={selectedAdvisors}
-        keyExtractor={(item) => item.id.toString()}
-        ListHeaderComponent={renderHeader}
-        ListFooterComponent={renderFooter}
-        renderItem={({ item }) => (
-          <View style={styles.advisorItem}>
-            <Text style={styles.advisorName}>{item.name}</Text>
-            <Text style={styles.advisorEmail}>
-              {item.emails && item.emails.length > 0 ? item.emails[0].email : 'No Email'}
-            </Text>
-          </View>
-        )}
-      />
-
-      {/* Contact Modal */}
-      <Modal
-        visible={showContacts}
-        animationType="slide"
-        onRequestClose={() => setShowContacts(false)}
-      >
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Select a Contact</Text>
-
-          {/* Search Bar */}
-          {isSearching ? (
-            <View style={styles.searchContainer}>
-              <TextInput
-                style={styles.searchBar}
-                placeholder="Search by name"
-                value={searchQuery}
-                onChangeText={handleSearch}
-              />
-              <TouchableOpacity
-                style={styles.cancelSearchButton}
-                onPress={() => {
-                  setIsSearching(false);
-                  setSearchQuery('');
-                  setFilteredContacts(contacts); // Reset to all contacts
-                }}
-              >
-                <Text style={styles.cancelSearchText}>Cancel</Text>
-              </TouchableOpacity>
+    return (
+        <ScrollView contentContainerStyle={styles.container}>
+            {/* Progress Bar */}
+            <View style={styles.progressBarContainer}>
+                {['1', '2', '3', '4', '5'].map((step, index) => (
+                    <View key={index} style={[styles.step, index === 2 ? styles.activeStep : index < 2 ? styles.completedStep : styles.incompleteStep]}>
+                        <Text style={styles.stepText}>{step}</Text>
+                    </View>
+                ))}
             </View>
-          ) : (
-            <TouchableOpacity
-              style={styles.searchButton}
-              onPress={() => setIsSearching(true)}
-            >
-              <Icon name="search" size={24} color="#fff" />
-              <Text style={styles.searchButtonText}>Search</Text>
-            </TouchableOpacity>
-          )}
 
-          {/* Contact List */}
-          <FlatList
-            data={filteredContacts}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.contactItem}
-                onPress={() => selectContact(item)}
-              >
-                <Text style={styles.contactName}>{item.name}</Text>
-                <Text style={styles.contactEmail}>
-                  {item.emails && item.emails.length > 0 ? item.emails[0].email : 'No Email'}
-                </Text>
-              </TouchableOpacity>
+            <Text style={styles.title}>Invite Board Member</Text>
+            <Text style={styles.subtitle}>Who would you like to invite to your board? You can invite from your contact, or AI can match for you.</Text>
+            <View style={styles.tabsContainer}>
+                <TouchableOpacity style={activeTab === 'AI Match' ? styles.activeTab : styles.inactiveTab} onPress={() => setActiveTab('AI Match')}>
+                    <Text style={styles.tabText}>AI Match</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={activeTab === 'Invite from Contact' ? styles.activeTab : styles.inactiveTab} onPress={() => setActiveTab('Invite from Contact')}>
+                    <Text style={styles.tabText}>Invite from Contact</Text>
+                </TouchableOpacity>
+            </View>
+
+            {activeTab === 'Invite from Contact' && (
+                <FlatList
+                    data={contacts}
+                    renderItem={renderContacts}
+                    keyExtractor={item => item.id}
+                    style={styles.list}
+                />
             )}
-            keyboardShouldPersistTaps="handled"
-          />
 
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setShowContacts(false)}
-          >
-            <Text style={styles.closeButtonText}>Close</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
-    </>
-  );
-}
+            {activeTab === 'AI Match' && (
+                <FlatList
+                    data={advisors}
+                    renderItem={renderAdvisors}
+                    keyExtractor={item => item.id}
+                    style={styles.list}
+                />
+            )}
 
-const circleSize = 40;
+            <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+                <Text style={styles.nextButtonText}>Next</Text>
+            </TouchableOpacity>
+        </ScrollView>
+    );
+};
 
 const styles = StyleSheet.create({
   container: {
