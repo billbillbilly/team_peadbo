@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SafeAreaView, View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { Icon } from '@rneui/themed';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Peadbo color scheme
 const PEADBO_COLORS = {
-  primary: '#1EA896', // Peadbo teal
-  secondary: '#FF715B', // Peadbo coral
+  primary: '#1EA896',
+  secondary: '#FF715B',
   background: '#F9F9F9',
   text: '#333333',
   lightText: '#777777',
@@ -13,53 +13,75 @@ const PEADBO_COLORS = {
   white: '#FFFFFF'
 };
 
-const newsletterData = [
-  {
-    id: '1',
-    title: 'Weekly Update',
-    status: 'Draft',
-    recipients: 120,
-    delivered: 0,
-    opened: 0,
-    clicked: 0,
-    bounced: 0,
-    scheduled: '2025-04-01 10:00'
-  },
-  {
-    id: '2',
-    title: 'Product Launch',
-    status: 'Sent',
-    recipients: 450,
-    delivered: 445,
-    opened: 320,
-    clicked: 210,
-    bounced: 5,
-    scheduled: '2025-03-15 09:00'
-  }
-];
+const STORAGE_KEY = 'newsletters';
 
-export default function NewsletterScreen({ navigation }) {
+export default function NewsletterScreen({ navigation, route }) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [newsletters, setNewsletters] = useState([]);
+
+  useEffect(() => {
+    const loadNewsletters = async () => {
+      try {
+        const savedNewsletters = await AsyncStorage.getItem(STORAGE_KEY);
+        if (savedNewsletters) {
+          setNewsletters(JSON.parse(savedNewsletters));
+        }
+      } catch (error) {
+        console.error('Failed to load newsletters', error);
+      }
+    };
+
+    loadNewsletters();
+  }, []);
+
+  useEffect(() => {
+    if (route.params?.newNewsletter) {
+      const updatedNewsletters = route.params.newNewsletter.id 
+        ? newsletters.map(n => n.id === route.params.newNewsletter.id ? route.params.newNewsletter : n)
+        : [...newsletters, {...route.params.newNewsletter, id: Date.now().toString()}];
+      
+      setNewsletters(updatedNewsletters);
+      saveNewsletters(updatedNewsletters);
+    }
+  }, [route.params?.newNewsletter]);
+
+  const saveNewsletters = async (newslettersToSave) => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newslettersToSave));
+    } catch (error) {
+      console.error('Failed to save newsletters', error);
+    }
+  };
+
+  const filteredNewsletters = newsletters.filter(newsletter => 
+    newsletter.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.newsletterItem}>
+    <TouchableOpacity 
+      style={styles.newsletterItem}
+      onPress={() => navigation.navigate('CreateNewsletter', { newsletter: item })}
+    >
       <View style={styles.itemHeader}>
         <Text style={styles.itemTitle}>{item.title}</Text>
         <Text style={[styles.statusBadge, 
-          item.status === 'Sent' ? styles.sentBadge : styles.draftBadge]}>
+          item.status === 'sent' ? styles.sentBadge : styles.draftBadge]}>
           {item.status}
         </Text>
       </View>
-      <View style={styles.statsRow}>
-        <Text style={styles.stat}>Recipients: {item.recipients}</Text>
-        <Text style={styles.stat}>Delivered: {item.delivered}</Text>
-        <Text style={styles.stat}>Opened: {item.opened}</Text>
-      </View>
-      <View style={styles.statsRow}>
-        <Text style={styles.stat}>Clicked: {item.clicked}</Text>
-        <Text style={styles.stat}>Bounced: {item.bounced}</Text>
-        <Text style={styles.stat}>Scheduled: {item.scheduled}</Text>
-      </View>
+      <Text style={styles.dateText}>
+        Created: {new Date(item.createdAt).toLocaleDateString()}
+      </Text>
+      {item.schedule && (
+        <Text style={styles.dateText}>
+          Scheduled: {item.schedule}
+        </Text>
+      )}
+      {item.recipients.length > 0 && (
+        <Text style={styles.dateText}>
+          Recipients: {item.recipients.length}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 
@@ -87,7 +109,7 @@ export default function NewsletterScreen({ navigation }) {
       </TouchableOpacity>
 
       <FlatList
-        data={newsletterData}
+        data={filteredNewsletters}
         renderItem={renderItem}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContainer}
@@ -178,14 +200,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#DEEBFF',
     color: '#0747A6',
   },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 4,
-  },
-  stat: {
+  dateText: {
     fontSize: 14,
     color: PEADBO_COLORS.lightText,
+    marginTop: 4,
   },
   emptyText: {
     textAlign: 'center',

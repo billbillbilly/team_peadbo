@@ -4,7 +4,7 @@ import * as Contacts from 'expo-contacts';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 export default function PickAdvisorsScreen({ navigation, route }) {
-  const { focus, boardName, description } = route.params;
+  const { focus, boardName, boardDescription, boardDuration, boardFrequency, advisors, description, selectedDate, selectedTime } = route.params;
   const [selectedAdvisors, setSelectedAdvisors] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [filteredContacts, setFilteredContacts] = useState([]);
@@ -129,8 +129,10 @@ export default function PickAdvisorsScreen({ navigation, route }) {
         navigation.navigate('CreateInvitationScreen', {
           focus,
           boardName,
-          description,
-          advisors: selectedAdvisors,
+          boardDescription,
+          boardDuration,
+          boardFrequency,
+          advisors: selectedAdvisors
         })
       }
       disabled={selectedAdvisors.length === 0}

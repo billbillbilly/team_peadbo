@@ -17,6 +17,11 @@ export default function NewsletterPreviewScreen({ navigation, route }) {
   const { newsletter, onSave } = route.params;
 
   const handleContinue = () => {
+    const updatedNewsletter = {...newsletter, status: 'sent'};
+    onSave(updatedNewsletter);
+  };
+
+  const handleSaveDraft = () => {
     onSave(newsletter);
   };
 
@@ -57,9 +62,10 @@ export default function NewsletterPreviewScreen({ navigation, route }) {
             </head>
             <body>
               <h1>${newsletter.title}</h1>
+              <h2>${newsletter.subject}</h2>
               ${newsletter.content}
               ${newsletter.schedule ? `<p><strong>Scheduled:</strong> ${newsletter.schedule}</p>` : ''}
-              <p><strong>Recipients:</strong> ${newsletter.recipients}</p>
+              <p><strong>Recipients:</strong> ${newsletter.recipients.length} contacts selected</p>
             </body>
           </html>
         ` }}
@@ -74,10 +80,16 @@ export default function NewsletterPreviewScreen({ navigation, route }) {
           <Text style={styles.editButtonText}>Edit</Text>
         </TouchableOpacity>
         <TouchableOpacity 
+          style={styles.draftButton}
+          onPress={handleSaveDraft}
+        >
+          <Text style={styles.draftButtonText}>Save Draft</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
           style={styles.sendButton}
           onPress={handleContinue}
         >
-          <Text style={styles.sendButtonText}>Save & Continue</Text>
+          <Text style={styles.sendButtonText}>Send Now</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -103,11 +115,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: PEADBO_COLORS.text,
   },
-  detailTitle: {
-    fontSize: 16,
-    marginBottom: 8,
-    color: PEADBO_COLORS.text,
-  },
   preview: {
     flex: 1,
   },
@@ -119,7 +126,6 @@ const styles = StyleSheet.create({
     backgroundColor: PEADBO_COLORS.white,
   },
   editButton: {
-    flex: 1,
     padding: 12,
     backgroundColor: PEADBO_COLORS.white,
     borderRadius: 8,
@@ -127,17 +133,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: PEADBO_COLORS.primary,
+    flex: 1,
+  },
+  draftButton: {
+    padding: 12,
+    backgroundColor: PEADBO_COLORS.white,
+    borderRadius: 8,
+    marginHorizontal: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: PEADBO_COLORS.secondary,
+    flex: 1,
   },
   sendButton: {
-    flex: 1,
     padding: 12,
     backgroundColor: PEADBO_COLORS.primary,
     borderRadius: 8,
     marginLeft: 8,
     alignItems: 'center',
+    flex: 1,
   },
   editButtonText: {
     color: PEADBO_COLORS.primary,
+    fontWeight: '600',
+  },
+  draftButtonText: {
+    color: PEADBO_COLORS.secondary,
     fontWeight: '600',
   },
   sendButtonText: {
