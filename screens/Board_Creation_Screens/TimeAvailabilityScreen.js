@@ -7,7 +7,7 @@ import * as ExpoCalendar from 'expo-calendar';
 import moment from 'moment';
 
 export default function TimeAvailabilityScreen({ navigation, route }) {
-  const { focus, boardName, description, advisors, message } = route.params;
+  const { focus, boardName, boardDescription, boardDuration, boardFrequency, advisors, message } = route.params;
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
@@ -51,23 +51,21 @@ export default function TimeAvailabilityScreen({ navigation, route }) {
       setTimeError('Please select a date and time before continuing.');
       return;
     }
-
-    console.log('Selected Date:', selectedDate);
-    console.log('Selected Time:', selectedTime);
-
+  
     try {
-      // Temporarily comment out handleCreateTask to test navigation
-      // await handleCreateTask(selectedDate, selectedTime);
-
-      // Navigate to ReviewScreen
+      console.log('Selected Date:', selectedDate);
+      console.log('Selected Time:', selectedTime);
+  
       navigation.navigate('ReviewScreen', {
         focus,
         boardName,
-        description,
+        boardDescription, // Use the correct parameter name
+        boardDuration,
+        boardFrequency,
         advisors,
         message,
         selectedDate,
-        selectedTime,
+        selectedTime
       });
     } catch (error) {
       console.error('Error during handleContinue:', error);

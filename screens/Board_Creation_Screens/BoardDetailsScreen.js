@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 
-const BoardDetailsScreen = ({ navigation }) => {
+const BoardDetailsScreen = ({ navigation, route }) => {
+  const { focus } = route.params;
   const [boardName, setBoardName] = useState('');
   const [boardDescription, setBoardDescription] = useState('');
   const [boardDuration, setBoardDuration] = useState('');
@@ -26,7 +27,13 @@ const BoardDetailsScreen = ({ navigation }) => {
   ]);
 
   const handleContinue = () => {
-    navigation.navigate('AdvisorSelectionScreen', { boardName, boardDescription, boardDuration, boardFrequency });
+    navigation.navigate('AdvisorSelectionScreen', { 
+      focus,
+      boardName,
+      boardDescription: boardDescription,
+      boardDuration: valueDuration,
+      boardFrequency: valueFrequency
+    });
   };
 
   const getInputStyle = (value) => ({

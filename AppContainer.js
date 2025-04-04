@@ -32,6 +32,9 @@ import EventScreen from './screens/Board_Detail_Screens/EventScreen';
 
 import NewsletterScreen from './screens/News_Letter_Screens/NewsletterScreen';
 import CreateNewsletterScreen from './screens/News_Letter_Screens/CreateNewsletterScreen';
+import RichTextEditorScreen from './screens/News_Letter_Screens/RichTextEditorScreen';
+import NewsletterPreviewScreen from './screens/News_Letter_Screens/NewsletterPreviewScreen';
+import ContactPickerScreen from './screens/News_Letter_Screens/ContactPickerScreen';
 
 import ProfileScreen from './screens/ProfileScreens/ProfileScreen';
 import SettingsScreen from './screens/ProfileScreens/SettingsScreen';
@@ -100,14 +103,17 @@ const ContactTabStack = () => {
 };
 
 const NewsTabStack = () => {
-  const Stack = createNativeStackNavigator();
-  return (
-    <Stack.Navigator initialRouteName='Newsletter' screenOptions={{ headerShown: true, headerTitle: 'Newsletter' }}>
-      <Stack.Screen name='Newsletter' component={NewsletterScreen} />
-      <Stack.Screen name='CreateNewsletter' component={CreateNewsletterScreen} options={{ title: 'New Newsletter' }} />
-    </Stack.Navigator>
-  );
-};
+    const Stack = createNativeStackNavigator();
+    return (
+      <Stack.Navigator initialRouteName='Newsletter' screenOptions={{ headerShown: true, headerTitle: 'Newsletter' }}>
+        <Stack.Screen name='Newsletter' component={NewsletterScreen} />
+        <Stack.Screen name='CreateNewsletter' component={CreateNewsletterScreen} options={{ title: 'New Newsletter' }} />
+        <Stack.Screen name='RichTextEditor' component={RichTextEditorScreen} options={{ title: 'Edit Content' }} />
+        <Stack.Screen name='NewsletterPreview' component={NewsletterPreviewScreen} options={{ title: 'Preview Newsletter' }} />
+        <Stack.Screen name='ContactPicker' component={ContactPickerScreen} options={{ title: 'Select Recipients' }} />
+      </Stack.Navigator>
+    );
+  };
 
 const UserTabStack = () => {
   const Stack = createNativeStackNavigator();

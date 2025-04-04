@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { SafeAreaView, ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { SafeAreaView, ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, FlatList } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const PEADBO_COLORS = {
   primary: '#1EA896',
@@ -14,13 +15,13 @@ const PEADBO_COLORS = {
 };
 
 export default function CreateNewsletterScreen({ navigation, route }) {
-  const [newsletter, setNewsletter] = useState({
+  const newsletterData = route.params?.newsletter || {
     title: '',
     subject: '',
-    schedule: '',
-    recipients: '',
+    schedule: null,
+    recipients: [],
     template: '',
-    content: route.params?.content || `
+    content: `
       <p>Greetings,</p>
       <p>I hope this email finds you well.</p>
       <p>You are receiving this note because I would like to share some recent updates from my journey.</p>
@@ -28,8 +29,49 @@ export default function CreateNewsletterScreen({ navigation, route }) {
         <li>&lt;List Updates Here&gt;</li>
       </ul>
       <p>Thanks so much for taking time out of your busy schedule to read this. I'll be in touch soon!</p>
-    `
-  });
+    `,
+    status: 'draft',
+    createdAt: new Date().toISOString()
+  };
+
+  const [newsletter, setNewsletter] = useState(newsletterData);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [date, setDate] = useState(new Date());
+  const [minDate] = useState(new Date());
+
+  useEffect(() => {
+    if (route.params?.content) {
+      setNewsletter(prev => ({...prev, content: route.params.content}));
+    }
+  }, [route.params?.content]);
+
+  const handleDateChange = (event, selectedDate) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setDate(selectedDate);
+      const formattedDate = selectedDate.toLocaleString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      setNewsletter({...newsletter, schedule: formattedDate});
+    }
+  };
+
+  const showDateTimePicker = () => {
+    setShowDatePicker(true);
+  };
+
+  const handleSelectContacts = () => {
+    navigation.navigate('ContactPicker', {
+      onSelectContacts: (contacts) => {
+        setNewsletter({...newsletter, recipients: contacts});
+      },
+      initialSelected: newsletter.recipients
+    });
+  };
 
   const handleEditContent = () => {
     navigation.navigate('RichTextEditor', { 
@@ -38,12 +80,21 @@ export default function CreateNewsletterScreen({ navigation, route }) {
     });
   };
 
+  const handleSaveDraft = async () => {
+    try {
+      const updatedNewsletter = {...newsletter, status: 'draft'};
+      // In a real app, you would save to your backend here
+      navigation.navigate('Newsletter', { newNewsletter: updatedNewsletter });
+    } catch (error) {
+      console.error('Error saving draft:', error);
+    }
+  };
+
   const handlePreview = () => {
     navigation.navigate('NewsletterPreview', { 
       newsletter: newsletter,
       onSave: (updatedNewsletter) => {
         setNewsletter(updatedNewsletter);
-        // In a real app, you would save to your backend here
         navigation.navigate('Newsletter', { newNewsletter: updatedNewsletter });
       }
     });
@@ -55,7 +106,9 @@ export default function CreateNewsletterScreen({ navigation, route }) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} color={PEADBO_COLORS.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>New Newsletter</Text>
+        <Text style={styles.headerTitle}>
+          {route.params?.newsletter ? 'Edit Newsletter' : 'New Newsletter'}
+        </Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -76,29 +129,74 @@ export default function CreateNewsletterScreen({ navigation, route }) {
           onChangeText={(text) => setNewsletter({...newsletter, subject: text})}
         />
         
-        <TextInput 
+        <TouchableOpacity 
           style={styles.input} 
-          placeholder="Schedule at (e.g. 2025-03-30 10:00) (optional)" 
-          value={newsletter.schedule}
-          onChangeText={(text) => setNewsletter({...newsletter, schedule: text})}
-        />
+          onPress={showDateTimePicker}
+        >
+          <Text style={{color: newsletter.schedule ? PEADBO_COLORS.text : '#999'}}>
+            {newsletter.schedule || 'Select Schedule (optional)'}
+          </Text>
+        </TouchableOpacity>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={date}
+            mode="datetime"
+            display="default"
+            onChange={handleDateChange}
+            minimumDate={minDate}
+          />
+        )}
 
         <Text style={styles.sectionTitle}>Recipients</Text>
-        <TextInput
+        <TouchableOpacity 
           style={styles.input}
-          placeholder="Enter recipients (comma-separated)"
-          placeholderTextColor="#999"
-          value={newsletter.recipients}
-          onChangeText={(text) => setNewsletter({ ...newsletter, recipients: text })}
-        />
+          onPress={handleSelectContacts}
+        >
+          <Text style={{color: newsletter.recipients.length > 0 ? PEADBO_COLORS.text : '#999'}}>
+            {newsletter.recipients.length > 0 ? `${newsletter.recipients.length} contacts selected` : 'Select Recipients'}
+          </Text>
+        </TouchableOpacity>
+
+        {newsletter.recipients.length > 0 && (
+          <View style={styles.selectedContactsContainer}>
+            <Text style={styles.selectedContactsTitle}>Selected Contacts:</Text>
+            <FlatList
+              data={newsletter.recipients}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({item}) => (
+                <View style={styles.contactItem}>
+                  <Text style={styles.contactName}>{item.name}</Text>
+                  <Text style={styles.contactEmail}>{item.email}</Text>
+                </View>
+              )}
+            />
+          </View>
+        )}
 
         <TouchableOpacity 
-          style={styles.previewButton}
-          onPress={handlePreview}
-          disabled={!newsletter.title || !newsletter.content}
+          style={styles.contentButton}
+          onPress={handleEditContent}
         >
-          <Text style={styles.previewButtonText}>Preview Newsletter</Text>
+          <Text style={styles.contentButtonText}>Edit Newsletter Content</Text>
         </TouchableOpacity>
+
+        <View style={styles.buttonRow}>
+          <TouchableOpacity 
+            style={[styles.secondaryButton, (!newsletter.title || !newsletter.content) && styles.disabledButton]}
+            onPress={handleSaveDraft}
+            disabled={!newsletter.title || !newsletter.content}
+          >
+            <Text style={styles.secondaryButtonText}>Save Draft</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.previewButton, (!newsletter.title || !newsletter.content) && styles.disabledButton]}
+            onPress={handlePreview}
+            disabled={!newsletter.title || !newsletter.content}
+          >
+            <Text style={styles.previewButtonText}>Preview</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -141,15 +239,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     backgroundColor: PEADBO_COLORS.white,
     color: PEADBO_COLORS.text,
-  },
-  picker: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: PEADBO_COLORS.border,
-    borderRadius: 8,
-    marginBottom: 16,
-    backgroundColor: PEADBO_COLORS.white,
-    color: PEADBO_COLORS.text,
+    justifyContent: 'center',
   },
   contentButton: {
     height: 48,
@@ -166,16 +256,68 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
   previewButton: {
     height: 48,
+    flex: 1,
     backgroundColor: PEADBO_COLORS.primary,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
+    marginLeft: 8,
+  },
+  secondaryButton: {
+    height: 48,
+    flex: 1,
+    backgroundColor: PEADBO_COLORS.white,
+    borderWidth: 1,
+    borderColor: PEADBO_COLORS.primary,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  secondaryButtonText: {
+    color: PEADBO_COLORS.primary,
+    fontSize: 16,
+    fontWeight: '600',
   },
   previewButtonText: {
     color: PEADBO_COLORS.white,
     fontSize: 16,
     fontWeight: '600',
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  selectedContactsContainer: {
+    marginBottom: 16,
+  },
+  selectedContactsTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: PEADBO_COLORS.text,
+  },
+  contactItem: {
+    padding: 8,
+    borderWidth: 1,
+    borderColor: PEADBO_COLORS.border,
+    borderRadius: 4,
+    marginBottom: 4,
+    backgroundColor: PEADBO_COLORS.white,
+  },
+  contactName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: PEADBO_COLORS.text,
+  },
+  contactEmail: {
+    fontSize: 12,
+    color: PEADBO_COLORS.lightText,
   },
 });
