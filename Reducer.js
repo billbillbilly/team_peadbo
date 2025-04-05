@@ -1,4 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { Auth } from 'aws-amplify';
+
 import { initializeApp, getApps } from 'firebase/app';
 import { 
   setDoc, getDocs, addDoc, doc, getFirestore, collection, 
@@ -7,70 +9,6 @@ import {
 import { getStorage } from 'firebase/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { firebaseConfig } from "./Secrets";
-import { GraphQLAPI } from '@aws-amplify/api-graphql';
-import { amplifyAPI } from './Secrets'; 
-
-import { generateClient } from 'aws-amplify/api';
-import * as queries from './graphql/queries';
-
-
-///////////////////////////////////////////////////////////////////////////////////
-//                                                                               //
-//        ✅ Use direct fetch() for schema introspection or diagnostics          //
-// Use Amplify's GraphQLAPI.graphql() for regular AppSync queries and mutations. //
-//                                                                               //
-///////////////////////////////////////////////////////////////////////////////////
-
-//---- check database scheme ------
-const introspectionQuery = `
-  query Introspect {
-    __schema {
-      types {
-        name
-        kind
-        fields {
-          name
-          type {
-            name
-            kind
-            ofType {
-              name
-              kind
-            }
-          }
-        }
-      }
-    }
-  }
-`;
-
-
-export const fetchSchemaStructure = async () => {
-  console.log('API when fetching schema:', GraphQLAPI);
-  try {
-      // const result = await GraphQLAPI.graphql({ query: introspectionQuery });
-      // console.log('Schema:', JSON.stringify(result.data.__schema, null, 2));
-      const response = await fetch(amplifyAPI.API.GraphQL.endpoint, {
-        method: 'POST',
-        headers: {
-            'x-api-key': amplifyAPI.API.GraphQL.apiKey,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            query: introspectionQuery
-        })
-      });
-      const json = await response.json();
-      console.log('Direct fetch response:', JSON.stringify(json, null, 2));
-  } catch (error) {
-      console.error('Failed to fetch schema:', error);
-  }
-};
-
-const client = generateClient();
-// const result = await client.graphql({ query: queries.listPeadboTasks });
-// console.log('Tasks:', result.data.listPeadboTasks.items);
-
 
 // ---------------------- Set up firebase ------------------------
 let app;
@@ -88,9 +26,15 @@ const storage = getStorage(app);
 // setUser thunk
 export const setUser = createAsyncThunk(
   'user/setUser',
-  async (authUser) => {
-    const userSnap = await getDoc(doc(db, 'peadbo', authUser.uid));
-    return userSnap.exists() ? userSnap.data() : null;
+  async () => {
+    const authUser = await Auth.currentAuthenticatedUser();
+
+    // Optional: more backend services can be added
+    return {
+      id: authUser.attributes.sub,
+      email: authUser.attributes.email,
+      name: authUser.attributes.name || '',
+    };
   }
 );
 
@@ -142,45 +86,59 @@ export const deleteTaskThunk = createAsyncThunk(
 );
 
 // ---------------------- Redux Slice Definition ------------------------
+
+const initialState = {
+  currentUser: {displayName: "jack", email: "", key: ""}, // test only. It will be removed very soon
+  id: null,
+  email: null,
+  name: null,
+  // Add more if needed
+};
+
 const userSlice = createSlice({
   name: 'user',
-  initialState: {
-    currentUser: {displayName: "jack", email: "", key: ""},
-    listBoards: [
-      {
-        id: '1',
-        title: 'Academic Team',
-        description: 'Keep up with team chats, share updates, and stay on top of tasks.',
-        type: 'Advisory',
-        users: [
-          'https://randomuser.me/api/portraits/women/1.jpg',
-          'https://randomuser.me/api/portraits/men/2.jpg',
-          'https://randomuser.me/api/portraits/men/3.jpg'
-        ],
-      },
-      {
-        id: '2',
-        title: 'Swimming Group',
-        description: 'Here’s the update on training plans. Also share the progress!',
-        type: 'Personal',
-        users: [
-          'https://randomuser.me/api/portraits/women/4.jpg',
-          'https://randomuser.me/api/portraits/men/5.jpg'
-        ],
-      },
-    ],
-    tasks: [] // This array holds the tasks
-  },
+  initialState: initialState,
+  // {
+  //   currentUser: {displayName: "jack", email: "", key: ""},
+  //   listBoards: [
+  //     {
+  //       id: '1',
+  //       title: 'Academic Team',
+  //       description: 'Keep up with team chats, share updates, and stay on top of tasks.',
+  //       type: 'Advisory',
+  //       users: [
+  //         'https://randomuser.me/api/portraits/women/1.jpg',
+  //         'https://randomuser.me/api/portraits/men/2.jpg',
+  //         'https://randomuser.me/api/portraits/men/3.jpg'
+  //       ],
+  //     },
+  //     {
+  //       id: '2',
+  //       title: 'Swimming Group',
+  //       description: 'Here’s the update on training plans. Also share the progress!',
+  //       type: 'Personal',
+  //       users: [
+  //         'https://randomuser.me/api/portraits/women/4.jpg',
+  //         'https://randomuser.me/api/portraits/men/5.jpg'
+  //       ],
+  //     },
+  //   ],
+  //   tasks: [] // This array holds the tasks
+  // },
   reducers: {
-    selectItem: (state, action) => {
-      const key = action.payload;
-      state.selectedItem = key !== -1 ? state.listBoards.find(item => item.key === key) : null;
-    },
+    clearUser(state) {
+      state.id = null;
+      state.email = null;
+      state.name = null;
+    }
   },
   extraReducers: (builder) => {
     builder
       .addCase(setUser.fulfilled, (state, action) => {
-        state.currentUser = action.payload || { displayName: "Unknown", email: "", key: "" };
+        const { id, email, name } = action.payload;
+        state.id = id;
+        state.email = email;
+        state.name = name;
       })
       .addCase(fetchTasksThunk.fulfilled, (state, action) => {
         state.tasks = action.payload;
@@ -199,13 +157,10 @@ const userSlice = createSlice({
         if (index !== -1) {
           state.tasks[index] = action.payload;
         }
-      })
-      .addCase(deleteThunk.fulfilled, (state, action) => {
-        state.listBoards = state.listBoards.filter(item => item.key !== action.payload);
       });
   },
   
 });
 
-export const { selectItem } = userSlice.actions;
+export const { clearUser } = userSlice.actions;
 export default userSlice.reducer;

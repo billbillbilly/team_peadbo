@@ -105,7 +105,7 @@ const HomeTabStack = (props) => {
     const dispatch = useDispatch();
 
     return (
-        <Stack.Navigator initialRouteName='HomeMain' 
+        <Stack.Navigator initialRouteName='Login' 
             screenOptions={{ 
                 headerShown: true, 
                 headerTitle: '',
@@ -123,7 +123,15 @@ const HomeTabStack = (props) => {
                 component={HomeScreen} 
                 options={{ headerShown: false}}
             />
-            
+            <Stack.Screen 
+              name='Login' 
+              component={LoginScreen}
+              options={{
+                tabBarIcon: ({ color, size }) => (
+                  <Icon name="home" type="font-awesome" color={color} size={size} />
+                ),
+              }}
+            />
             <Stack.Screen name='BoardCreation' component={BoardCreationStack}/>
             <Stack.Screen name='FocusScreen' component={FocusScreen}/>
             <Stack.Screen name='BoardDetailsScreen' component={BoardDetailsScreen}/>
@@ -138,8 +146,6 @@ const HomeTabStack = (props) => {
             <Stack.Screen name="ChatBot" component={ChatBot} />
             {/* <Stack.Screen name='SendNotificationScreen' component={SendNotificationScreen} /> */}
             {/* boad management */}
-            <Stack.Screen name='BoardDetail' component={BoardDetailScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
-            <Stack.Screen name='EventScreen' component={EventScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
             <Stack.Screen name='DatabaseScreen' component={TestDatabaseScreen} options={{ headerShown: false}} screenOptions={{tabBarStyle:null}}/>
         </Stack.Navigator>
     )

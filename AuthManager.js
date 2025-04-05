@@ -1,62 +1,30 @@
-import { getAuth, createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword,
-  updateProfile,
-  signOut as fbSignOut, 
-  initializeAuth, 
-  getReactNativePersistence,
-  onAuthStateChanged
-} from 'firebase/auth';
-import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
-import { getApps, initializeApp } from 'firebase/app';
+import { signIn, signOut, getCurrentUser, fetchUserAttributes, } from 'aws-amplify/auth';
 
-import { firebaseConfig } from './Secrets';
-import {setUser} from "./Reducer";
+// Sign in with email and password
+const signIn_ = async ({username, password}) => {
 
-let app, auth;
+  try {
+    const { isSignedIn, nextStep } = await signIn({ username, password });
+    if (isSignedIn) {
+      const user = await getCurrentUser();
+      const attributes = await fetchUserAttributes();
 
-const apps = getApps();
-if (apps.length == 0) { 
-  app = initializeApp(firebaseConfig);
-} else {
-  app = apps[0];
-}
-
-try {
-  auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(ReactNativeAsyncStorage)
-  });
-} catch (error) {
-  auth = getAuth(app); // if auth already initialized
-}
-
-
-const subscribeToAuthChanges = (navigation, dispatch) => {
-  onAuthStateChanged(auth, (authUser) => {
-    if (authUser) { 
-      dispatch(setUser(authUser));
-      navigation.navigate('Home');
-    } else {
-      navigation.navigate('Login');
+      const userId = attributes.sub;
+      const userName = attributes.name || '';
+      const userEmail = attributes.email;
+      console.log(userId);
+      return user;
     }
-  })
-}
+  } catch (error) {
+    if (error instanceof Error) {
+      console.log('❌ Error.message:', error.message);
+      console.log('❌ Error.name:', error.name);
+    }
+    console.log('❌ Full error:', JSON.stringify(error, null, 2));
+  }
+  
+};
 
-const signIn = async (email, password) => {
-  await signInWithEmailAndPassword(auth, email, password);
-}
-
-const signUp = async (displayName, email, password) => {
-  const userCred = await createUserWithEmailAndPassword(auth, email, password);
-  await updateProfile(userCred.user, {displayName: displayName});
-  return userCred.user;
-}
-
-const signOut = async () => {
-  await fbSignOut(auth);
-}
-
-const getAuthUser = () => {
-  return auth.currentUser;
-}
-
-export { signUp, signIn, signOut, getAuthUser, subscribeToAuthChanges };
+export {
+  signIn_,
+};

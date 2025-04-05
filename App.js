@@ -1,14 +1,13 @@
-
 import React from 'react';
 import AppContainer from './AppContainer';
 import { Amplify } from 'aws-amplify';
-import { amplifyAPI } from './Secrets'; 
-import AppContainer from './AppContainer';
-// import config from './src/amplifyconfiguration.json';
-import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink } from '@apollo/client';
-import { setContext } from '@apollo/client/link/context';
-import * as queries from './src/graphql/queries';
-import { amplifyAPI, firebaseConfig } from './Secrets';
+import amplifyconfig from './src/amplifyconfiguration.json';
+
+import { ApolloClient, InMemoryCache, ApolloProvider, ApolloLink } from '@apollo/client';
+// import { createAuthLink } from '@aws-amplify/api-graphql';
+import { createAuthLink } from 'aws-appsync-auth-link';
+import { fetchAuthSession } from '@aws-amplify/auth';
+import { firebaseConfig } from './Secrets';
 
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth'; // Include Firebase Auth
@@ -19,42 +18,32 @@ if (!firebase.apps.length) {
 }
 
 // Configure AWS Amplify
-Amplify.configure(amplifyAPI);
+Amplify.configure(amplifyconfig);
 
+const url = amplifyconfig.aws_appsync_graphqlEndpoint;
+const region = amplifyconfig.aws_appsync_region;
+const auth = {
+  type: amplifyconfig.aws_appsync_authenticationType,
+  apiKey: amplifyconfig.aws_appsync_apiKey,
+  jwtToken: async () => {
+    const session = await fetchAuthSession();
+    return session.tokens?.accessToken?.toString() || '';
+  }
+};
 
-// export default function App() {
-//   return (
-//     <AppContainer/>
-//   );
-// }
+const link = ApolloLink.from([
+  createAuthLink({ url, region, auth }),
+]);
 
-// Create the HTTP link to AppSync
-const httpLink = createHttpLink({
-  uri: amplifyAPI.API.GraphQL.endpoint,
-  credentials: 'same-origin'
+export const apolloClient = new ApolloClient({
+  connectToDevTools: true, // process.env.NODE_ENV === 'development',
+  link,
+  cache: new InMemoryCache({})
 });
-
-// Add the API key to the headers
-const authLink = setContext((_, { headers }) => {
-  return {
-    headers: {
-      ...headers,
-      'x-api-key': amplifyAPI.API.GraphQL.apiKey,
-    },
-  };
-});
-
-// Combine auth and http link
-const client = new ApolloClient({
-  link: authLink.concat(httpLink),
-  region: amplifyAPI.API.GraphQL.region,
-  cache: new InMemoryCache(),
-});
-
 
 export default function App() {
   return (
-    <ApolloProvider client={client}>
+    <ApolloProvider client={apolloClient}>
       <AppContainer/>
     </ApolloProvider>
   );
