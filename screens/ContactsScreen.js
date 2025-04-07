@@ -4,13 +4,13 @@ import * as Contacts from 'expo-contacts';
 
 function ContactsScreen({ navigation }) {
   // State for contacts and search
-  const [contacts, setContacts] = useState([]); // Start with an empty list
-  const [filteredContacts, setFilteredContacts] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
+  const [contacts, setContacts] = useState([]); // Main contact list (manually added or selected)
+  const [filteredContacts, setFilteredContacts] = useState([]); // For filtered results
+  const [searchQuery, setSearchQuery] = useState(''); // Search query for phone contacts
   const [showAddContactModal, setShowAddContactModal] = useState(false);
   const [showPhoneContactsModal, setShowPhoneContactsModal] = useState(false);
-  const [phoneContacts, setPhoneContacts] = useState([]);
+  const [phoneContacts, setPhoneContacts] = useState([]); // Phone contacts for the modal
+  const [filteredPhoneContacts, setFilteredPhoneContacts] = useState([]); // Filtered phone contacts for the modal
 
   // Request permission and load phone contacts
   useEffect(() => {
@@ -32,24 +32,26 @@ function ContactsScreen({ navigation }) {
     });
 
     if (data.length > 0) {
-      setPhoneContacts(data);
+      setPhoneContacts(data); // Set phone contacts for the modal
+      setFilteredPhoneContacts(data); // Initialize filteredPhoneContacts with all phone contacts
     }
   };
 
-  // Handle search functionality
-  const handleSearch = (query) => {
+  // Handle search functionality for phone contacts
+  const handlePhoneContactsSearch = (query) => {
     setSearchQuery(query);
-    const filtered = contacts.filter((contact) => {
+    const filtered = phoneContacts.filter((contact) => {
       const contactName = contact.name ? contact.name.toLowerCase() : '';
       return contactName.includes(query.toLowerCase());
     });
-    setFilteredContacts(filtered);
+    setFilteredPhoneContacts(filtered);
   };
 
   // Handle adding a new contact
   const handleAddContact = (newContact) => {
-    setContacts([...contacts, newContact]);
-    setFilteredContacts([...contacts, newContact]); // Update filtered contacts
+    const updatedContacts = [...contacts, newContact];
+    setContacts(updatedContacts);
+    setFilteredContacts(updatedContacts); // Update filtered contacts
     setShowAddContactModal(false); // Close the modal
   };
 
@@ -59,20 +61,12 @@ function ContactsScreen({ navigation }) {
       name: contact.name,
       email: contact.emails && contact.emails.length > 0 ? contact.emails[0].email : 'No Email',
     };
-    handleAddContact(newContact);
+    handleAddContact(newContact); // Add the selected contact to the main list
     setShowPhoneContactsModal(false); // Close the modal
   };
 
   return (
     <View style={styles.container}>
-      {/* Search Bar */}
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Search contacts..."
-        value={searchQuery}
-        onChangeText={handleSearch}
-      />
-
       {/* Add Contact Button */}
       <TouchableOpacity
         style={styles.addContactButton}
@@ -90,9 +84,9 @@ function ContactsScreen({ navigation }) {
       </TouchableOpacity>
 
       {/* Contact List */}
-      {filteredContacts.length > 0 ? (
+      {contacts.length > 0 ? (
         <FlatList
-          data={filteredContacts}
+          data={contacts} // Use contacts here
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => (
             <View style={styles.contactItem}>
@@ -128,8 +122,15 @@ function ContactsScreen({ navigation }) {
       >
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Select a Contact</Text>
+          {/* Search Bar for Phone Contacts */}
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search phone contacts..."
+            value={searchQuery}
+            onChangeText={handlePhoneContactsSearch} // Call handlePhoneContactsSearch on text change
+          />
           <FlatList
-            data={phoneContacts}
+            data={filteredPhoneContacts} // Use filteredPhoneContacts for the modal
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
               <TouchableOpacity
@@ -175,12 +176,14 @@ function AddContactForm({ onAddContact, onClose }) {
       <TextInput
         style={styles.input}
         placeholder="Name"
+        placeholderTextColor={'#999'}
         value={name}
         onChangeText={setName}
       />
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor={'#999'}
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
