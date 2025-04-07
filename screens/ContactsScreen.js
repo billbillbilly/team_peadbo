@@ -57,12 +57,44 @@ function ContactsScreen({ navigation }) {
 
   // Handle selecting a contact from phone contacts
   const selectPhoneContact = (contact) => {
-    const newContact = {
-      name: contact.name,
-      email: contact.emails && contact.emails.length > 0 ? contact.emails[0].email : 'No Email',
-    };
-    handleAddContact(newContact); // Add the selected contact to the main list
-    setShowPhoneContactsModal(false); // Close the modal
+    if (!contact.emails || contact.emails.length === 0) {
+      // Prompt the user to add an email if the contact has none
+      Alert.prompt(
+        'Add Email',
+        `The contact "${contact.name}" does not have an email address. Please add one.`,
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'OK',
+            onPress: (email) => {
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              if (email && emailRegex.test(email.trim())) {
+                const updatedContact = {
+                  name: contact.name,
+                  email: email.trim(),
+                };
+                handleAddContact(updatedContact); // Add the updated contact to the main list
+                setShowPhoneContactsModal(false); // Close the modal
+              } else {
+                Alert.alert('Invalid Email', 'Please enter a valid email address.');
+              }
+            },
+          },
+        ],
+        'plain-text'
+      );
+    } else {
+      // Add the contact directly if it has an email
+      const newContact = {
+        name: contact.name,
+        email: contact.emails[0].email,
+      };
+      handleAddContact(newContact); // Add the selected contact to the main list
+      setShowPhoneContactsModal(false); // Close the modal
+    }
   };
 
   return (
@@ -158,16 +190,30 @@ function ContactsScreen({ navigation }) {
 
 // Component for adding a new contact manually
 function AddContactForm({ onAddContact, onClose }) {
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
 
   const handleSubmit = () => {
-    if (name.trim() === '') {
-      alert('Name is required');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  
+    if (firstName.trim() === '' || lastName.trim() === '') {
+      Alert.alert('Missing Information', 'First name and last name are required.');
       return;
     }
-    onAddContact({ name, email });
-    setName('');
+    if (email.trim() === '') {
+      Alert.alert('Missing Information', 'Email is required.');
+      return;
+    }
+    if (!emailRegex.test(email.trim())) {
+      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      return;
+    }
+  
+    const fullName = `${firstName.trim()} ${lastName.trim()}`;
+    onAddContact({ name: fullName, email: email.trim() });
+    setFirstName('');
+    setLastName('');
     setEmail('');
   };
 
@@ -175,10 +221,17 @@ function AddContactForm({ onAddContact, onClose }) {
     <View>
       <TextInput
         style={styles.input}
-        placeholder="Name"
+        placeholder="First Name"
         placeholderTextColor={'#999'}
-        value={name}
-        onChangeText={setName}
+        value={firstName}
+        onChangeText={setFirstName}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Last Name"
+        placeholderTextColor={'#999'}
+        value={lastName}
+        onChangeText={setLastName}
       />
       <TextInput
         style={styles.input}

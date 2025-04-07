@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Modal } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Modal, Alert } from 'react-native';
 import * as Contacts from 'expo-contacts';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -11,6 +11,11 @@ export default function PickAdvisorsScreen({ navigation, route }) {
   const [showContacts, setShowContacts] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+
+  // Modal for adding email
+  const [emailModalVisible, setEmailModalVisible] = useState(false);
+  const [currentContact, setCurrentContact] = useState(null);
+  const [newEmail, setNewEmail] = useState('');
 
   const firstNameRef = useRef('');
   const lastNameRef = useRef('');
@@ -50,17 +55,77 @@ export default function PickAdvisorsScreen({ navigation, route }) {
   };
 
   const selectContact = (contact) => {
-    setSelectedAdvisors([...selectedAdvisors, contact]);
-    setShowContacts(false);
+    if (!contact.emails || contact.emails.length === 0) {
+      // Prompt the user to add an email if the contact has none
+      Alert.prompt(
+        'Add Email',
+        `The contact "${contact.name}" does not have an email address. Please add one.`,
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'OK',
+            onPress: (email) => {
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              if (email && emailRegex.test(email.trim())) {
+                const updatedContact = {
+                  id: Date.now().toString(), // Generate a unique id
+                  name: contact.name,
+                  emails: [{ email: email.trim() }],
+                };
+                setSelectedAdvisors([...selectedAdvisors, updatedContact]);
+                setShowContacts(false); // Close the contacts modal
+              } else {
+                Alert.alert('Invalid Email', 'Please enter a valid email address.');
+              }
+            },
+          },
+        ],
+        'plain-text'
+      );
+    } else {
+      // Add the contact directly if it has an email
+      const newContact = {
+        id: contact.id || Date.now().toString(), // Use contact.id if available, otherwise generate a unique id
+        name: contact.name,
+        email: contact.emails[0].email,
+      };
+      setSelectedAdvisors([...selectedAdvisors, newContact]);
+      setShowContacts(false); // Close the contacts modal
+    }
   };
+  
 
   const handleAddAdvisor = () => {
+    const firstName = firstNameRef.current.trim();
+    const lastName = lastNameRef.current.trim();
+    const email = emailRef.current.trim();
+  
+    // Validate that all fields are filled
+    if (!firstName || !lastName || !email) {
+      Alert.alert('Missing Information', 'Please enter a first name, last name, and a valid email address.');
+      return;
+    }
+  
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      return;
+    }
+  
+    // Add the new advisor with a unique id
     const newAdvisor = {
-      id: Date.now().toString(),
-      name: `${firstNameRef.current} ${lastNameRef.current}`,
-      emails: [{ email: emailRef.current }],
+      id: Date.now().toString(), // Generate a unique id
+      name: `${firstName} ${lastName}`,
+      emails: [{ email }],
     };
+  
     setSelectedAdvisors([...selectedAdvisors, newAdvisor]);
+  
+    // Clear the input fields
     firstNameRef.current = '';
     lastNameRef.current = '';
     emailRef.current = '';
@@ -95,12 +160,14 @@ export default function PickAdvisorsScreen({ navigation, route }) {
           <TextInput
             style={[styles.input, styles.halfInput]}
             placeholder="First Name"
+            placeholderTextColor={'#999'}
             defaultValue={firstNameRef.current}
             onChangeText={(text) => (firstNameRef.current = text)}
           />
           <TextInput
             style={[styles.input, styles.halfInput]}
             placeholder="Last Name"
+            placeholderTextColor={'#999'}
             defaultValue={lastNameRef.current}
             onChangeText={(text) => (lastNameRef.current = text)}
           />
@@ -109,6 +176,7 @@ export default function PickAdvisorsScreen({ navigation, route }) {
           <TextInput
             style={[styles.input, styles.emailInput]}
             placeholder="Email"
+            placeholderTextColor={'#999'}
             defaultValue={emailRef.current}
             onChangeText={(text) => (emailRef.current = text)}
             keyboardType="email-address"
@@ -119,7 +187,6 @@ export default function PickAdvisorsScreen({ navigation, route }) {
         </View>
       </View>
     </View>
-    
   );
 
   const renderFooter = () => (
@@ -132,7 +199,7 @@ export default function PickAdvisorsScreen({ navigation, route }) {
           boardDescription,
           boardDuration,
           boardFrequency,
-          advisors: selectedAdvisors
+          advisors: selectedAdvisors,
         })
       }
       disabled={selectedAdvisors.length === 0}
@@ -250,8 +317,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     marginBottom: 40,
-    width: '95%',
+    width: '100%',
     alignSelf: 'center',
+    marginTop: 20,
   },
   addButtonText: {
     color: '#fff',
@@ -296,6 +364,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontSize: 16,
     alignSelf: 'center',
+    width: '50%',
   },
   halfInput: {
     flex: 1,
@@ -384,6 +453,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
+  },
+  modalText: {
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: 'center',
+    color: '#333',
   },
   closeButton: {
     backgroundColor: '#1EA896',
