@@ -3,6 +3,7 @@ import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons'; // Ensure you have react-native-vector-icons installed
 
 const FloatingButton = ({ onPress }) => {
+
     return (
         <View style={styles.container}>
             <TouchableOpacity style={styles.button} onPress={onPress}>
