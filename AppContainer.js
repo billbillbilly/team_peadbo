@@ -103,17 +103,17 @@ const ContactTabStack = () => {
 };
 
 const NewsTabStack = () => {
-    const Stack = createNativeStackNavigator();
-    return (
-      <Stack.Navigator initialRouteName='Newsletter' screenOptions={{ headerShown: true, headerTitle: 'Newsletter' }}>
-        <Stack.Screen name='Newsletter' component={NewsletterScreen} />
-        <Stack.Screen name='CreateNewsletter' component={CreateNewsletterScreen} options={{ title: 'New Newsletter' }} />
-        <Stack.Screen name='RichTextEditor' component={RichTextEditorScreen} options={{ title: 'Edit Content' }} />
-        <Stack.Screen name='NewsletterPreview' component={NewsletterPreviewScreen} options={{ title: 'Preview Newsletter' }} />
-        <Stack.Screen name='ContactPicker' component={ContactPickerScreen} options={{ title: 'Select Recipients' }} />
-      </Stack.Navigator>
-    );
-  };
+  const Stack = createNativeStackNavigator();
+  return (
+    <Stack.Navigator initialRouteName='Newsletter' screenOptions={{ headerShown: true, headerTitle: 'Newsletter' }}>
+      <Stack.Screen name='Newsletter' component={NewsletterScreen} />
+      <Stack.Screen name='CreateNewsletter' component={CreateNewsletterScreen} options={{ title: 'New Newsletter' }} />
+      <Stack.Screen name='RichTextEditor' component={RichTextEditorScreen} options={{ title: 'Edit Content' }} />
+      <Stack.Screen name='NewsletterPreview' component={NewsletterPreviewScreen} options={{ title: 'Preview Newsletter' }} />
+      <Stack.Screen name='ContactPicker' component={ContactPickerScreen} options={{ title: 'Select Recipients' }} />
+    </Stack.Navigator>
+  );
+};
 
 const UserTabStack = () => {
   const Stack = createNativeStackNavigator();
@@ -218,12 +218,26 @@ const RootStack = () => {
 // App Container
 const App = () => {
   const navigationRef = React.useRef();
+  const [currentRouteName, setCurrentRouteName] = React.useState('');
+
+  // Screens in which the chatbot should not appear (before being logged in or during onboarding, adjust as new screens are added)
+  const excludedScreens = ['Login', 'Signup', 'ForgotPassword', 'PersonalInformationScreen', 'CommunicationStyleScreen', 'ChatBot',];
 
   return (
     <Provider store={store}>
-      <NavigationContainer ref={navigationRef}>
+      <NavigationContainer
+        ref={navigationRef}
+        onStateChange={() => {
+          const route = navigationRef.current?.getCurrentRoute();
+          setCurrentRouteName(route?.name || ''); // Update the current route name
+          console.log('Updated Route:', route?.name); // Debugging
+        }}
+      >
         <RootStack />
-        <FloatingButton onPress={() => navigationRef.current?.navigate('ChatBot')} />
+        {/* Conditionally render the FloatingButton */}
+        {!excludedScreens.includes(currentRouteName) && (
+          <FloatingButton onPress={() => navigationRef.current?.navigate('ChatBot')} />
+        )}
       </NavigationContainer>
     </Provider>
   );
