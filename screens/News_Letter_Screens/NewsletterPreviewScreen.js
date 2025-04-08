@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -35,42 +35,57 @@ export default function NewsletterPreviewScreen({ navigation, route }) {
         <View style={{ width: 24 }} />
       </View>
 
-      <WebView
-        originWhitelist={['*']}
-        source={{ html: `
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <style>
-                body {
-                  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-                  padding: 16px;
-                  color: #333;
-                }
-                h1 {
-                  color: ${PEADBO_COLORS.primary};
-                }
-                img {
-                  max-width: 100%;
-                  height: auto;
-                }
-                a {
-                  color: ${PEADBO_COLORS.primary};
-                }
-              </style>
-            </head>
-            <body>
-              <h1>${newsletter.title}</h1>
-              <h2>${newsletter.subject}</h2>
-              ${newsletter.content}
-              ${newsletter.schedule ? `<p><strong>Scheduled:</strong> ${newsletter.schedule}</p>` : ''}
-              <p><strong>Recipients:</strong> ${newsletter.recipients.length} contacts selected</p>
-            </body>
-          </html>
-        ` }}
-        style={styles.preview}
-      />
+      <ScrollView style={styles.scrollContainer}>
+        <View style={styles.recipientSection}>
+          <Text style={styles.sectionTitle}>Recipients ({newsletter.recipients.length})</Text>
+          {newsletter.recipients.map((recipient, index) => (
+            <View key={index} style={styles.recipientItem}>
+              <Text style={styles.recipientName}>
+                {recipient.name || `${recipient.firstName} ${recipient.lastName}`}
+              </Text>
+              <Text style={styles.recipientEmail}>{recipient.email}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.previewContainer}>
+          <WebView
+            originWhitelist={['*']}
+            source={{ html: `
+              <!DOCTYPE html>
+              <html>
+                <head>
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <style>
+                    body {
+                      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+                      padding: 16px;
+                      color: #333;
+                    }
+                    h1 {
+                      color: ${PEADBO_COLORS.primary};
+                    }
+                    img {
+                      max-width: 100%;
+                      height: auto;
+                    }
+                    a {
+                      color: ${PEADBO_COLORS.primary};
+                    }
+                  </style>
+                </head>
+                <body>
+                  <h1>${newsletter.title}</h1>
+                  <h2>${newsletter.subject}</h2>
+                  ${newsletter.content}
+                  ${newsletter.schedule ? `<p><strong>Scheduled:</strong> ${newsletter.schedule}</p>` : ''}
+                </body>
+              </html>
+            ` }}
+            style={styles.preview}
+          />
+        </View>
+      </ScrollView>
 
       <View style={styles.footer}>
         <TouchableOpacity 
@@ -114,6 +129,42 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: PEADBO_COLORS.text,
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  recipientSection: {
+    padding: 16,
+    backgroundColor: PEADBO_COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: PEADBO_COLORS.border,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+    color: PEADBO_COLORS.text,
+  },
+  recipientItem: {
+    padding: 12,
+    borderWidth: 1,
+    borderColor: PEADBO_COLORS.border,
+    borderRadius: 8,
+    marginBottom: 8,
+    backgroundColor: PEADBO_COLORS.background,
+  },
+  recipientName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: PEADBO_COLORS.text,
+    marginBottom: 4,
+  },
+  recipientEmail: {
+    fontSize: 14,
+    color: PEADBO_COLORS.lightText,
+  },
+  previewContainer: {
+    height: 500, // Fixed height or you can calculate based on content
   },
   preview: {
     flex: 1,
