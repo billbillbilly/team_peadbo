@@ -1,6 +1,15 @@
-// Full updated EventScreen.js with improved "+ Add Reflection" button
+// Full updated EventScreen.js with reflection modal & removed status dropdown
 
 import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  StyleSheet,
+  Modal,
+  ScrollView
+} from 'react-native';
 import {
   View,
   Text,
@@ -26,9 +35,8 @@ const EventScreen = ({ navigation, route }) => {
   const [todos, setTodos] = useState(event.todos);
 
   const toggleTodo = (index) => {
-    const newTodos = todos.map((todo, i) =>
-      i === index ? { ...todo, completed: !todo.completed } : todo
-    );
+    const newTodos = [...todos];
+    newTodos[index].completed = !newTodos[index].completed;
     setTodos(newTodos);
   };
 
@@ -90,12 +98,24 @@ const EventScreen = ({ navigation, route }) => {
       <View style={styles.section}>
         <Text style={styles.label}>Collaborators</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {/* <BoardMembers members={event.users}></BoardMembers> */}
           <TouchableOpacity style={styles.addButton} onPress={() => console.log(event.todos)}>
             <Text style={{ fontSize: 18 }}>+</Text>
           </TouchableOpacity>
         </View>
       </View>
 
+      <View style={styles.section}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Text style={styles.label}>Date and Time</Text>
+          <TouchableOpacity onPress={() => setDateTimeModalVisible(true)}>
+            <Text style={{ fontSize: 12, marginTop: 10, color: 'gray' }}>Edit</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={{ fontSize: 13, marginBottom: 5, color: 'gray' }}>
+          Date: {eventDate} | Time: {eventTime} | Duration: {eventDuration}
+        </Text>
+      </View>
       <View style={styles.section}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <Text style={styles.label}>Date and Time</Text>
@@ -143,11 +163,12 @@ const EventScreen = ({ navigation, route }) => {
           value={notes}
           onChangeText={setNotes}
         />
-        <TouchableOpacity style={styles.reflectionButton} onPress={() => setReflectionModalVisible(true)}>
-          <Text style={styles.reflectionButtonText}>+ Add Reflection</Text>
+        <TouchableOpacity style={styles.addButton} onPress={() => setReflectionModalVisible(true)}>
+          <Text style={{ fontSize: 14, color: '#1E9278', marginTop: 10 }}>+ Add Reflection</Text>
         </TouchableOpacity>
       </View>
 
+      {/* Reflection Modal */}
       <Modal visible={reflectionModalVisible} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -187,7 +208,44 @@ const EventScreen = ({ navigation, route }) => {
               value={additionalNotes}
               onChangeText={setAdditionalNotes}
             />
+            <TextInput
+              style={styles.modalInput}
+              placeholder="What went well?"
+              value={whatWentWell}
+              onChangeText={setWhatWentWell}
+            />
+            <TextInput
+              style={styles.modalInput}
+              placeholder="What could be improved?"
+              value={whatCouldBeBetter}
+              onChangeText={setWhatCouldBeBetter}
+            />
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Any additional notes?"
+              value={additionalNotes}
+              onChangeText={setAdditionalNotes}
+            />
 
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.cancelButton} onPress={() => setReflectionModalVisible(false)}>
+                <Text style={{ color: 'gray' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.addTaskButton}
+                onPress={() => {
+                  console.log({ meetingOccurred, whatWentWell, whatCouldBeBetter, additionalNotes });
+                  setReflectionModalVisible(false);
+                }}
+              >
+                <Text style={{ color: 'white' }}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </ScrollView>
+  );
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.cancelButton} onPress={() => setReflectionModalVisible(false)}>
                 <Text style={{ color: 'gray' }}>Cancel</Text>
@@ -236,19 +294,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     borderWidth: 1,
     borderColor: 'lightgray',
-  },
-  reflectionButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    backgroundColor: '#1E9278',
-    borderRadius: 8,
-    marginTop: 12,
-  },
-  reflectionButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 14,
   },
   modalContainer: {
     flex: 1,
