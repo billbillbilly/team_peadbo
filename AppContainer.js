@@ -111,6 +111,7 @@ const NewsTabStack = () => {
       <Stack.Screen name='RichTextEditor' component={RichTextEditorScreen} options={{ title: 'Edit Content' }} />
       <Stack.Screen name='NewsletterPreview' component={NewsletterPreviewScreen} options={{ title: 'Preview Newsletter' }} />
       <Stack.Screen name='ContactPicker' component={ContactPickerScreen} options={{ title: 'Select Recipients' }} />
+      <Stack.Screen name="ChatBot" component={ChatBot} />
     </Stack.Navigator>
   );
 };

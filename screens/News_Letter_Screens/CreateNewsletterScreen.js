@@ -3,6 +3,7 @@ import { SafeAreaView, ScrollView, View, Text, TextInput, TouchableOpacity, Styl
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { generateTemplate } from '../../OpenAIService';
 
 const PEADBO_COLORS = {
   primary: '#1EA896',
@@ -38,6 +39,7 @@ export default function CreateNewsletterScreen({ navigation, route }) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [date, setDate] = useState(new Date());
   const [minDate] = useState(new Date());
+  const [loading, setLoading] = useState(false); // State to handle loading for AI generation
 
   useEffect(() => {
     if (route.params?.content) {
@@ -100,6 +102,24 @@ export default function CreateNewsletterScreen({ navigation, route }) {
     });
   };
 
+  const handleGenerateAINewsletter = async () => {
+    setLoading(true);
+    try {
+      const { title, subject, body } = await generateTemplate(); // Call the AI function
+      setNewsletter((prev) => ({
+        ...prev,
+        title,
+        subject,
+        content: body, // Populate the content with the AI-generated body
+      }));
+    } catch (error) {
+      console.error('Error generating AI newsletter:', error);
+      Alert.alert('Error', 'Failed to generate AI newsletter. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -111,6 +131,16 @@ export default function CreateNewsletterScreen({ navigation, route }) {
         </Text>
         <View style={{ width: 24 }} />
       </View>
+
+      <TouchableOpacity
+        style={styles.generateButton}
+        onPress={handleGenerateAINewsletter}
+        disabled={loading} // Disable the button while loading
+      >
+        <Text style={styles.generateButtonText}>
+          {loading ? 'Generating...' : 'Generate AI Newsletter'}
+        </Text>
+      </TouchableOpacity>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.sectionTitle}>Newsletter Details</Text>
@@ -319,5 +349,18 @@ const styles = StyleSheet.create({
   contactEmail: {
     fontSize: 12,
     color: PEADBO_COLORS.lightText,
+  },
+  generateButton: {
+    margin: 16,
+    padding: 12,
+    backgroundColor: PEADBO_COLORS.primary,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  generateButtonText: {
+    color: PEADBO_COLORS.white,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
