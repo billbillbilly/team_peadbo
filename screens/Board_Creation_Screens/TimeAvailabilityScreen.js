@@ -7,7 +7,7 @@ import * as ExpoCalendar from 'expo-calendar';
 import moment from 'moment';
 
 export default function TimeAvailabilityScreen({ navigation, route }) {
-  const { focus, boardName, boardDescription, boardDuration, boardFrequency, advisors, message } = route.params;
+  const { focus, boardName, description, advisors, message } = route?.params || {};
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
