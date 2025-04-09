@@ -26,16 +26,16 @@ const openAI = axios.create({
 export const generateText = async () => {
   try {
     const response = await openAI.post('', {
-        model: 'gpt-4o-mini',  // Using gpt-4o-mini model
-        messages: [
-          {
-            role: 'user',
-            content: 'Generate a professional template for an email invitation to a Personal Advisory Board. This can include why you want this professional to join, what the agenda will be, etc. Keep the invitation brief and to the point.',
-          },
-        ],
-        max_tokens: 500,  // Adjust as needed
-        temperature: 0.7,  // Adjust for creativity/variability (optional)
-      });
+      model: 'gpt-4o-mini',  // Using gpt-4o-mini model
+      messages: [
+        {
+          role: 'user',
+          content: 'Generate a professional template for an email invitation to a Personal Advisory Board. This can include why you want this professional to join, what the agenda will be, etc. Keep the invitation brief and to the point.',
+        },
+      ],
+      max_tokens: 500,  // Adjust as needed
+      temperature: 0.7,  // Adjust for creativity/variability (optional)
+    });
 
     return response.data.choices[0].message.content.trim();
   } catch (error) {
@@ -64,7 +64,7 @@ export const generateMessage = async (input) => {
           - Send notifications and invitations.
           - View and edit board details.
 
-          Always provide concise and app-specific responses. If the user asks about functionality outside the app's scope, politely inform them that you can only assist with app-related tasks.`,
+          Always provide concise and app-specific responses. Additionally, try to address the promp that is given: ${input}`,
         },
         {
           role: 'user',
@@ -89,23 +89,46 @@ export const generateMessage = async (input) => {
 export const generateTemplate = async () => {
   try {
     const response = await openAI.post('', {
-        model: 'gpt-4o-mini',  // Using gpt-4o-mini model
-        messages: [
-          {
-            role: 'user',
-            content: 'Generate a professional template for an email that will update your advisors on your professional development progress. This message should be brief and too the point. No longer than half a paragraph.',
-          },
-        ],
-        max_tokens: 500,  // Adjust as needed
-        temperature: 0.7,  // Adjust for creativity/variability (optional)
-      });
+      model: 'gpt-4o-mini', // Using gpt-4o-mini model
+      messages: [
+        {
+          role: 'user',
+          content: `Generate a professional email template in strict JSON format with the following fields:
+          - title: A brief title for the email.
+          - subject: The subject line of the email.
+          - body: The main content of the email.
 
-    return response.data.choices[0].message.content.trim();
+          The email should update advisors on the user's progress -- each user is writing the update for different reasons, so keep the response open to be used in different ways (professional, personal, etc.). Keep the message brief and to the point, no longer than half a paragraph.
+
+          Ensure the response is valid JSON and does not include any additional text or formatting outside of the JSON object.`,
+        },
+      ],
+      max_tokens: 500, // Adjust as needed
+      temperature: 0.7, // Adjust for creativity/variability (optional)
+    });
+
+    // Parse the AI response
+    const aiResponse = response.data.choices[0].message.content.trim();
+
+    // Validate and parse the JSON response
+    let parsedResponse;
+    try {
+      parsedResponse = JSON.parse(aiResponse);
+    } catch (parseError) {
+      console.error('Invalid JSON response from OpenAI:', aiResponse);
+      throw new Error('Failed to parse AI response. Ensure the AI response is valid JSON.');
+    }
+
+    // Extract fields into variables
+    const { title, subject, body } = parsedResponse;
+
+    // Return the structured data
+    return { title, subject, body };
   } catch (error) {
     if (error.response && error.response.status === 429) {
       console.error('Rate limit hit, retrying...');
     } else {
-      console.error('Error generating text from OpenAI:', error.response ? error.response.data : error.message);
+      console.error('Error generating template from OpenAI:', error.response ? error.response.data : error.message);
     }
     throw error;
   }

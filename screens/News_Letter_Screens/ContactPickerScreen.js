@@ -189,6 +189,7 @@ export default function ContactPickerScreen({ navigation, route }) {
             <TextInput
               style={styles.modalInput}
               placeholder="First Name"
+              placeholderTextColor={'#999'}
               value={newContact.firstName}
               onChangeText={(text) => setNewContact({...newContact, firstName: text})}
             />
@@ -196,6 +197,7 @@ export default function ContactPickerScreen({ navigation, route }) {
             <TextInput
               style={styles.modalInput}
               placeholder="Last Name"
+              placeholderTextColor={'#999'}
               value={newContact.lastName}
               onChangeText={(text) => setNewContact({...newContact, lastName: text})}
             />
@@ -203,6 +205,7 @@ export default function ContactPickerScreen({ navigation, route }) {
             <TextInput
               style={styles.modalInput}
               placeholder="Email"
+              placeholderTextColor={'#999'}
               keyboardType="email-address"
               autoCapitalize="none"
               value={newContact.email}
