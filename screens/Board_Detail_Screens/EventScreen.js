@@ -10,15 +10,6 @@ import {
   Modal,
   ScrollView
 } from 'react-native';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  TextInput,
-  StyleSheet,
-  Modal,
-  ScrollView
-} from 'react-native';
 import { Icon } from '@rneui/themed';
 import BoardMembers from '../../components/BoardMembers';
 import ToDoItem from '../../components/ToDoItem';
@@ -116,17 +107,6 @@ const EventScreen = ({ navigation, route }) => {
           Date: {eventDate} | Time: {eventTime} | Duration: {eventDuration}
         </Text>
       </View>
-      <View style={styles.section}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Text style={styles.label}>Date and Time</Text>
-          <TouchableOpacity onPress={() => setDateTimeModalVisible(true)}>
-            <Text style={{ fontSize: 12, marginTop: 10, color: 'gray' }}>Edit</Text>
-          </TouchableOpacity>
-        </View>
-        <Text style={{ fontSize: 13, marginBottom: 5, color: 'gray' }}>
-          Date: {eventDate} | Time: {eventTime} | Duration: {eventDuration}
-        </Text>
-      </View>
 
       <View style={styles.section}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -208,44 +188,7 @@ const EventScreen = ({ navigation, route }) => {
               value={additionalNotes}
               onChangeText={setAdditionalNotes}
             />
-            <TextInput
-              style={styles.modalInput}
-              placeholder="What went well?"
-              value={whatWentWell}
-              onChangeText={setWhatWentWell}
-            />
-            <TextInput
-              style={styles.modalInput}
-              placeholder="What could be improved?"
-              value={whatCouldBeBetter}
-              onChangeText={setWhatCouldBeBetter}
-            />
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Any additional notes?"
-              value={additionalNotes}
-              onChangeText={setAdditionalNotes}
-            />
 
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.cancelButton} onPress={() => setReflectionModalVisible(false)}>
-                <Text style={{ color: 'gray' }}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.addTaskButton}
-                onPress={() => {
-                  console.log({ meetingOccurred, whatWentWell, whatCouldBeBetter, additionalNotes });
-                  setReflectionModalVisible(false);
-                }}
-              >
-                <Text style={{ color: 'white' }}>Save</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </ScrollView>
-  );
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.cancelButton} onPress={() => setReflectionModalVisible(false)}>
                 <Text style={{ color: 'gray' }}>Cancel</Text>
