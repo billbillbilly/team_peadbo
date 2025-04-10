@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, Modal, Alert, FlatList } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import * as Contacts from 'expo-contacts';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const PEADBO_COLORS = {
   primary: '#1EA896',
@@ -12,6 +13,8 @@ const PEADBO_COLORS = {
   border: '#DDDDDD',
   white: '#FFFFFF'
 };
+
+const STORAGE_KEY = 'manualContacts';
 
 export default function ContactPickerScreen({ navigation, route }) {
   const [contacts, setContacts] = useState([]);
@@ -28,24 +31,30 @@ export default function ContactPickerScreen({ navigation, route }) {
   useEffect(() => {
     const loadContacts = async () => {
       const { status } = await Contacts.requestPermissionsAsync();
+      let deviceContacts = [];
+
       if (status === 'granted') {
         const { data } = await Contacts.getContactsAsync({
           fields: [Contacts.Fields.Emails],
         });
-        
+
         if (data.length > 0) {
-          const formattedContacts = data
+          deviceContacts = data
             .filter(c => c.name && c.emails?.[0]?.email)
             .map(c => ({
               id: c.id,
               name: c.name,
               email: c.emails[0].email
             }));
-          
-          setContacts(formattedContacts);
-          setFilteredContacts(formattedContacts);
         }
       }
+
+      const stored = await AsyncStorage.getItem(STORAGE_KEY);
+      const manualContacts = stored ? JSON.parse(stored) : [];
+
+      const allContacts = [...deviceContacts, ...manualContacts];
+      setContacts(allContacts);
+      setFilteredContacts(allContacts);
     };
 
     loadContacts();
@@ -53,7 +62,7 @@ export default function ContactPickerScreen({ navigation, route }) {
 
   useEffect(() => {
     if (searchQuery) {
-      const filtered = contacts.filter(contact => 
+      const filtered = contacts.filter(contact =>
         contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         contact.email.toLowerCase().includes(searchQuery.toLowerCase())
       );
@@ -66,11 +75,7 @@ export default function ContactPickerScreen({ navigation, route }) {
   const toggleContactSelection = (contact) => {
     setSelectedContacts(prev => {
       const isSelected = prev.some(c => c.id === contact.id);
-      if (isSelected) {
-        return prev.filter(c => c.id !== contact.id);
-      } else {
-        return [...prev, contact];
-      }
+      return isSelected ? prev.filter(c => c.id !== contact.id) : [...prev, contact];
     });
   };
 
@@ -83,42 +88,48 @@ export default function ContactPickerScreen({ navigation, route }) {
     setIsModalVisible(true);
   };
 
-  const handleSaveNewContact = () => {
+  const handleSaveNewContact = async () => {
     const { firstName, lastName, email } = newContact;
-    
     if (!firstName.trim() || !lastName.trim() || !email.trim()) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      Alert.alert('Error', 'Invalid email');
+      return;
+    }
 
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
+    const isDuplicate = contacts.concat(selectedContacts).some(c => c.email.toLowerCase() === email.toLowerCase());
+    if (isDuplicate) {
+      Alert.alert('Error', 'Contact already exists');
       return;
     }
 
     const contact = {
       id: `manual-${Date.now()}`,
       name: `${firstName} ${lastName}`,
-      firstName,
-      lastName,
-      email: email
+      email,
     };
 
-    setContacts(prev => [...prev, contact]);
-    setFilteredContacts(prev => [...prev, contact]);
+    const updated = [...contacts, contact];
+    const manualOnly = [...updated.filter(c => c.id.startsWith('manual-'))];
+
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(manualOnly));
+    setContacts(updated);
+    setFilteredContacts(updated);
     setSelectedContacts(prev => [...prev, contact]);
     setNewContact({ firstName: '', lastName: '', email: '' });
     setIsModalVisible(false);
   };
 
+  const removeSelectedContact = (contactId) => {
+    setSelectedContacts(prev => prev.filter(c => c.id !== contactId));
+  };
+
   const renderContactItem = ({ item }) => (
     <TouchableOpacity
-      style={[
-        styles.contactItem,
-        selectedContacts.some(c => c.id === item.id) && styles.selectedContactItem
-      ]}
-      onPress={() => toggleContactSelection(item)}
-    >
+      style={[styles.contactItem, selectedContacts.some(c => c.id === item.id) && styles.selectedContactItem]}
+      onPress={() => toggleContactSelection(item)}>
       <View style={styles.contactInfo}>
         <Text style={styles.contactName}>{item.name}</Text>
         <Text style={styles.contactEmail}>{item.email}</Text>
@@ -134,8 +145,13 @@ export default function ContactPickerScreen({ navigation, route }) {
       <Text style={styles.sectionTitle}>Selected Contacts ({selectedContacts.length})</Text>
       {selectedContacts.map((item, index) => (
         <View key={`selected-${index}`} style={styles.contactItem}>
-          <Text style={styles.contactName}>{item.name}</Text>
-          <Text style={styles.contactEmail}>{item.email}</Text>
+          <View style={styles.contactInfo}>
+            <Text style={styles.contactName}>{item.name}</Text>
+            <Text style={styles.contactEmail}>{item.email}</Text>
+          </View>
+          <TouchableOpacity onPress={() => removeSelectedContact(item.id)}>
+            <Icon name="close" size={20} color="#999" />
+          </TouchableOpacity>
         </View>
       ))}
     </View>
@@ -179,47 +195,46 @@ export default function ContactPickerScreen({ navigation, route }) {
       <Modal
         visible={isModalVisible}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setIsModalVisible(false)}
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Add New Contact</Text>
-            
+
             <TextInput
               style={styles.modalInput}
               placeholder="First Name"
-              placeholderTextColor={'#999'}
+              placeholderTextColor="#777"
               value={newContact.firstName}
-              onChangeText={(text) => setNewContact({...newContact, firstName: text})}
+              onChangeText={(text) => setNewContact({ ...newContact, firstName: text })}
             />
-            
+
             <TextInput
               style={styles.modalInput}
               placeholder="Last Name"
-              placeholderTextColor={'#999'}
+              placeholderTextColor="#777"
               value={newContact.lastName}
-              onChangeText={(text) => setNewContact({...newContact, lastName: text})}
+              onChangeText={(text) => setNewContact({ ...newContact, lastName: text })}
             />
-            
+
             <TextInput
               style={styles.modalInput}
               placeholder="Email"
-              placeholderTextColor={'#999'}
+              placeholderTextColor="#777"
               keyboardType="email-address"
-              autoCapitalize="none"
               value={newContact.email}
-              onChangeText={(text) => setNewContact({...newContact, email: text})}
+              onChangeText={(text) => setNewContact({ ...newContact, email: text })}
             />
 
             <View style={styles.modalButtonRow}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
                 onPress={() => setIsModalVisible(false)}
               >
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.modalButton, styles.saveButton]}
                 onPress={handleSaveNewContact}
               >
@@ -232,6 +247,8 @@ export default function ContactPickerScreen({ navigation, route }) {
     </View>
   );
 }
+
+
 
 const styles = StyleSheet.create({
   container: {

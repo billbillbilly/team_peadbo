@@ -31,6 +31,7 @@ function ProfileScreen({ navigation }) {
       <View style={styles.menuList}>
         <MenuItem title="Upgrade the Plan" onPress={() => navigation.navigate('UpgradePlan')} />
         <MenuItem title="My Peadbo" />
+
         <MenuItem title="Settings" onPress={() => navigation.navigate('Settings')} />
         <MenuItem title="Billing" onPress={() => navigation.navigate('Billing')} />
         <MenuItem title="Notifications" onPress={() => navigation.navigate('Notifications')} />

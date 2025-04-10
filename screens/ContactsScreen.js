@@ -222,21 +222,21 @@ function AddContactForm({ onAddContact, onClose }) {
       <TextInput
         style={styles.input}
         placeholder="First Name"
-        placeholderTextColor={'#999'}
+        placeholderTextColor={'#444'}
         value={firstName}
         onChangeText={setFirstName}
       />
       <TextInput
         style={styles.input}
         placeholder="Last Name"
-        placeholderTextColor={'#999'}
+        placeholderTextColor={'#444'}
         value={lastName}
         onChangeText={setLastName}
       />
       <TextInput
         style={styles.input}
         placeholder="Email"
-        placeholderTextColor={'#999'}
+        placeholderTextColor={'#444'}
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
