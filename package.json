@@ -27,6 +27,7 @@
     "axios": "^1.8.1",
     "axios-retry": "^4.5.0",
     "expo": "~52.0.42",
+    "expo": "~52.0.42",
     "expo-auth-session": "^6.0.3",
     "expo-calendar": "~14.0.6",
     "expo-contacts": "^14.0.5",

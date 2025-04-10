@@ -60,6 +60,7 @@ const BoardCreationStack = () => {
     const Stack = createNativeStackNavigator();
     return (
         <Stack.Navigator initialRouteName='FocusScreen' screenOptions={{ headerShown: false }}>
+        <Stack.Navigator initialRouteName='FocusScreen' screenOptions={{ headerShown: false }}>
             <Stack.Screen name='AdvisorSelectionScreen' component={AdvisorSelectionScreen}/>
             <Stack.Screen name='BoardDetailsScreen' component={BoardDetailsScreen}/>
             <Stack.Screen name='FocusScreen' component={FocusScreen}/>
@@ -178,7 +179,6 @@ const DynamicTabsNavigator = () => {
 // Final App Container
 const AppContainer = () => {
     const navigationRef = React.useRef();
-
     return (
         <Provider store={store}>
             <NavigationContainer ref={navigationRef}>
