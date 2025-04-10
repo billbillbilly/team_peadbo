@@ -33,7 +33,7 @@ import CreateInvitationScreen from './screens/Board_Creation_Screens/CreateInvit
 import TimeAvailabilityScreen from './screens/Board_Creation_Screens/TimeAvailabilityScreen';
 import Review from './screens/Board_Creation_Screens/ReviewScreen';
 import SendNotificationScreen from './screens/Board_Creation_Screens/SendNotificationScreen';
-import SuccessScreen from './screens/Board_Creation_Screens/SuccessScreen';
+// import SuccessScreen from './screens/Board_Creation_Screens/SuccessScreen';
 
 // Profile Screens
 import ProfileScreen from './screens/ProfileScreens/ProfileScreen';
@@ -71,7 +71,7 @@ const BoardCreationStack = () => {
       <Stack.Screen name="TimeAvailabilityScreen" component={TimeAvailabilityScreen} />
       <Stack.Screen name="ReviewScreen" component={Review} />
       <Stack.Screen name="SendNotificationScreen" component={SendNotificationScreen} />
-      <Stack.Screen name="SuccessScreen" component={SuccessScreen} />
+      {/* <Stack.Screen name="SuccessScreen" component={SuccessScreen} /> */}
       <Stack.Screen name="ChatBot" component={ChatBot} />
     </Stack.Navigator>
   );
