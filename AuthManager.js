@@ -4,7 +4,13 @@ import { signIn, signOut, getCurrentUser, fetchUserAttributes, } from 'aws-ampli
 const signIn_ = async ({username, password}) => {
 
   try {
-    const { isSignedIn, nextStep } = await signIn({ username, password });
+    const { isSignedIn, nextStep } = await signIn({ 
+      username, 
+      password,
+      options: {
+        authFlowType: "USER_PASSWORD_AUTH",
+      },
+    });
     if (isSignedIn) {
       const user = await getCurrentUser();
       const attributes = await fetchUserAttributes();

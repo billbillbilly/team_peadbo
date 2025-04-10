@@ -44,7 +44,7 @@ const LoginScreen = ({ navigation }) => {
     setLoading(true);
 
     try {
-      const user = await signIn_({username: email, password});
+      const user = await signIn_({username: email, password:password});
       dispatch(setUser());
       navigation.replace('HomeMain'); // Redirect to HomeScreen after successful login
     } catch (error) {
