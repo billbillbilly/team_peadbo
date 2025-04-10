@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, Button, ScrollView } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from 'react-native';
 import * as Contacts from 'expo-contacts';
-import Icon from 'react-native-vector-icons/Ionicons';
+
+const PRIMARY_COLOR = '#1EA896';
 
 const AdvisorSelectionScreen = ({ navigation }) => {
-    const [departments, setDepartments] = useState([]);
-    const [selectedDepartment, setSelectedDepartment] = useState("");
     const [selectedContact, setSelectedContact] = useState(null);
     const [selectedAdvisor, setSelectedAdvisor] = useState(null);
     const [contacts, setContacts] = useState([]);
@@ -50,9 +48,10 @@ const AdvisorSelectionScreen = ({ navigation }) => {
     }, []);
 
     const renderAdvisors = ({ item }) => (
-        <TouchableOpacity 
-            style={[styles.card, selectedAdvisor === item.id && styles.selectedCard]} 
-            onPress={() => setSelectedAdvisor(item.id)}>
+        <TouchableOpacity
+            style={[styles.card, selectedAdvisor === item.id && styles.selectedCard]}
+            onPress={() => setSelectedAdvisor(item.id)}
+        >
             <Image source={{ uri: item.photo }} style={styles.avatar} />
             <View style={styles.cardInfo}>
                 <Text style={styles.name}>{item.name}</Text>
@@ -67,10 +66,14 @@ const AdvisorSelectionScreen = ({ navigation }) => {
     );
 
     const renderContacts = ({ item }) => (
-        <TouchableOpacity 
-            style={[styles.contactCard, selectedContact === item.id && styles.selectedCard]} 
-            onPress={() => setSelectedContact(item.id)}>
-            <Text style={styles.contactName}>{item.name || "Unnamed Contact"}</Text>
+        <TouchableOpacity
+            style={[styles.contactCard, selectedContact === item.id && styles.selectedCard]}
+            onPress={() => setSelectedContact(item.id)}
+        >
+            <View style={styles.contactContent}>
+                <View style={styles.contactAvatar} />
+                <Text style={styles.contactName}>{item.name || "Unnamed Contact"}</Text>
+            </View>
         </TouchableOpacity>
     );
 
@@ -83,23 +86,39 @@ const AdvisorSelectionScreen = ({ navigation }) => {
     };
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.container}>
             {/* Progress Bar */}
             <View style={styles.progressBarContainer}>
                 {['1', '2', '3', '4', '5'].map((step, index) => (
-                    <View key={index} style={[styles.step, index === 2 ? styles.activeStep : index < 2 ? styles.completedStep : styles.incompleteStep]}>
+                    <View
+                        key={index}
+                        style={[
+                            styles.step,
+                            index === 2 ? styles.activeStep :
+                            index < 2 ? styles.completedStep : styles.incompleteStep
+                        ]}
+                    >
                         <Text style={styles.stepText}>{step}</Text>
                     </View>
                 ))}
             </View>
 
             <Text style={styles.title}>Invite Board Member</Text>
-            <Text style={styles.subtitle}>Who would you like to invite to your board? You can invite from your contact, or AI can match for you.</Text>
+            <Text style={styles.subtitle}>
+                Who would you like to invite to your board? You can invite from your contact, or AI can match for you.
+            </Text>
+
             <View style={styles.tabsContainer}>
-                <TouchableOpacity style={activeTab === 'AI Match' ? styles.activeTab : styles.inactiveTab} onPress={() => setActiveTab('AI Match')}>
+                <TouchableOpacity
+                    style={activeTab === 'AI Match' ? styles.activeTab : styles.inactiveTab}
+                    onPress={() => setActiveTab('AI Match')}
+                >
                     <Text style={styles.tabText}>AI Match</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={activeTab === 'Invite from Contact' ? styles.activeTab : styles.inactiveTab} onPress={() => setActiveTab('Invite from Contact')}>
+                <TouchableOpacity
+                    style={activeTab === 'Invite from Contact' ? styles.activeTab : styles.inactiveTab}
+                    onPress={() => setActiveTab('Invite from Contact')}
+                >
                     <Text style={styles.tabText}>Invite from Contact</Text>
                 </TouchableOpacity>
             </View>
@@ -109,7 +128,7 @@ const AdvisorSelectionScreen = ({ navigation }) => {
                     data={contacts}
                     renderItem={renderContacts}
                     keyExtractor={item => item.id}
-                    style={styles.list}
+                    contentContainerStyle={{ paddingBottom: 100 }}
                 />
             )}
 
@@ -118,29 +137,29 @@ const AdvisorSelectionScreen = ({ navigation }) => {
                     data={advisors}
                     renderItem={renderAdvisors}
                     keyExtractor={item => item.id}
-                    style={styles.list}
+                    contentContainerStyle={{ paddingBottom: 100 }}
                 />
             )}
 
             <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
                 <Text style={styles.nextButtonText}>Next</Text>
             </TouchableOpacity>
-        </ScrollView>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { padding: 20 },
+    container: { padding: 20, flex: 1 },
     title: { fontSize: 22, fontWeight: 'bold', marginBottom: 10 },
     subtitle: { fontSize: 14, color: 'gray', marginBottom: 20 },
     progressBarContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
     step: { width: 30, height: 30, borderRadius: 15, justifyContent: 'center', alignItems: 'center' },
-    activeStep: { backgroundColor: '#00A86B' },
-    completedStep: { backgroundColor: '#00A86B' },
+    activeStep: { backgroundColor: PRIMARY_COLOR },
+    completedStep: { backgroundColor: PRIMARY_COLOR },
     incompleteStep: { backgroundColor: '#E0E0E0' },
     stepText: { color: '#FFF', fontWeight: 'bold' },
     tabsContainer: { flexDirection: 'row', marginBottom: 20 },
-    activeTab: { flex: 1, padding: 10, backgroundColor: '#00A86B', borderRadius: 8, marginRight: 5 },
+    activeTab: { flex: 1, padding: 10, backgroundColor: PRIMARY_COLOR, borderRadius: 8, marginRight: 5 },
     inactiveTab: { flex: 1, padding: 10, backgroundColor: '#F0F0F0', borderRadius: 8, marginLeft: 5 },
     tabText: { textAlign: 'center', color: '#FFF' },
     card: { flexDirection: 'row', padding: 15, backgroundColor: '#FFF', borderRadius: 10, marginBottom: 15, alignItems: 'center' },
@@ -150,13 +169,34 @@ const styles = StyleSheet.create({
     description: { fontSize: 12, color: 'gray' },
     tagsContainer: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 5 },
     tag: { backgroundColor: '#F0F0F0', padding: 5, borderRadius: 5, marginRight: 5, marginBottom: 5 },
-    selectedCard: { borderColor: '#00A86B', borderWidth: 2 },
-    nextButton: { backgroundColor: '#00A86B', padding: 15, borderRadius: 10, marginTop: 20, alignItems: 'center' },
-    nextButtonText: { color: '#FFF', fontSize: 16 }
+    selectedCard: { borderColor: PRIMARY_COLOR, borderWidth: 2 },
+    nextButton: { backgroundColor: PRIMARY_COLOR, padding: 15, borderRadius: 10, marginTop: 20, alignItems: 'center' },
+    nextButtonText: { color: '#FFF', fontSize: 16 },
+
+    // Contact UI enhancements
+    contactCard: {
+        backgroundColor: '#FFF',
+        padding: 15,
+        borderRadius: 10,
+        marginBottom: 10
+    },
+    contactContent: {
+        flexDirection: 'row',
+        alignItems: 'center'
+    },
+    contactAvatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#E0E0E0',
+        marginRight: 10
+    },
+    contactName: {
+        fontSize: 16
+    }
 });
 
 export default AdvisorSelectionScreen;
-
 
 
 

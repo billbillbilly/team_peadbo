@@ -17,15 +17,21 @@ const templateItems = Object.keys(templates).map(key => ({
   value: key,
 }));
 
-function CreateInvitationScreen({ navigation, route }) {
-  const { focus, boardName, description, advisors } = route.params;
+const CreateInvitationScreen = ({ route, navigation }) => {
+  const {
+    focus = '',
+    boardName = '',
+    boardDescription = '',
+    advisors = '',
+    boardFrequency = '',
+  } = route?.params || {};
   const [message, setMessage] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [openTemplate, setOpenTemplate] = useState(false);
   const [valueTemplate, setValueTemplate] = useState(null);
 
   const handleContinue = () => {
-    navigation.navigate('TimeAvailabilityScreen', { focus, boardName, description, advisors, message });
+    navigation.navigate('TimeAvailabilityScreen', { focus, boardName, boardDescription, advisors, boardFrequency });
   };
 
   const generateTemplate = async () => {
