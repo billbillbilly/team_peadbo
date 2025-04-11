@@ -4,13 +4,13 @@ import * as Contacts from 'expo-contacts';
 
 function ContactsScreen({ navigation }) {
   // State for contacts and search
-  const [contacts, setContacts] = useState([]); // Start with an empty list
-  const [filteredContacts, setFilteredContacts] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
+  const [contacts, setContacts] = useState([]); // Main contact list (manually added or selected)
+  const [filteredContacts, setFilteredContacts] = useState([]); // For filtered results
+  const [searchQuery, setSearchQuery] = useState(''); // Search query for phone contacts
   const [showAddContactModal, setShowAddContactModal] = useState(false);
   const [showPhoneContactsModal, setShowPhoneContactsModal] = useState(false);
-  const [phoneContacts, setPhoneContacts] = useState([]);
+  const [phoneContacts, setPhoneContacts] = useState([]); // Phone contacts for the modal
+  const [filteredPhoneContacts, setFilteredPhoneContacts] = useState([]); // Filtered phone contacts for the modal
 
   // Request permission and load phone contacts
   useEffect(() => {
@@ -32,47 +32,73 @@ function ContactsScreen({ navigation }) {
     });
 
     if (data.length > 0) {
-      setPhoneContacts(data);
+      setPhoneContacts(data); // Set phone contacts for the modal
+      setFilteredPhoneContacts(data); // Initialize filteredPhoneContacts with all phone contacts
     }
   };
 
-  // Handle search functionality
-  const handleSearch = (query) => {
+  // Handle search functionality for phone contacts
+  const handlePhoneContactsSearch = (query) => {
     setSearchQuery(query);
-    const filtered = contacts.filter((contact) => {
+    const filtered = phoneContacts.filter((contact) => {
       const contactName = contact.name ? contact.name.toLowerCase() : '';
       return contactName.includes(query.toLowerCase());
     });
-    setFilteredContacts(filtered);
+    setFilteredPhoneContacts(filtered);
   };
 
   // Handle adding a new contact
   const handleAddContact = (newContact) => {
-    setContacts([...contacts, newContact]);
-    setFilteredContacts([...contacts, newContact]); // Update filtered contacts
+    const updatedContacts = [...contacts, newContact];
+    setContacts(updatedContacts);
+    setFilteredContacts(updatedContacts); // Update filtered contacts
     setShowAddContactModal(false); // Close the modal
   };
 
   // Handle selecting a contact from phone contacts
   const selectPhoneContact = (contact) => {
-    const newContact = {
-      name: contact.name,
-      email: contact.emails && contact.emails.length > 0 ? contact.emails[0].email : 'No Email',
-    };
-    handleAddContact(newContact);
-    setShowPhoneContactsModal(false); // Close the modal
+    if (!contact.emails || contact.emails.length === 0) {
+      // Prompt the user to add an email if the contact has none
+      Alert.prompt(
+        'Add Email',
+        `The contact "${contact.name}" does not have an email address. Please add one.`,
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'OK',
+            onPress: (email) => {
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              if (email && emailRegex.test(email.trim())) {
+                const updatedContact = {
+                  name: contact.name,
+                  email: email.trim(),
+                };
+                handleAddContact(updatedContact); // Add the updated contact to the main list
+                setShowPhoneContactsModal(false); // Close the modal
+              } else {
+                Alert.alert('Invalid Email', 'Please enter a valid email address.');
+              }
+            },
+          },
+        ],
+        'plain-text'
+      );
+    } else {
+      // Add the contact directly if it has an email
+      const newContact = {
+        name: contact.name,
+        email: contact.emails[0].email,
+      };
+      handleAddContact(newContact); // Add the selected contact to the main list
+      setShowPhoneContactsModal(false); // Close the modal
+    }
   };
 
   return (
     <View style={styles.container}>
-      {/* Search Bar */}
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Search contacts..."
-        value={searchQuery}
-        onChangeText={handleSearch}
-      />
-
       {/* Add Contact Button */}
       <TouchableOpacity
         style={styles.addContactButton}
@@ -90,9 +116,9 @@ function ContactsScreen({ navigation }) {
       </TouchableOpacity>
 
       {/* Contact List */}
-      {filteredContacts.length > 0 ? (
+      {contacts.length > 0 ? (
         <FlatList
-          data={filteredContacts}
+          data={contacts} // Use contacts here
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => (
             <View style={styles.contactItem}>
@@ -128,8 +154,15 @@ function ContactsScreen({ navigation }) {
       >
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Select a Contact</Text>
+          {/* Search Bar for Phone Contacts */}
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search phone contacts..."
+            value={searchQuery}
+            onChangeText={handlePhoneContactsSearch} // Call handlePhoneContactsSearch on text change
+          />
           <FlatList
-            data={phoneContacts}
+            data={filteredPhoneContacts} // Use filteredPhoneContacts for the modal
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
               <TouchableOpacity
@@ -157,16 +190,30 @@ function ContactsScreen({ navigation }) {
 
 // Component for adding a new contact manually
 function AddContactForm({ onAddContact, onClose }) {
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
 
   const handleSubmit = () => {
-    if (name.trim() === '') {
-      alert('Name is required');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  
+    if (firstName.trim() === '' || lastName.trim() === '') {
+      Alert.alert('Missing Information', 'First name and last name are required.');
       return;
     }
-    onAddContact({ name, email });
-    setName('');
+    if (email.trim() === '') {
+      Alert.alert('Missing Information', 'Email is required.');
+      return;
+    }
+    if (!emailRegex.test(email.trim())) {
+      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      return;
+    }
+  
+    const fullName = `${firstName.trim()} ${lastName.trim()}`;
+    onAddContact({ name: fullName, email: email.trim() });
+    setFirstName('');
+    setLastName('');
     setEmail('');
   };
 
@@ -174,13 +221,22 @@ function AddContactForm({ onAddContact, onClose }) {
     <View>
       <TextInput
         style={styles.input}
-        placeholder="Name"
-        value={name}
-        onChangeText={setName}
+        placeholder="First Name"
+        placeholderTextColor={'#444'}
+        value={firstName}
+        onChangeText={setFirstName}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Last Name"
+        placeholderTextColor={'#444'}
+        value={lastName}
+        onChangeText={setLastName}
       />
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor={'#444'}
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"

@@ -12,23 +12,20 @@ import {
 } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import * as DocumentPicker from 'expo-document-picker';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { setDoc, getFirestore, doc } from 'firebase/firestore';
-import { app } from '../../Secrets';
+import { Storage } from 'aws-amplify';
+// import { ResumeData } from '../../models';
+// import { DataStore } from 'aws-amplify';
 
-const storage = getStorage(app);
-const db = getFirestore(app);
 const defaultUserId = 'user1';
 
 export default function PersonalInformationScreen({ navigation }) {
-  const [resume, setResume] = useState(null);
+  const [resumeUrls, setResumeUrls] = useState([]);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [city, setCity] = useState('');
   const [stateVal, setStateVal] = useState('');
-
 
   const [openEducation, setOpenEducation] = useState(false);
   const [valueEducation, setValueEducation] = useState(null);
@@ -40,32 +37,35 @@ export default function PersonalInformationScreen({ navigation }) {
     { label: 'PhD', value: 'phd' },
   ]);
 
-  /**
-   * Pick a PDF and upload to Firebase Storage
-   */
   const handleResumeUpload = async () => {
     try {
+      if (resumeUrls.length >= 5) {
+        Alert.alert('Limit reached', 'You can only upload up to 5 resumes.');
+        return;
+      }
+
       const result = await DocumentPicker.getDocumentAsync({ type: 'application/pdf' });
       if (result.type === 'success') {
         const response = await fetch(result.uri);
         const blob = await response.blob();
 
-        const storageRef = ref(storage, `resumes/${defaultUserId}_${result.name}`);
-        await uploadBytes(storageRef, blob);
-        const downloadURL = await getDownloadURL(storageRef);
+        const fileName = `${defaultUserId}_${Date.now()}_${result.name}`;
+        await Storage.put(`resumes/${fileName}`, blob, {
+          contentType: 'application/pdf',
+        });
+        const downloadUrl = await Storage.get(`resumes/${fileName}`);
 
-        console.log('Resume uploaded. URL:', downloadURL);
-        setResume(downloadURL);
+        const updatedResumes = [...resumeUrls, downloadUrl];
+        setResumeUrls(updatedResumes);
+
+        console.log('Resume uploaded to:', downloadUrl);
       }
     } catch (error) {
-      console.error('Error uploading resume:', error);
+      console.error('Upload error:', error);
       Alert.alert('Upload failed', 'Could not upload resume');
     }
   };
 
-  /**
-   * Save all fields to Firestore, without requiring resume
-   */
   const handleNext = async () => {
     if (!firstName || !lastName || !phone || !email || !city || !stateVal || !valueEducation) {
       Alert.alert('Error', 'Please fill all personal information fields');
@@ -73,27 +73,26 @@ export default function PersonalInformationScreen({ navigation }) {
     }
 
     try {
-      console.log('Saving document to Firestore. Resume:', resume);
-      await setDoc(
-        doc(db, 'peadbo', defaultUserId),
-        {
-          resume,
-          firstName,
-          lastName,
-          phone,
-          email,
-          city,
-          state: stateVal,
-          education: valueEducation,
-        },
-        { merge: true }
-      );
-      console.log('Document saved successfully');
+      console.log('Simulate resume save');
+      // Uncomment below when DataStore and model are ready
+      // await DataStore.save(
+      //   new ResumeData({
+      //     userId: defaultUserId,
+      //     resumes: resumeUrls,
+      //     firstName,
+      //     lastName,
+      //     phone,
+      //     email,
+      //     city,
+      //     state: stateVal,
+      //     education: valueEducation,
+      //   })
+      // );
 
       Alert.alert('Success', 'Personal information saved');
       navigation.navigate('CommunicationStyleScreen');
     } catch (error) {
-      console.error('Error saving personal information:', error);
+      console.error('Save error:', error);
       Alert.alert('Error', 'Could not save personal information');
     }
   };
@@ -102,7 +101,7 @@ export default function PersonalInformationScreen({ navigation }) {
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={80} // Adjust for your layout
+      keyboardVerticalOffset={80}
     >
       <ScrollView
         style={{ flex: 1 }}
@@ -110,7 +109,6 @@ export default function PersonalInformationScreen({ navigation }) {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.container}>
-          {/* Step Indicators */}
           <View style={styles.stepIndicatorContainer}>
             <View style={[styles.dotBase, styles.filledDot]} />
             <View style={[styles.dotBase, styles.partialDot]} />
@@ -122,7 +120,7 @@ export default function PersonalInformationScreen({ navigation }) {
           <Text style={styles.headerTitle}>Resume Input</Text>
           <TouchableOpacity style={styles.resumeUpload} onPress={handleResumeUpload}>
             <Text style={styles.uploadText}>
-              {resume ? 'Resume Uploaded' : 'Upload your resume'}
+              {resumeUrls.length > 0 ? `${resumeUrls.length} Resumes Uploaded` : 'Upload your resume'}
             </Text>
           </TouchableOpacity>
 
@@ -185,7 +183,7 @@ export default function PersonalInformationScreen({ navigation }) {
 
           <Text style={styles.subHeaderTitle}>Education</Text>
           <DropDownPicker
-            listMode="SCROLLVIEW" 
+            listMode="SCROLLVIEW"
             open={openEducation}
             value={valueEducation}
             items={educationItems}

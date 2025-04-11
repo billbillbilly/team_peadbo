@@ -1,215 +1,324 @@
-import React, { useState } from 'react';
-import {
-  SafeAreaView,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Modal,
-  ScrollView,
-  FlatList,
-} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { SafeAreaView, ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react-native';
 import { Icon } from '@rneui/themed';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { generateTemplate } from '../../OpenAIService';
 
-export default function NewsletterScreen({ navigation }) {
-  const [templates, setTemplates] = useState([]); // Array to store multiple templates
-  const [selectedTemplate, setSelectedTemplate] = useState(''); // Template to display in the modal
-  const [isModalVisible, setIsModalVisible] = useState(false); // State to manage modal visibility
+const PEADBO_COLORS = {
+  primary: '#1EA896',
+  secondary: '#FF715B',
+  background: '#F9F9F9',
+  text: '#333333',
+  lightText: '#777777',
+  border: '#DDDDDD',
+  white: '#FFFFFF'
+};
 
-  const handleGenerateTemplate = async () => {
+const STORAGE_KEY = 'newsletters';
+
+export default function CreateNewsletterScreen({ navigation, route }) {
+  const newsletterData = route.params?.newsletter || {
+    title: '',
+    subject: '',
+    schedule: null,
+    recipients: [],
+    template: '',
+    content: `
+      <p>Greetings,</p>
+      <p>I hope this email finds you well.</p>
+      <p>You are receiving this note because I would like to share some recent updates from my journey.</p>
+      <ul>
+        <li>&lt;List Updates Here&gt;</li>
+      </ul>
+      <p>Thanks so much for taking time out of your busy schedule to read this. I'll be in touch soon!</p>
+    `,
+    status: 'draft',
+    createdAt: new Date().toISOString()
+  };
+
+  const [newsletter, setNewsletter] = useState(newsletterData);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (route.params?.content) {
+      setNewsletter(prev => ({...prev, content: route.params.content}));
+    }
+  }, [route.params?.content]);
+
+  const handleSelectContacts = () => {
+    navigation.navigate('ContactPicker', {
+      onSelectContacts: (contacts) => {
+        
+        const uniqueContacts = [
+          ...new Map([...newsletter.recipients, ...contacts].map(c => [c.email, c])).values()
+        ];
+        setNewsletter({...newsletter, recipients: uniqueContacts});
+      },
+      initialSelected: newsletter.recipients
+    });
+  };
+
+  const handleEditContent = () => {
+    navigation.navigate('RichTextEditor', {
+      content: newsletter.content,
+      onSave: (newContent) => setNewsletter({...newsletter, content: newContent})
+    });
+  };
+
+  const handleSaveDraft = async () => {
     try {
-      const generatedTemplate = await generateTemplate(); // Call the generateTemplate function
-      setTemplates((prevTemplates) => [...prevTemplates, generatedTemplate]); // Add the new template to the array
+      const updatedNewsletter = {...newsletter, status: 'draft'};
+      const saved = await AsyncStorage.getItem(STORAGE_KEY);
+      const allNewsletters = saved ? JSON.parse(saved) : [];
+      const index = allNewsletters.findIndex(n => n.id === updatedNewsletter.id);
+      if (index > -1) {
+        allNewsletters[index] = updatedNewsletter;
+      } else {
+        updatedNewsletter.id = Date.now().toString();
+        allNewsletters.push(updatedNewsletter);
+      }
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(allNewsletters));
+      navigation.navigate('Newsletter', { newNewsletter: updatedNewsletter });
     } catch (error) {
-      console.error('Error generating template:', error);
+      console.error('Error saving draft:', error);
     }
   };
 
-  const openTemplateModal = (template) => {
-    setSelectedTemplate(template); // Set the selected template for the modal
-    setIsModalVisible(true); // Open the modal
+  const handlePreview = () => {
+    navigation.navigate('NewsletterPreview', {
+      newsletter: newsletter,
+      onSave: (updatedNewsletter) => {
+        setNewsletter(updatedNewsletter);
+        navigation.navigate('Newsletter', { newNewsletter: updatedNewsletter });
+      }
+    });
+  };
+
+  const handleGenerateAINewsletter = async () => {
+    setLoading(true);
+    try {
+      const { title, subject, body } = await generateTemplate();
+      setNewsletter((prev) => ({
+        ...prev,
+        title,
+        subject,
+        content: body,
+      }));
+    } catch (error) {
+      console.error('Error generating AI newsletter:', error);
+      Alert.alert('Error', 'Failed to generate AI newsletter. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchField}
-          placeholder="Search here"
-          placeholderTextColor="#999"
-        />
-        <TouchableOpacity style={styles.searchButton}>
-          <Text style={styles.searchButtonText}>Search</Text>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Icon name="arrow-back" size={24} color={PEADBO_COLORS.text} />
         </TouchableOpacity>
+        <Text style={styles.headerTitle}>
+          {route.params?.newsletter ? 'Edit Newsletter' : 'New Newsletter'}
+        </Text>
+        <View style={{ width: 24 }} />
       </View>
 
-      <View style={styles.cardContainer}>
-        <TouchableOpacity
-          style={styles.createCard}
-          onPress={() => navigation.navigate('CreateNewsletter')}
-        >
-          <Icon name="plus" type="font-awesome" size={24} />
-          <Text style={styles.createText}>Create new newsletter</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.createCard}
-          onPress={handleGenerateTemplate} // Call the handler to generate the template
-        >
-          <Icon name="plus" type="font-awesome" size={24} />
-          <Text style={styles.createText}>Generate AI newsletter template</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Container for the templates */}
-      <View style={styles.templateContainer}>
-        <FlatList
-          data={templates}
-          keyExtractor={(item, index) => index.toString()} // Use index as key
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.templateCard}
-              onPress={() => openTemplateModal(item)} // Open the modal with the selected template
-            >
-              <Text style={styles.templatePreview}>
-                {item.length > 50 ? `${item.substring(0, 50)}...` : item}
-              </Text>
-            </TouchableOpacity>
-          )}
-          ListEmptyComponent={
-            <Text style={styles.placeholderText}>No templates generated yet.</Text>
-          }
-        />
-      </View>
-
-      {/* Modal to display the full template */}
-      <Modal
-        visible={isModalVisible}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={() => setIsModalVisible(false)} // Close the modal
+      <TouchableOpacity
+        style={styles.generateButton}
+        onPress={handleGenerateAINewsletter}
+        disabled={loading}
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <ScrollView>
-            <Text style={styles.modalTitle}>Generated Template</Text>
-            <Text style={styles.modalContent}>{selectedTemplate}</Text>
-          </ScrollView>
+        <Text style={styles.generateButtonText}>
+          {loading ? 'Generating...' : 'Generate AI Newsletter'}
+        </Text>
+      </TouchableOpacity>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.sectionTitle}>Newsletter Details</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Title"
+          value={newsletter.title}
+          onChangeText={(text) => setNewsletter({...newsletter, title: text})}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Subject"
+          value={newsletter.subject}
+          onChangeText={(text) => setNewsletter({...newsletter, subject: text})}
+        />
+
+        <TouchableOpacity
+          style={styles.input}
+          onPress={() => Alert.alert('Schedule picker not implemented')}
+        >
+          <Text style={{ color: newsletter.schedule ? PEADBO_COLORS.text : '#999' }}>
+            {newsletter.schedule || 'Select Schedule (optional)'}
+          </Text>
+        </TouchableOpacity>
+
+        <Text style={styles.sectionTitle}>Recipients</Text>
+
+        <TouchableOpacity
+          style={styles.input}
+          onPress={handleSelectContacts}
+        >
+          <Text style={{ color: newsletter.recipients.length > 0 ? PEADBO_COLORS.text : '#999' }}>
+            {newsletter.recipients.length > 0
+              ? `${newsletter.recipients.length} contacts selected`
+              : 'Select Recipients'}
+          </Text>
+        </TouchableOpacity>
+
+        {}
+        {newsletter.recipients.length > 0 && (
           <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setIsModalVisible(false)} // Close the modal
+            onPress={() => setNewsletter({ ...newsletter, recipients: [] })}
+            style={{
+              alignSelf: 'flex-end',
+              backgroundColor: PEADBO_COLORS.secondary,
+              paddingVertical: 6,
+              paddingHorizontal: 12,
+              borderRadius: 6,
+              marginTop: 6
+            }}
           >
-            <Text style={styles.closeButtonText}>Close</Text>
+            <Text style={{ color: '#fff', fontWeight: 'bold' }}>Clear Recipients</Text>
           </TouchableOpacity>
-        </SafeAreaView>
-      </Modal>
+        )}
+
+        {newsletter.recipients.length > 0 && (
+          <View style={{ marginTop: 10 }}>
+            <FlatList
+              data={newsletter.recipients}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item }) => (
+                <View style={styles.contactItem}>
+                  <Text style={styles.contactName}>{item.name}</Text>
+                  <Text style={styles.contactEmail}>{item.email}</Text>
+                </View>
+              )}
+            />
+          </View>
+        )}
+
+        <TouchableOpacity
+          style={styles.contentButton}
+          onPress={handleEditContent}
+        >
+          <Text style={styles.contentButtonText}>Edit Newsletter Content</Text>
+        </TouchableOpacity>
+
+        <View style={styles.buttonRow}>
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={handleSaveDraft}
+          >
+            <Text style={styles.secondaryButtonText}>Save Draft</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.previewButton}
+            onPress={handlePreview}
+          >
+            <Text style={styles.previewButtonText}>Preview</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#F9F9F9',
-  },
-  searchContainer: {
+  container: { flex: 1, backgroundColor: PEADBO_COLORS.background },
+  header: {
     flexDirection: 'row',
-    borderWidth: 1,
-    borderColor: '#DDD',
-    borderRadius: 25,
-    overflow: 'hidden',
-    height: 48,
-    backgroundColor: '#FFF',
-    marginBottom: 20,
-  },
-  searchField: {
-    flex: 1,
-    paddingHorizontal: 16,
-    fontSize: 16,
-  },
-  searchButton: {
-    width: 80,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderLeftWidth: 1,
-    borderLeftColor: '#DDD',
-    backgroundColor: '#FFF',
-  },
-  searchButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-  },
-  createCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderStyle: 'dotted',
-    borderColor: '#AAA',
-    borderRadius: 8,
-    padding: 24,
-    marginBottom: 16,
-    width: '40%',
-  },
-  createText: { marginLeft: 12, fontSize: 18, fontWeight: '500', alignSelf: 'center' },
-  cardContainer: {
-    flex: 0.15,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  templateContainer: {
-    flex: 1, // Allow the container to take up remaining space
-    marginTop: 16,
-    borderWidth: 1,
-    borderColor: '#DDD',
-    borderRadius: 8,
-    padding: 8,
-    backgroundColor: '#F9F9F9',
-  },
-  templateCard: {
-    marginBottom: 8,
+    justifyContent: 'space-between',
     padding: 16,
-    borderWidth: 1,
-    borderColor: '#DDD',
-    borderRadius: 8,
-    backgroundColor: '#FFF',
+    backgroundColor: PEADBO_COLORS.white,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: PEADBO_COLORS.border
   },
-  templatePreview: {
-    fontSize: 16,
-    color: '#333',
-  },
-  placeholderText: {
-    fontSize: 16,
-    color: '#999',
-    textAlign: 'center',
-  },
-  modalContainer: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#FFF',
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
-  modalContent: {
-    fontSize: 16,
-    color: '#333',
-    lineHeight: 24,
-  },
-  closeButton: {
-    marginTop: 16,
+  headerTitle: { fontSize: 20, fontWeight: 'bold', color: PEADBO_COLORS.text },
+  generateButton: {
+    backgroundColor: PEADBO_COLORS.primary,
     padding: 12,
-    backgroundColor: '#1EA896',
+    margin: 16,
+    borderRadius: 8,
+    alignItems: 'center'
+  },
+  generateButtonText: { color: 'white', fontWeight: 'bold' },
+  scrollContent: { padding: 16 },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', marginVertical: 10 },
+  input: {
+    height: 48,
+    borderColor: PEADBO_COLORS.border,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    justifyContent: 'center',
+    marginBottom: 12,
+    backgroundColor: 'white'
+  },
+  contentButton: {
+    borderWidth: 1,
+    borderColor: PEADBO_COLORS.primary,
+    padding: 12,
     borderRadius: 8,
     alignItems: 'center',
+    marginVertical: 10
   },
-  closeButtonText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '600',
+  contentButtonText: {
+    color: PEADBO_COLORS.primary,
+    fontWeight: '600'
   },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  previewButton: {
+    backgroundColor: PEADBO_COLORS.primary,
+    flex: 1,
+    borderRadius: 8,
+    alignItems: 'center',
+    padding: 12,
+    marginLeft: 6
+  },
+  secondaryButton: {
+    borderWidth: 1,
+    borderColor: PEADBO_COLORS.primary,
+    flex: 1,
+    borderRadius: 8,
+    alignItems: 'center',
+    padding: 12,
+    marginRight: 6
+  },
+  secondaryButtonText: {
+    color: PEADBO_COLORS.primary,
+    fontWeight: '600'
+  },
+  previewButtonText: {
+    color: 'white',
+    fontWeight: '600'
+  },
+  contactItem: {
+    backgroundColor: 'white',
+    borderColor: PEADBO_COLORS.border,
+    borderWidth: 1,
+    borderRadius: 6,
+    padding: 10,
+    marginVertical: 4
+  },
+  contactName: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    color: PEADBO_COLORS.text
+  },
+  contactEmail: {
+    fontSize: 12,
+    color: PEADBO_COLORS.lightText
+  }
 });

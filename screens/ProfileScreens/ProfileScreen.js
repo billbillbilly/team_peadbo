@@ -1,18 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useLayoutEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useSelector, useDispatch } from 'react-redux';
 import { loadProfileSettings, updateProfileSetting } from '../../Reducer';
 import { Icon } from '@rneui/themed';
+import MyResumeSection from './MyResumeSection';
+import { useTheme } from '../../ThemeContext';
 
 function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
   const profileSettings = useSelector((state) => state.user.profileSettings);
   const currentUser = useSelector((state) => state.user.currentUser);
+  const { theme, isDarkMode, setIsDarkMode } = useTheme();
 
   const [profileImage, setProfileImage] = useState(null);
   const [bio, setBio] = useState("I am a student at the University of Michigan, Ann Arbor. Passionate about technology, design, and project management. Always looking to collaborate on exciting new projects that challenge my skills and creativity.");
   const [editMode, setEditMode] = useState(false);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity onPress={() => setIsDarkMode(!isDarkMode)} style={{ marginRight: 15 }}>
+          <Icon 
+            name={isDarkMode ? 'sun' : 'moon'} 
+            type="feather" 
+            color={isDarkMode ? '#FFD700' : '#333'} 
+          />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, isDarkMode]);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -43,10 +60,10 @@ function ProfileScreen({ navigation }) {
           name={iconName} 
           type={iconType} 
           size={20} 
-          color={isLogout ? 'red' : '#333'} 
+          color={isLogout ? 'red' : theme.text}
           style={{ marginRight: 10 }}
         />
-        <Text style={[styles.menuText, isLogout && styles.logoutText]}>
+        <Text style={[styles.menuText, { color: isLogout ? 'red' : theme.text }]}>
           {title}
         </Text>
       </View>
@@ -54,26 +71,30 @@ function ProfileScreen({ navigation }) {
   );
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Profile Header */}
-      <View style={styles.profileHeader}>
+      <View style={[styles.profileHeader, { borderBottomColor: theme.border }]}>
         <TouchableOpacity onPress={pickImage}>
           {profileImage ? (
             <Image source={{ uri: profileImage }} style={styles.profileImage} />
           ) : (
             <View style={styles.avatarPlaceholder}>
-              <Text style={{ fontSize: 30 }}>＋</Text>
+              <Text style={{ fontSize: 30, color: theme.text }}>＋</Text>
             </View>
           )}
         </TouchableOpacity>
-        <Text style={styles.profileName}>{currentUser.displayName || "User Name"}</Text>
-        <Text style={styles.profileEmail}>{currentUser.email || "user@example.com"}</Text>
+        <Text style={[styles.profileName, { color: theme.text }]}>
+          {currentUser.displayName || "User Name"}
+        </Text>
+        <Text style={[styles.profileEmail, { color: theme.placeholder }]}>
+          {currentUser.email || "user@example.com"}
+        </Text>
       </View>
 
-      {/* About Section with Tags */}
-      <View style={styles.aboutSection}>
+      {/* About Section */}
+      <View style={[styles.aboutSection, { borderBottomColor: theme.border }]}>
         <View style={styles.bioHeader}>
-          <Text style={styles.aboutTitle}>About</Text>
+          <Text style={[styles.aboutTitle, { color: theme.text }]}>About</Text>
           <TouchableOpacity onPress={() => setEditMode(!editMode)}>
             <Text style={styles.editText}>{editMode ? 'Save' : 'Edit'}</Text>
           </TouchableOpacity>
@@ -85,20 +106,25 @@ function ProfileScreen({ navigation }) {
         </View>
         {editMode ? (
           <TextInput
-            style={styles.bioInput}
+            style={[styles.bioInput, { backgroundColor: theme.inputBackground, color: theme.text }]}
             value={bio}
             onChangeText={setBio}
             multiline
+            placeholderTextColor={theme.placeholder}
           />
         ) : (
-          <Text style={styles.aboutText}>{bio}</Text>
+          <Text style={[styles.aboutText, { color: theme.text }]}>{bio}</Text>
         )}
       </View>
 
-      {/* Profile Menu List */}
+      {/* Resume Section */}
+      <MyResumeSection />
+
+      {/* Menu List */}
       <View style={styles.menuList}>
         <MenuItem title="Upgrade the Plan" iconName="trending-up" onPress={() => navigation.navigate('UpgradePlan')} />
         <MenuItem title="My Peadbo" iconName="user" />
+        <MenuItem title="My Resume" iconName="file-text" onPress={() => navigation.navigate('ResumeLibrary')} />
         <MenuItem title="Settings" iconName="settings" onPress={() => navigation.navigate('Settings')} />
         <MenuItem title="Billing" iconName="credit-card" onPress={() => navigation.navigate('Billing')} />
         <MenuItem title="Notifications" iconName="bell" onPress={() => navigation.navigate('Notifications')} />
@@ -112,13 +138,11 @@ function ProfileScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   profileHeader: {
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
   },
   profileImage: {
     width: 100,
@@ -141,13 +165,11 @@ const styles = StyleSheet.create({
   },
   profileEmail: {
     fontSize: 14,
-    color: '#777',
     marginTop: 5,
   },
   aboutSection: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
   },
   aboutTitle: {
     fontSize: 16,
@@ -186,11 +208,9 @@ const styles = StyleSheet.create({
   },
   aboutText: {
     fontSize: 14,
-    color: '#777',
   },
   bioInput: {
     fontSize: 14,
-    color: '#333',
     borderColor: '#CCC',
     borderWidth: 1,
     borderRadius: 6,
@@ -210,13 +230,11 @@ const styles = StyleSheet.create({
   },
   menuText: {
     fontSize: 16,
-    color: '#333',
   },
   logout: {
     marginTop: 10,
   },
   logoutText: {
-    color: 'red',
     fontWeight: 'bold',
   },
 });

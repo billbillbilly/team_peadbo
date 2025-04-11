@@ -89,9 +89,9 @@ const ChatBot = () => {
       {/* Help Icon */}
       <TouchableOpacity
         style={styles.helpIcon}
-        onPress={() => navigation.navigate('Setting', { screen: 'ContactSupport' })} // Navigate to ContactSupportScreen
+        onPress={() => navigation.navigate('Profile', { screen: 'ContactSupport' })} // Navigate to ContactSupportScreen
       >
-        <Icon name="help-circle" type="ionicon" size={30} color="#1EA896" />
+        <Icon name="help-circle" type="ionicon" size={50} color="#1EA896" />
       </TouchableOpacity>
 
       {/* Chat Messages */}
@@ -178,8 +178,8 @@ const styles = StyleSheet.create({
   },
   helpIcon: {
     position: 'absolute',
-    top: 10,
-    right: 10,
+    top: '5%',
+    right: '5%',
     zIndex: 10,
   },
 });

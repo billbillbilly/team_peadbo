@@ -1,11 +1,25 @@
-import React from 'react';
-import { View, Text, Switch, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, Switch, StyleSheet, Alert } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateProfileSetting } from '../../Reducer'; 
+import { requestNotificationPermission, sendTestNotification } from './NotificationManager';
 
 const NotificationsScreen = () => {
     const dispatch = useDispatch();
     const profileSettings = useSelector((state) => state.user.profileSettings);
+
+    useEffect(() => {
+        if (profileSettings?.notificationsEnabled) {
+            requestNotificationPermission().then(granted => {
+                if (granted) {
+                    // Notifications are enabled, show a test notification
+                    sendTestNotification(); 
+                } else {
+                    Alert.alert("Permission Denied", "Unable to get permission for notifications.");
+                }
+            });
+        }
+    }, [profileSettings?.notificationsEnabled]);
 
     return (
         <View style={styles.container}>
@@ -15,7 +29,7 @@ const NotificationsScreen = () => {
             <View style={styles.settingRow}>
                 <Text>Enable Push Notifications</Text>
                 <Switch 
-                    value={profileSettings.notificationsEnabled}
+                    value={profileSettings?.notificationsEnabled || false}
                     onValueChange={(value) => dispatch(updateProfileSetting({ key: 'notificationsEnabled', value }))}
                 />
             </View>
@@ -24,7 +38,7 @@ const NotificationsScreen = () => {
             <View style={styles.settingRow}>
                 <Text>Email Notifications</Text>
                 <Switch 
-                    value={profileSettings.emailNotifications || false}
+                    value={profileSettings?.emailNotifications || false}
                     onValueChange={(value) => dispatch(updateProfileSetting({ key: 'emailNotifications', value }))}
                 />
             </View>
