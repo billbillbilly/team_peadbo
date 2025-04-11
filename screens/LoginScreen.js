@@ -9,18 +9,22 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
+import { useDispatch } from 'react-redux';
+import { setUser } from '../Reducer';
+
 import { useGoogleAuth } from '../auth/GoogleAuth';
 import { Icon } from '@rneui/themed'; 
-import { signIn } from '../AuthManager';
+import { handleSignIn } from '../AuthManager';
 
 const LoginScreen = ({ navigation }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('team-peadbo@umich.edu');
+  const [password, setPassword] = useState('UMsi-699');
   const [loading, setLoading] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const { promptAsync, request } = useGoogleAuth(navigation);
 
-
+  const dispatch = useDispatch();
+  
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -40,8 +44,10 @@ const LoginScreen = ({ navigation }) => {
     setLoading(true);
 
     try {
-      await signIn(email, password);
-      navigation.replace('Home'); // Redirect to HomeScreen after successful login
+      const user = await handleSignIn({username: email, password:password});
+      dispatch(setUser(user));
+      navigation.navigate('Home');
+      // navigation.replace('Home'); // Redirect to HomeScreen after successful login
     } catch (error) {
       console.error(error);
       Alert.alert('Login failed', error.message || 'Invalid email or password');

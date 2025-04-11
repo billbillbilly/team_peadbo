@@ -1,62 +1,74 @@
-import { getAuth, createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword,
-  updateProfile,
-  signOut as fbSignOut, 
-  initializeAuth, 
-  getReactNativePersistence,
-  onAuthStateChanged
-} from 'firebase/auth';
-import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
-import { getApps, initializeApp } from 'firebase/app';
+import { signIn, signOut, signUp, getCurrentUser, fetchUserAttributes, confirmSignUp} from 'aws-amplify/auth';
 
-import { firebaseConfig } from './Secrets';
-import {setUser} from "./Reducer";
+// Sign in with email and password
+const handleSignIn = async ({username, password}) => {
 
-let app, auth;
-
-const apps = getApps();
-if (apps.length == 0) { 
-  app = initializeApp(firebaseConfig);
-} else {
-  app = apps[0];
-}
-
-try {
-  auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(ReactNativeAsyncStorage)
-  });
-} catch (error) {
-  auth = getAuth(app); // if auth already initialized
-}
-
-
-const subscribeToAuthChanges = (navigation, dispatch) => {
-  onAuthStateChanged(auth, (authUser) => {
-    if (authUser) { 
-      dispatch(setUser(authUser));
-      navigation.navigate('Home');
-    } else {
-      navigation.navigate('Login');
+  try {
+    const { isSignedIn, nextStep } = await signIn({ 
+      username, 
+      password,
+      options: {
+        authFlowType: "USER_PASSWORD_AUTH",
+      },
+    });
+    if (isSignedIn) {
+      const user = await getCurrentUser();
+      const attributes = await fetchUserAttributes();
+      return attributes;
     }
-  })
+  } catch (error) {
+    if (error instanceof Error) {
+      console.log('❌ Error.message:', error.message);
+      console.log('❌ Error.name:', error.name);
+    }
+    console.log('❌ Full error:', JSON.stringify(error, null, 2));
+  }
+  
+};
+
+const handleSignOut = async() => {
+  try {
+    await signOut();
+  } catch (error) {
+    console.log('error signing out: ', error);
+  }
 }
 
-const signIn = async (email, password) => {
-  await signInWithEmailAndPassword(auth, email, password);
+const handleSignUp = async({ username, password, email, phone_number }) => {
+  try {
+    const { isSignUpComplete, userId, nextStep } = await signUp({
+      username,
+      password,
+      options: {
+        userAttributes: {
+          email,
+          phone_number 
+        },
+        // optional
+        // autoSignIn: true // or SignInOptions e.g { authFlowType: "USER_SRP_AUTH" }
+      }
+    });
+
+    console.log(userId);
+  } catch (error) {
+    console.log('error signing up:', error);
+  }
 }
 
-const signUp = async (displayName, email, password) => {
-  const userCred = await createUserWithEmailAndPassword(auth, email, password);
-  await updateProfile(userCred.user, {displayName: displayName});
-  return userCred.user;
+const handleSignUpConfirmation = async({ username, confirmationCode }) => {
+  try {
+    const { isSignUpComplete, nextStep } = await confirmSignUp({
+      username,
+      confirmationCode
+    });
+  } catch (error) {
+    console.log('error confirming sign up', error);
+  }
 }
 
-const signOut = async () => {
-  await fbSignOut(auth);
-}
-
-const getAuthUser = () => {
-  return auth.currentUser;
-}
-
-export { signUp, signIn, signOut, getAuthUser, subscribeToAuthChanges };
+export {
+  handleSignIn,
+  handleSignUp,
+  handleSignUpConfirmation,
+  handleSignOut
+};

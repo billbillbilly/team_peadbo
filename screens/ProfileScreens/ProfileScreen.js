@@ -6,6 +6,7 @@ import { loadProfileSettings, updateProfileSetting } from '../../Reducer';
 import { Icon } from '@rneui/themed';
 import MyResumeSection from './MyResumeSection';
 import { useTheme } from '../../ThemeContext';
+import { handleSignOut } from '../../AuthManager';
 
 function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -129,7 +130,10 @@ function ProfileScreen({ navigation }) {
         <MenuItem title="Billing" iconName="credit-card" onPress={() => navigation.navigate('Billing')} />
         <MenuItem title="Notifications" iconName="bell" onPress={() => navigation.navigate('Notifications')} />
         <MenuItem title="Contact Support" iconName="help-circle" onPress={() => navigation.navigate('ContactSupport')} />
-        <MenuItem title="Logout" iconName="log-out" isLogout />
+        <MenuItem title="Logout" iconName="log-out" isLogout onPress={async() => {
+          await handleSignOut()
+          navigation.navigate('Login')
+        }}/>
       </View>
     </ScrollView>
   );
