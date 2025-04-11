@@ -25,14 +25,13 @@ const storage = getStorage(app);
 // setUser thunk
 export const setUser = createAsyncThunk(
   'user/setUser',
-  async () => {
-    const authUser = await Auth.currentAuthenticatedUser();
-
+  async (userInfo) => {
+    console.log(userInfo.name);
     // Optional: more backend services can be added
     return {
-      id: authUser.attributes.sub,
-      email: authUser.attributes.email,
-      name: authUser.attributes.name || '',
+      id: userInfo.sub,
+      email: userInfo.email,
+      name: userInfo.name || '',
     };
   }
 );

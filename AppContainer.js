@@ -143,7 +143,7 @@ const DynamicTabsNavigator = () => {
   const Tabs = createBottomTabNavigator();
   return (
     <Tabs.Navigator
-      initialRouteName="Home"
+      initialRouteName="Login"
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: { display: route.name === 'Login' || route.name === 'Signup' ? 'none' : 'flex' },

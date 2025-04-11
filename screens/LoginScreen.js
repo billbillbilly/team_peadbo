@@ -14,7 +14,7 @@ import { setUser } from '../Reducer';
 
 import { useGoogleAuth } from '../auth/GoogleAuth';
 import { Icon } from '@rneui/themed'; 
-import { signIn_ } from '../AuthManager';
+import { handleSignIn } from '../AuthManager';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('team-peadbo@umich.edu');
@@ -44,9 +44,10 @@ const LoginScreen = ({ navigation }) => {
     setLoading(true);
 
     try {
-      const user = await signIn_({username: email, password:password});
-      dispatch(setUser());
-      navigation.replace('HomeMain'); // Redirect to HomeScreen after successful login
+      const user = await handleSignIn({username: email, password:password});
+      dispatch(setUser(user));
+      navigation.navigate('Home');
+      // navigation.replace('Home'); // Redirect to HomeScreen after successful login
     } catch (error) {
       console.error(error);
       Alert.alert('Login failed', error.message || 'Invalid email or password');

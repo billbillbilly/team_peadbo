@@ -1,7 +1,7 @@
-import { signIn, signOut, getCurrentUser, fetchUserAttributes, } from 'aws-amplify/auth';
+import { signIn, signOut, signUp, getCurrentUser, fetchUserAttributes, confirmSignUp} from 'aws-amplify/auth';
 
 // Sign in with email and password
-const signIn_ = async ({username, password}) => {
+const handleSignIn = async ({username, password}) => {
 
   try {
     const { isSignedIn, nextStep } = await signIn({ 
@@ -14,12 +14,7 @@ const signIn_ = async ({username, password}) => {
     if (isSignedIn) {
       const user = await getCurrentUser();
       const attributes = await fetchUserAttributes();
-
-      const userId = attributes.sub;
-      const userName = attributes.name || '';
-      const userEmail = attributes.email;
-      console.log(userId);
-      return user;
+      return attributes;
     }
   } catch (error) {
     if (error instanceof Error) {
@@ -31,6 +26,49 @@ const signIn_ = async ({username, password}) => {
   
 };
 
+const handleSignOut = async() => {
+  try {
+    await signOut();
+  } catch (error) {
+    console.log('error signing out: ', error);
+  }
+}
+
+const handleSignUp = async({ username, password, email, phone_number }) => {
+  try {
+    const { isSignUpComplete, userId, nextStep } = await signUp({
+      username,
+      password,
+      options: {
+        userAttributes: {
+          email,
+          phone_number 
+        },
+        // optional
+        // autoSignIn: true // or SignInOptions e.g { authFlowType: "USER_SRP_AUTH" }
+      }
+    });
+
+    console.log(userId);
+  } catch (error) {
+    console.log('error signing up:', error);
+  }
+}
+
+const handleSignUpConfirmation = async({ username, confirmationCode }) => {
+  try {
+    const { isSignUpComplete, nextStep } = await confirmSignUp({
+      username,
+      confirmationCode
+    });
+  } catch (error) {
+    console.log('error confirming sign up', error);
+  }
+}
+
 export {
-  signIn_,
+  handleSignIn,
+  handleSignUp,
+  handleSignUpConfirmation,
+  handleSignOut
 };
