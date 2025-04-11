@@ -7,7 +7,6 @@ import {
   onSnapshot, getDoc, deleteDoc, updateDoc 
 } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { firebaseConfig } from "./Secrets";
 
 // ---------------------- Set up firebase ------------------------
@@ -98,33 +97,6 @@ const initialState = {
 const userSlice = createSlice({
   name: 'user',
   initialState: initialState,
-  // {
-  //   currentUser: {displayName: "jack", email: "", key: ""},
-  //   listBoards: [
-  //     {
-  //       id: '1',
-  //       title: 'Academic Team',
-  //       description: 'Keep up with team chats, share updates, and stay on top of tasks.',
-  //       type: 'Advisory',
-  //       users: [
-  //         'https://randomuser.me/api/portraits/women/1.jpg',
-  //         'https://randomuser.me/api/portraits/men/2.jpg',
-  //         'https://randomuser.me/api/portraits/men/3.jpg'
-  //       ],
-  //     },
-  //     {
-  //       id: '2',
-  //       title: 'Swimming Group',
-  //       description: 'Here’s the update on training plans. Also share the progress!',
-  //       type: 'Personal',
-  //       users: [
-  //         'https://randomuser.me/api/portraits/women/4.jpg',
-  //         'https://randomuser.me/api/portraits/men/5.jpg'
-  //       ],
-  //     },
-  //   ],
-  //   tasks: [] // This array holds the tasks
-  // },
   reducers: {
     clearUser(state) {
       state.id = null;
