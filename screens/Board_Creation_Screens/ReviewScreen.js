@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import moment from 'moment';
 
 export default function ReviewScreen({ navigation, route }) {
-  const { focus, boardName, boardDescription, boardDuration, boardFrequency, advisors, selectedDate, selectedTime } = route.params;
+  const { focus = '', boardName = '', boardDescription = '', boardDuration = '', boardFrequency ='', advisors = [], selectedDate = '', selectedTime = '' } = route.params || {};
   const [acknowledged, setAcknowledged] = useState(false);
 
   const handleConfirm = () => {
