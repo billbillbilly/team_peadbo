@@ -177,12 +177,32 @@ const DynamicTabsNavigator = () => {
 // Final App Container
 const AppContainer = () => {
   const navigationRef = useRef();
+  const [currentRouteName, setCurrentRouteName] = React.useState('');
+
+  // Screens in which the chatbot should not appear (before being logged in or during onboarding, adjust as new screens are added)
+  const excludedScreens = ['Login', 'Signup', 'ForgotPassword', 'PersonalInformationScreen', 'CommunicationStyleScreen', 'ChatBot',];
+
+
   return (
     <Provider store={store}>
       <ThemeProvider>
-        <NavigationContainer ref={navigationRef}>
+        <NavigationContainer 
+        ref={navigationRef}
+        onStateChange={() => {
+          const route = navigationRef.current?.getCurrentRoute();
+          setCurrentRouteName(route?.name || ''); // Update the current route name
+          console.log('Updated Route:', route?.name); // Debugging
+        }}
+        onReady={() => {
+          const route = navigationRef.current?.getCurrentRoute();
+          setCurrentRouteName(route?.name || ''); // Update the current route name
+          console.log('Initial Route:', route?.name); // Debugging
+        }}
+        >
           <DynamicTabsNavigator />
+          {!excludedScreens.includes(currentRouteName) && (
           <FloatingButton onPress={() => navigationRef.current?.navigate('ChatBot')} />
+        )}
         </NavigationContainer>
       </ThemeProvider>
     </Provider>
