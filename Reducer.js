@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { Auth } from 'aws-amplify';
+import { useSelector } from 'react-redux';
 
 import { initializeApp, getApps } from 'firebase/app';
 import { 
@@ -23,6 +23,8 @@ if (apps.length === 0) {
 }
 const db = getFirestore(app);
 const storage = getStorage(app);
+
+// models: https://github.com/jmelendev/peadbo-apps/tree/main/libs/graphql/src/models
 
 // ---------------------- fetch data ------------------------
 const client = generateClient();
@@ -78,6 +80,8 @@ export const fetchMember = async (id) => {
   }
 };
 
+// list all task
+
 // setUser thunk
 export const setUser = createAsyncThunk(
   'user/setUser',
@@ -99,6 +103,45 @@ export const setUser = createAsyncThunk(
     };
   }
 );
+
+// ----------------- mutations --------------------
+
+// add task
+export const createTask = async (input) => {
+  try {
+    const result = await client.graphql({
+      query: mutations.createPeadboTask,
+      variables: { input }
+    });
+    return result.data.createPeadboTask;
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+};
+
+
+// update Notification
+const updateNotification = async (notificationId, updateFields) => {
+  try {
+    const input = {
+      id: notificationId,     // ID is always required
+      ...updateFields         // Any fields you want to update
+    };
+
+    const result = await client.graphql({
+      query: mutations.updatePeadboNotification,
+      variables: { input }
+    });
+
+    console.log('Updated notification:', result.data.updatePeadboNotification);
+    return result.data.updatePeadboNotification;
+  } catch (error) {
+    console.error('Error updating notification:', error);
+    throw error;
+  }
+};
+
+//--------------- will remove firebase ---------------
 
 // Fetch tasks
 export const fetchTasksThunk = createAsyncThunk(
@@ -180,24 +223,6 @@ const userSlice = createSlice({
         state.name = name;
         state.allBoards = boards;
         state.allMembers = members;
-      })
-      .addCase(fetchTasksThunk.fulfilled, (state, action) => {
-        state.tasks = action.payload;
-      })
-      .addCase(addTaskThunk.fulfilled, (state, action) => {
-        state.tasks.push(action.payload);
-      })
-      .addCase(completeTaskThunk.fulfilled, (state, action) => {
-        const index = state.tasks.findIndex(task => task.id === action.payload);
-        if (index !== -1) {
-          state.tasks[index].completed = true;
-        }
-      })
-      .addCase(updateTaskThunk.fulfilled, (state, action) => {
-        const index = state.tasks.findIndex(task => task.id === action.payload.id);
-        if (index !== -1) {
-          state.tasks[index] = action.payload;
-        }
       });
   },
   

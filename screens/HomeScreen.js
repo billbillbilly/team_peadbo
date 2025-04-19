@@ -19,13 +19,14 @@ import {
   addTaskThunk,
   updateTaskThunk,
   deleteTaskThunk,
+  createTask
 } from '../Reducer';
 import RenderBoard from '../components/RenderBoard';
 import ToDoItem from '../components/ToDoItem';
 
 export default function HomeScreen({ navigation }) {
   const dispatch = useDispatch();
-
+  const userId = useSelector((state) => state.user.id);
   // Current user and remote tasks from Redux store
   const currentUser = useSelector((state) => state.user.currentUser);
   const fallbackUser = firebase.auth().currentUser;
@@ -96,7 +97,7 @@ export default function HomeScreen({ navigation }) {
   const [priorityItems, setPriorityItems] = useState([
     { label: 'Low', value: 'Low' },
     { label: 'Normal', value: 'Normal' },
-    { label: 'High', value: 'High' },
+    { label: 'High', value: 'HIGH' },
   ]);
 
   const resetAddForm = () => {
@@ -107,6 +108,18 @@ export default function HomeScreen({ navigation }) {
   };
 
   const addTask = async () => {
+    await createTask({
+      title: newTitle,
+      description: newDescription,
+      // boardID: 'abc123',
+      id: 'abc123',
+      author: userId,
+      // peadboTaskAssigneeId: 'user-id-2',
+      dueDateTime: newDueDate,
+      // priority: 'HIGH',
+      status: 'Open',
+    });
+    
     if (!newTitle.trim()) {
       Alert.alert('Title is required');
       return;
