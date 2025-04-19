@@ -1,5 +1,5 @@
 # Peadbo Expo App
-This is a React Native application built with Expo, leveraging GraphQL (via AWS Amplify), Apollo Client, and AI integration (via OpenAI API). The app provides user authentication, chatbot functionality, and a newsletter system, supporting user profiles, advisor selection, and dynamic routing.
+This is a React Native application built with Expo, leveraging Apollo GraphQL (via AWS Amplify) and AI integration (via OpenAI API). The app provides user authentication, chatbot functionality, and a newsletter system, supporting user profiles, advisor selection, and dynamic routing.
 
 ## 📦 Features
 📸 Authentication: Sign up and Login/out in with profile image upload and editable bio.
