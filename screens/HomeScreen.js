@@ -29,13 +29,22 @@ export default function HomeScreen({ navigation }) {
   // Current user and remote tasks from Redux store
   const currentUser = useSelector((state) => state.user.currentUser);
   const fallbackUser = firebase.auth().currentUser;
+  console.log('Current User:', currentUser);
+console.log('Fallback User:', fallbackUser);
   const remoteTasks = useSelector((state) => state.user.tasks) || [];
 
   // Local tasks state (from AsyncStorage)
   const [localTasks, setLocalTasks] = useState([]);
 
-  const boards = useSelector((state) => state.user.allBoards); // Fetch boards from Redux store
+  const allBoards = useSelector((state) => state.user.allBoards);
+  console.log('All Boards:', allBoards);
 
+   // Filter boards by the logged-in user's ID
+   const userId = currentUser?.id || fallbackUser?.uid; // Use currentUser ID or fallbackUser UID
+   console.log('User ID:', userId);
+   
+   const userBoards = allBoards.filter((board) => board.author === userId);
+   console.log('Filtered User Boards:', userBoards);
 
   // Fetch remote tasks and load local tasks on mount
   useEffect(() => {
@@ -190,7 +199,7 @@ export default function HomeScreen({ navigation }) {
   const sections = [
     {
       title: 'My Boards',
-      data: boards, // Use the boards fetched from Redux
+      data: userBoards, // Use filtered boards
       renderItem: ({ item }) => <RenderBoard item={item} navigation={navigation} />,
       keyExtractor: (item) => item.id,
     },
@@ -216,20 +225,20 @@ export default function HomeScreen({ navigation }) {
         <Text style={styles.emptyText}>No tasks yet — add one!</Text>
       ),
     },
+  ];
     // {
     //   title: 'Other Board',
     //   data: boards,
     //   renderItem: ({ item }) => <RenderBoard item={item} navigation={navigation} />,
     //   keyExtractor: (item) => item.id,
     // },
-  ];
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.fixedHeader}>
         <Text style={styles.greeting}>
-          Hello, {currentUser?.displayName || fallbackUser?.displayName || 'Guest'}
+          Hello, {currentUser?.name || fallbackUser?.displayName || 'Guest'}
         </Text>
         <TextInput
           style={styles.searchInput}

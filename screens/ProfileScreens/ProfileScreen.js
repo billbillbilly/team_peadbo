@@ -85,7 +85,7 @@ function ProfileScreen({ navigation }) {
           )}
         </TouchableOpacity>
         <Text style={[styles.profileName, { color: theme.text }]}>
-          {currentUser.displayName || "User Name"}
+          {currentUser.name || "User Name"}
         </Text>
         <Text style={[styles.profileEmail, { color: theme.placeholder }]}>
           {currentUser.email || "user@example.com"}

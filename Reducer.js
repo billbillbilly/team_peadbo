@@ -29,12 +29,17 @@ const client = generateClient();
 // queries: listPeadboBoards, getPeadboBoard
 
 // list all boards after login
-export const fetchBoards = async () => {
+export const fetchBoards = async (userId) => {
   try {
     const result = await client.graphql({
       query: queries.listPeadboBoards,
+      variables: {
+        filter: {
+          author: { eq: userId }, // Filter boards by the logged-in user's ID
+        },
+      },
     });
-    return result.data.listPeadboBoards.items;;
+    return result.data.listPeadboBoards.items;
   } catch (error) {
     console.error('Error fetching boards:', error);
   }
@@ -82,19 +87,22 @@ export const fetchMember = async (id) => {
 export const setUser = createAsyncThunk(
   'user/setUser',
   async (userInfo) => {
-    console.log('set user...');
-    console.log(userInfo.sub);
-    const allBoards = await fetchBoards();
-    const allMembers = await fetchBoardMembers();
-    // const b = await fetchBoard(allBoards[0].id);//test a single data
-    // console.log('m:', allMembers);
+    console.log('Setting user...');
+    const userId = userInfo.sub; // Logged-in user's ID
+    console.log('User Info:', userInfo);
+    console.log('User ID:', userId);
 
-    // Optional: more backend services can be added
+    const allBoards = await fetchBoards(userId); // Fetch boards for the logged-in user
+    console.log('Fetched Boards:', allBoards);
+
+    const allMembers = await fetchBoardMembers(); // Fetch board members (if needed)
+    console.log('Fetched Members:', allMembers);
+
     return {
-      id: userInfo.sub,
+      id: userId,
       email: userInfo.email,
       name: userInfo.name || '',
-      boards: allBoards,
+      boards: allBoards, // Store only the user's boards
       members: allMembers,
     };
   }
@@ -150,13 +158,16 @@ export const deleteTaskThunk = createAsyncThunk(
 // ---------------------- Redux Slice Definition ------------------------
 
 const initialState = {
-  currentUser: {displayName: "jack", email: "", key: ""}, // test only. It will be removed
+  currentUser: {
+    displayName: "Test User", // Temporary name for testing
+    email: "testuser@example.com", // Temporary email for testing
+    id: "test-user-id", // Temporary user ID
+  },
   id: null,
   email: null,
   name: null,
   allBoards: [],
   allMembers: null,
-  // Add more if needed
 };
 
 const userSlice = createSlice({
@@ -181,6 +192,7 @@ const userSlice = createSlice({
     builder
       .addCase(setUser.fulfilled, (state, action) => {
         const { id, email, name, boards, members } = action.payload;
+        state.currentUser = {id, email, name}
         state.id = id;
         state.email = email;
         state.name = name;
