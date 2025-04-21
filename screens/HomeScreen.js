@@ -209,7 +209,7 @@ console.log('Fallback User:', fallbackUser);
       renderItem: () => (
         <TouchableOpacity
           style={styles.createBoardButton}
-          onPress={() => navigation.navigate('BoardCreation')}
+          onPress={() => navigation.navigate('FocusScreen')}
         >
           <Text style={styles.createBoardText}>+ Create a new board</Text>
         </TouchableOpacity>

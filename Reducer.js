@@ -12,6 +12,7 @@ import { firebaseConfig } from "./Secrets";
 import { generateClient } from 'aws-amplify/api';
 import * as queries from './src/graphql/queriesCopy';
 import * as mutations from './src/graphql/mutations';
+import { createPeadboBoard } from './src/graphql/mutations';
 
 // ---------------------- Set up firebase ------------------------
 let app;
@@ -154,6 +155,21 @@ export const deleteTaskThunk = createAsyncThunk(
     return taskId;
   }
 );
+export const addBoardThunk = createAsyncThunk(
+  'boards/addBoard',
+  async (boardData, { rejectWithValue }) => {
+    try {
+      const result = await client.graphql({
+        query: createPeadboBoard,
+        variables: { input: boardData },
+      });
+      return result.data.createPeadboBoard;
+    } catch (error) {
+      console.error('Error creating board:', error);
+      return rejectWithValue(error.message);
+    }
+  }
+);
 
 // ---------------------- Redux Slice Definition ------------------------
 
@@ -216,6 +232,12 @@ const userSlice = createSlice({
         if (index !== -1) {
           state.tasks[index] = action.payload;
         }
+      })
+      .addCase(addBoardThunk.fulfilled, (state, action) => {
+        state.allBoards.push(action.payload); // Add the new board to the state
+      })
+      .addCase(addBoardThunk.rejected, (state, action) => {
+        console.error('Failed to add board:', action.payload); // Log the error
       });
   },
   

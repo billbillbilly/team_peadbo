@@ -2,29 +2,39 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import moment from 'moment';
 import { useDispatch } from 'react-redux';
-import { addBoard } from '../../Reducer';
+import { addBoardThunk } from '../../Reducer';
+import { useSelector } from 'react-redux';
 
 export default function ReviewScreen({ navigation, route }) {
   const { focus = '', boardName = '', boardDescription = '', boardDuration = '', boardFrequency = '', advisors = [], selectedDate = '', selectedTime = '' } = route.params || {};
   const [acknowledged, setAcknowledged] = useState(false);
+  const currentUser = useSelector((state) => state.user.currentUser);
 
   const dispatch = useDispatch();
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     // Create the new board object
     const newBoard = {
-      id: Date.now().toString(), // Unique ID for the board
       name: boardName,
       description: boardDescription,
       focus: focus,
       advisor: advisors.length > 0 ? advisors[0].name : 'No Advisor', // Use the first advisor or a default value
+      duration: boardDuration,
+      frequency: boardFrequency,
+      author: currentUser.id, // Replace with the logged-in user's ID
     };
-
-    // Dispatch the action to add the board to the Redux store
-    dispatch(addBoard(newBoard));
-
-    // Navigate to the HomeScreen
-    navigation.navigate('HomeScreen');
+  
+    try {
+      // Dispatch the thunk to add the board to the database
+      await dispatch(addBoardThunk(newBoard));
+      console.log('Board added successfully');
+  
+      // Navigate to the HomeScreen
+      navigation.navigate('HomeScreen');
+    } catch (error) {
+      console.error('Error adding board:', error);
+      Alert.alert('Error', 'Failed to create the board. Please try again.');
+    }
   };
 
   const handleBack = () => {
