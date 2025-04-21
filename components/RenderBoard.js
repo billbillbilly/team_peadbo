@@ -1,53 +1,70 @@
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { useDispatch } from 'react-redux';
 
 const RenderBoard = (props) => {
   const { item, navigation } = props;
+
   return (
-    <View style={styles.boardCard}>
+    <TouchableOpacity
+      style={styles.boardCard}
+      onPress={() => navigation.navigate('BoardDetail', { board: item })}
+    >
+      {/* Board Header */}
       <View style={styles.boardHeader}>
-        <View style={styles.boardHeader}>
-          <Text style={styles.boardTitle}>{item.title}</Text>
-          <Text style={[styles.boardType, item.type=="Personal"? {}:{backgroundColor:"#e7c2ff"}]}>{item.type}</Text>
-        </View>
-        <TouchableOpacity onPress={() => navigation.navigate('BoardDetail', { board: item })}>
-          <Text>...</Text>
-        </TouchableOpacity>
+        <Text style={styles.boardTitle}>{item.name || 'Untitled Board'}</Text>
+        <Text
+          style={[
+            styles.boardType,
+            item.type === 'Personal' ? {} : { backgroundColor: '#FF715B' },
+          ]}
+        >
+          {item.type || 'General'}
+        </Text>
       </View>
-      <Text style={styles.boardDescription}>{item.description}</Text>
+
+      {/* Board Description */}
+      <Text style={styles.boardDescription}>
+        {item.description || 'No description available.'}
+      </Text>
+
+      {/* User Images */}
       <View style={styles.userImages}>
-        {item.users.map((user, index) => (
-          <Image key={index} source={{ uri: user }} style={styles.userImage} />
-        ))}
+        {item.users && item.users.length > 0 ? (
+          item.users.map((user, index) => (
+            <Image key={index} source={{ uri: user }} style={styles.userImage} />
+          ))
+        ) : (
+          <Text style={styles.noUsersText}>No users available</Text>
+        )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
-}
+};
 
 const styles = StyleSheet.create({
   boardCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#fff',
     borderRadius: 15,
     padding: 15,
-    margintop: 5,
-    marginBottom: 15,
+    marginTop: 10,
+    marginBottom: 10,
     shadowColor: '#000',
     shadowOpacity: 0.1,
-    shadowRadius: 0.1,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3, // Adds shadow for Android
+    borderWidth: 1,
+    borderColor: '#1EA896',
   },
   boardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 10,
   },
   boardTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    marginRight: 15,
+    color: '#333',
   },
   boardType: {
     backgroundColor: '#f7ed92',
@@ -58,8 +75,9 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   boardDescription: {
-    marginTop: 10,
-    color: '#777',
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 10,
   },
   userImages: {
     flexDirection: 'row',
@@ -70,6 +88,10 @@ const styles = StyleSheet.create({
     height: 30,
     borderRadius: 15,
     marginRight: 5,
+  },
+  noUsersText: {
+    fontSize: 12,
+    color: '#999',
   },
 });
 

@@ -17,7 +17,7 @@ const FloatingButton = ({ onPress }) => {
 const styles = StyleSheet.create({
     container: {
         position: 'absolute',
-        bottom: '10%',
+        bottom: '15%',
         right: '5%',
     },
     button: {

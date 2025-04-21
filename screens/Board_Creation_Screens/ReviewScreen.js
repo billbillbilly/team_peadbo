@@ -1,14 +1,30 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import moment from 'moment';
+import { useDispatch } from 'react-redux';
+import { addBoard } from '../../Reducer';
 
 export default function ReviewScreen({ navigation, route }) {
   const { focus = '', boardName = '', boardDescription = '', boardDuration = '', boardFrequency = '', advisors = [], selectedDate = '', selectedTime = '' } = route.params || {};
   const [acknowledged, setAcknowledged] = useState(false);
 
+  const dispatch = useDispatch();
+
   const handleConfirm = () => {
-    // Submit data to Firestore or backend
-    navigation.navigate('SuccessScreen');
+    // Create the new board object
+    const newBoard = {
+      id: Date.now().toString(), // Unique ID for the board
+      name: boardName,
+      description: boardDescription,
+      focus: focus,
+      advisor: advisors.length > 0 ? advisors[0].name : 'No Advisor', // Use the first advisor or a default value
+    };
+
+    // Dispatch the action to add the board to the Redux store
+    dispatch(addBoard(newBoard));
+
+    // Navigate to the HomeScreen
+    navigation.navigate('HomeScreen');
   };
 
   const handleBack = () => {

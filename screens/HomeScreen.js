@@ -34,30 +34,8 @@ export default function HomeScreen({ navigation }) {
   // Local tasks state (from AsyncStorage)
   const [localTasks, setLocalTasks] = useState([]);
 
-  // Hard-coded boards for demonstration
-  const boards = [
-    {
-      id: '1',
-      title: 'Academic Team',
-      description: 'Keep up with team chats, share updates, and stay on top of tasks.',
-      type: 'Advisory',
-      users: [
-        'https://randomuser.me/api/portraits/women/1.jpg',
-        'https://randomuser.me/api/portraits/men/2.jpg',
-        'https://randomuser.me/api/portraits/men/3.jpg',
-      ],
-    },
-    {
-      id: '2',
-      title: 'Swimming Group',
-      description: 'Here’s the update on training plans. Also share the progress!',
-      type: 'Personal',
-      users: [
-        'https://randomuser.me/api/portraits/women/4.jpg',
-        'https://randomuser.me/api/portraits/men/5.jpg',
-      ],
-    },
-  ];
+  const boards = useSelector((state) => state.user.allBoards); // Fetch boards from Redux store
+
 
   // Fetch remote tasks and load local tasks on mount
   useEffect(() => {
@@ -211,8 +189,8 @@ export default function HomeScreen({ navigation }) {
   // ========== SECTIONLIST DEFINITION ==========
   const sections = [
     {
-      title: 'My Board',
-      data: boards,
+      title: 'My Boards',
+      data: boards, // Use the boards fetched from Redux
       renderItem: ({ item }) => <RenderBoard item={item} navigation={navigation} />,
       keyExtractor: (item) => item.id,
     },
@@ -238,12 +216,12 @@ export default function HomeScreen({ navigation }) {
         <Text style={styles.emptyText}>No tasks yet — add one!</Text>
       ),
     },
-    {
-      title: 'Other Board',
-      data: boards,
-      renderItem: ({ item }) => <RenderBoard item={item} navigation={navigation} />,
-      keyExtractor: (item) => item.id,
-    },
+    // {
+    //   title: 'Other Board',
+    //   data: boards,
+    //   renderItem: ({ item }) => <RenderBoard item={item} navigation={navigation} />,
+    //   keyExtractor: (item) => item.id,
+    // },
   ];
 
   return (

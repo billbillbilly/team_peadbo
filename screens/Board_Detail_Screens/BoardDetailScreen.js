@@ -1,18 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Icon } from '@rneui/themed';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, Image, TextInput } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, Image, TextInput, Alert } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 // import {fetchSchemaStructure} from '../../Reducer'
 import RenderEvent from "../../components/RenderEvent";
 import BoardMembers from '../../components/BoardMembers';
 import RenderHorizontalCalender from '../../components/RenderHorizontalCalender';
 import { TextBase } from 'react-native';
+import { deleteBoard } from '../../Reducer';
+
 
 const BoardDetailsScreen = ({ navigation, route }) => {
     const { board } = route.params;
     const dispatch = useDispatch();
 
     const calendar = useRef(null);
+
+    console.log('Board object:', board);
 
     // Get today's date and weekday
     const weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -135,6 +139,30 @@ const BoardDetailsScreen = ({ navigation, route }) => {
     const [dateList, setDateList] = useState(mapDates( currentDay, currentDate, currentMonth, currentYear, events));
     const [viewAll, setViewAll] = useState(false);
 
+    const handleDeleteBoard = () => {
+        Alert.alert(
+          'Delete Board',
+          'Are you sure you want to delete this board? This action cannot be undone.',
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel',
+            },
+            {
+              text: 'Delete',
+              style: 'destructive',
+              onPress: () => {
+                // Dispatch the delete action
+                dispatch(deleteBoard(board.id));
+    
+                // Navigate back to the HomeScreen
+                navigation.navigate('HomeScreen');
+              },
+            },
+          ]
+        );
+      };
+
     // To evenly distribute all the <TouchableOpacity> buttons into three <View> containers
 
     return (
@@ -209,8 +237,8 @@ const BoardDetailsScreen = ({ navigation, route }) => {
                     <Text style={styles.createEventText}>Create a new event</Text>
                 </TouchableOpacity>
             </ScrollView>
-            <BoardMembers members={board.users}></BoardMembers>
-            <TouchableOpacity 
+            <BoardMembers members={board.members?.items || []} />
+            {/* <TouchableOpacity 
                 style={styles.searchInput}
                 onPress={()=>{
                     // fetchSchemaStructure()
@@ -219,7 +247,12 @@ const BoardDetailsScreen = ({ navigation, route }) => {
                 }}
             >
                 <Text style={{color:'lightgray'}}>Ask Peadbo AI...</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
+
+            {/* Delete Button */}
+      <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteBoard}>
+        <Text style={styles.deleteButtonText}>Delete Board</Text>
+      </TouchableOpacity>
             
         </View>
     );
@@ -371,6 +404,18 @@ const styles = StyleSheet.create({
             height: 1,
         },
     },
+    deleteButton: {
+        backgroundColor: '#FF715B',
+        padding: 15,
+        borderRadius: 10,
+        alignItems: 'center',
+        marginTop: 20,
+      },
+      deleteButtonText: {
+        color: '#FFF',
+        fontSize: 16,
+        fontWeight: 'bold',
+      },
 });
 
 export default BoardDetailsScreen;

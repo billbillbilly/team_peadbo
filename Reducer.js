@@ -154,7 +154,7 @@ const initialState = {
   id: null,
   email: null,
   name: null,
-  allBoards: null,
+  allBoards: [],
   allMembers: null,
   // Add more if needed
 };
@@ -167,9 +167,15 @@ const userSlice = createSlice({
       state.id = null;
       state.email = null;
       state.name = null;
-      state.allBoards = null;
+      state.allBoards = [];
       state.allMembers = null;
-    }
+    },
+    addBoard(state, action) {
+      state.allBoards.push(action.payload);
+    },
+    deleteBoard: (state, action) => {
+      state.allBoards = state.allBoards.filter((board) => board.id !== action.payload);
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -203,5 +209,5 @@ const userSlice = createSlice({
   
 });
 
-export const { clearUser } = userSlice.actions;
+export const { clearUser, addBoard, deleteBoard } = userSlice.actions;
 export default userSlice.reducer;

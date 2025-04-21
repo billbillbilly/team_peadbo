@@ -71,7 +71,7 @@ const BoardCreationStack = () => {
       <Stack.Screen name="TimeAvailabilityScreen" component={TimeAvailabilityScreen} />
       <Stack.Screen name="ReviewScreen" component={Review} />
       <Stack.Screen name="SendNotificationScreen" component={SendNotificationScreen} />
-      {/* <Stack.Screen name="SuccessScreen" component={SuccessScreen} /> */}
+      <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ChatBot" component={ChatBot} />
     </Stack.Navigator>
   );
@@ -97,6 +97,7 @@ const HomeTabStack = () => {
       <Stack.Screen name="BoardDetail" component={BoardDetailScreen} options={{ headerShown: false }} />
       <Stack.Screen name="EventScreen" component={EventScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ChatBot" component={ChatBot} />
+      <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 };
