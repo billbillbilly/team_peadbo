@@ -81,6 +81,10 @@ export default function TimeAvailabilityScreen({ navigation, route }) {
     }
   };
 
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
   // Rest of the existing code (e.g., handleCreateTask, scheduleNotification, addEventToCalendar, etc.) remains unchanged...
 
   return (
@@ -154,6 +158,8 @@ export default function TimeAvailabilityScreen({ navigation, route }) {
         onConfirm={handleTimeConfirm}
         onCancel={hideTimePicker}
         is24Hour={false} // Ensure 12-hour format with AM/PM
+        textColor="black" // Change text color to match your theme
+        
       />
 
       {/* Continue Button */}
@@ -164,6 +170,12 @@ export default function TimeAvailabilityScreen({ navigation, route }) {
       >
         <Text style={styles.continueButtonText}>Continue</Text>
       </TouchableOpacity>
+      <TouchableOpacity
+              style={styles.backButton}
+              onPress={handleBack}
+            >
+              <Text style={styles.backButtonText}>Back</Text>
+            </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -255,5 +267,14 @@ const styles = StyleSheet.create({
   },
   activeStepNumber: {
     color: '#fff',
+  },
+  backButton: {
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  backButtonText: {
+    color: '#1EA896',
+    fontSize: 16,
   },
 });

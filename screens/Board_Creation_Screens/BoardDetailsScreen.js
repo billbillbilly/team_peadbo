@@ -36,6 +36,10 @@ const BoardDetailsScreen = ({ navigation, route }) => {
     });
   };
 
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
   const getInputStyle = (value) => ({
     borderColor: value ? '#1EA896' : '#CCC',
   });
@@ -159,6 +163,12 @@ const BoardDetailsScreen = ({ navigation, route }) => {
       >
         <Text style={styles.continueButtonText}>Continue</Text>
       </TouchableOpacity>
+      <TouchableOpacity
+              style={styles.backButton}
+              onPress={handleBack}
+            >
+              <Text style={styles.backButtonText}>Back</Text>
+            </TouchableOpacity>
     </KeyboardAvoidingView>
   );
 };
@@ -242,6 +252,15 @@ const styles = StyleSheet.create({
   continueButtonText: {
     color: '#fff',
     fontSize: 18,
+  },
+  backButton: {
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  backButtonText: {
+    color: '#1EA896',
+    fontSize: 16,
   },
 });
 

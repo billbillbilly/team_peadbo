@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import moment from 'moment';
 
 export default function ReviewScreen({ navigation, route }) {
-  const { focus = '', boardName = '', boardDescription = '', boardDuration = '', boardFrequency ='', advisors = [], selectedDate = '', selectedTime = '' } = route.params || {};
+  const { focus = '', boardName = '', boardDescription = '', boardDuration = '', boardFrequency = '', advisors = [], selectedDate = '', selectedTime = '' } = route.params || {};
   const [acknowledged, setAcknowledged] = useState(false);
 
   const handleConfirm = () => {
@@ -15,25 +15,86 @@ export default function ReviewScreen({ navigation, route }) {
     navigation.goBack();
   };
 
-  // Format date and time
-  const formatDateTime = (dateString, timeString) => {
-    if (!dateString || !timeString) return '';
-    const date = moment(dateString).format('dddd, MMMM D, YYYY');
-    return `${date}, ${timeString}`;
+  // Parse duration (e.g., "1 year" -> 12 months)
+  const parseDuration = (duration) => {
+    // Map words to numbers
+    const wordToNumber = {
+      one: 1,
+      two: 2,
+      three: 3,
+      four: 4,
+      five: 5,
+      six: 6,
+      seven: 7,
+      eight: 8,
+      nine: 9,
+      ten: 10,
+    };
+  
+    // Convert the duration to lowercase for easier matching
+    const lowerDuration = duration.toLowerCase();
+  
+    // Check if the duration contains a word number (e.g., "one")
+    const wordMatch = lowerDuration.match(/one|two|three|four|five|six|seven|eight|nine|ten/);
+    const numericValue = wordMatch ? wordToNumber[wordMatch[0]] : parseInt(duration, 10);
+  
+    if (lowerDuration.includes('year')) {
+      return numericValue * 12; // Convert years to months
+    } else if (lowerDuration.includes('month')) {
+      return numericValue; // Return months directly
+    }
+  
+    return 0; // Default to 0 if the format is invalid
+  };
+
+  // Parse frequency (e.g., "once a month" -> 1 month)
+  const parseFrequency = (frequency) => {
+    const lowerFrequency = frequency.toLowerCase();
+  
+    if (lowerFrequency.includes('bi-weekly')) {
+      return 0.5; // Bi-weekly = 0.5 months (2 weeks)
+    } else if (lowerFrequency.includes('once a month')) {
+      return 1; // Once a month = 1 month
+    } else if (lowerFrequency.includes('every')) {
+      const months = parseInt(lowerFrequency.match(/\d+/), 10);
+      return months; // Return the number of months directly
+    } else if (lowerFrequency.includes('once per year')) {
+      return 12; // Once per year = 12 months
+    }
+  
+    return 0; // Default to 0 if the format is invalid
   };
 
   // Generate recurring meeting dates
-  const generateRecurringDates = (startDate, time, frequencyMonths = 3, totalMeetings = 4) => {
+  const generateRecurringDates = (startDate, time, boardDuration, boardFrequency) => {
     const dates = [];
+    const durationInMonths = parseDuration(boardDuration);
+    const frequencyInMonths = parseFrequency(boardFrequency);
+
+    if (!durationInMonths || !frequencyInMonths) return dates;
+
+    const totalMeetings = Math.floor(durationInMonths / frequencyInMonths);
+
     for (let i = 0; i < totalMeetings; i++) {
-      const newDate = moment(startDate).add(i * frequencyMonths, 'months').format('dddd, MMMM D, YYYY');
+      const newDate = moment(startDate)
+        .add(i * frequencyInMonths, 'months')
+        .format('dddd, MMMM D, YYYY');
       dates.push(`${newDate}, ${time}`);
     }
+
     return dates;
   };
 
   // Get recurring meeting dates
-  const recurringDates = generateRecurringDates(selectedDate, selectedTime);
+  const recurringDates = generateRecurringDates(selectedDate, selectedTime, boardDuration, boardFrequency);
+  console.log('Inputs to generateRecurringDates:', {
+    selectedDate,
+    selectedTime,
+    boardDuration,
+    boardFrequency,
+  });
+  console.log('Parsed Duration:', parseDuration(boardDuration));
+  console.log('Parsed Frequency:', parseFrequency(boardFrequency));
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -89,10 +150,24 @@ export default function ReviewScreen({ navigation, route }) {
         ))}
       </View>
 
+      {/* Advisors */}
+      <View style={styles.detailSection}>
+        <Text style={styles.sectionLabel}>Advisors</Text>
+        {advisors.length > 0 ? (
+          advisors.map((advisor, index) => (
+            <Text key={index} style={styles.sectionContent}>
+              {advisor.name} ({advisor.email})
+            </Text>
+          ))
+        ) : (
+          <Text style={styles.sectionContent}>No advisors selected</Text>
+        )}
+      </View>
+
       {/* Acknowledgment Checkbox */}
       <View style={styles.checkboxContainer}>
-        <TouchableOpacity 
-          style={styles.checkbox} 
+        <TouchableOpacity
+          style={styles.checkbox}
           onPress={() => setAcknowledged(!acknowledged)}
         >
           {acknowledged && <Text style={styles.checkmark}>✓</Text>}

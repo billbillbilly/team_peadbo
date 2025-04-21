@@ -30,6 +30,7 @@ function CreateInvitationScreen({ navigation, route }) {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [openTemplate, setOpenTemplate] = useState(false);
   const [valueTemplate, setValueTemplate] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleContinue = () => {
     navigation.navigate('TimeAvailabilityScreen', { 
@@ -42,13 +43,19 @@ function CreateInvitationScreen({ navigation, route }) {
       message
     });
   };
+  const handleBack = () => {
+    navigation.goBack();
+  };
 
   const generateTemplate = async () => {
+    setLoading(true); // Set loading to true
     try {
       const generatedMessage = await generateText();
       setMessage(generatedMessage);
     } catch (error) {
       console.error('Error generating template:', error);
+    } finally {
+      setLoading(false); // Set loading to false
     }
   };
 
@@ -103,8 +110,15 @@ function CreateInvitationScreen({ navigation, route }) {
               dropDownContainerStyle={styles.dropDownContainer}
             />
 
-            <TouchableOpacity style={styles.generateButton} onPress={generateTemplate}>
-              <Text style={styles.generateButtonText}>Generate AI Template</Text>
+            {/* Generate AI Template Button */}
+            <TouchableOpacity
+              style={styles.generateButton}
+              onPress={generateTemplate}
+              disabled={loading} // Disable button while loading
+            >
+              <Text style={styles.generateButtonText}>
+                {loading ? 'Loading...' : 'Generate AI Template'}
+              </Text>
             </TouchableOpacity>
 
             {/* Message Input */}
@@ -125,6 +139,12 @@ function CreateInvitationScreen({ navigation, route }) {
             >
               <Text style={styles.continueButtonText}>Continue</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={handleBack}
+                  >
+                    <Text style={styles.backButtonText}>Back</Text>
+                  </TouchableOpacity>
           </View>
         )}
       />
@@ -224,6 +244,15 @@ const styles = StyleSheet.create({
   dropDownContainer: {
     borderColor: '#CCC',
     zIndex: 1000,
+  },
+  backButton: {
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  backButtonText: {
+    color: '#1EA896',
+    fontSize: 16,
   },
 });
 
