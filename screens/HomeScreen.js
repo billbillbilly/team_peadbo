@@ -29,22 +29,22 @@ export default function HomeScreen({ navigation }) {
   // Current user and remote tasks from Redux store
   const currentUser = useSelector((state) => state.user.currentUser);
   const fallbackUser = firebase.auth().currentUser;
-  console.log('Current User:', currentUser);
-console.log('Fallback User:', fallbackUser);
+//   console.log('Current User:', currentUser);
+// console.log('Fallback User:', fallbackUser);
   const remoteTasks = useSelector((state) => state.user.tasks) || [];
 
   // Local tasks state (from AsyncStorage)
   const [localTasks, setLocalTasks] = useState([]);
 
   const allBoards = useSelector((state) => state.user.allBoards);
-  console.log('All Boards:', allBoards);
+  // console.log('All Boards:', allBoards);
 
    // Filter boards by the logged-in user's ID
    const userId = currentUser?.id || fallbackUser?.uid; // Use currentUser ID or fallbackUser UID
    console.log('User ID:', userId);
    
    const userBoards = allBoards.filter((board) => board.author === userId);
-   console.log('Filtered User Boards:', userBoards);
+  //  console.log('Filtered User Boards:', userBoards);
 
   // Fetch remote tasks and load local tasks on mount
   useEffect(() => {
@@ -167,12 +167,26 @@ console.log('Fallback User:', fallbackUser);
 
   const deleteTask = async () => {
     if (!selectedTask) return;
-    await dispatch(deleteTaskThunk(selectedTask.id));
-    dispatch(fetchTasksThunk());
-    resetEditForm();
-    setEditModalVisible(false);
+  
+    console.log('Deleting Task:', selectedTask.id); // Debugging
+    try {
+      await dispatch(deleteTaskThunk(selectedTask.id));
+      console.log('Task deleted successfully');
+  
+      // Remove the task from localTasks
+      const updatedLocalTasks = localTasks.filter((task) => task.id !== selectedTask.id);
+      setLocalTasks(updatedLocalTasks);
+  
+      // Save updated local tasks to AsyncStorage
+      await AsyncStorage.setItem('localTasks', JSON.stringify(updatedLocalTasks));
+  
+      resetEditForm();
+      setEditModalVisible(false);
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      Alert.alert('Error', 'Failed to delete the task. Please try again.');
+    }
   };
-
   // ========== TOGGLE COMPLETION ==========
   const toggleTask = async (task) => {
     const updatedTask = { ...task, completed: !task.completed };
@@ -209,7 +223,7 @@ console.log('Fallback User:', fallbackUser);
       renderItem: () => (
         <TouchableOpacity
           style={styles.createBoardButton}
-          onPress={() => navigation.navigate('FocusScreen')}
+          onPress={() => navigation.navigate('BoardCreation')}
         >
           <Text style={styles.createBoardText}>+ Create a new board</Text>
         </TouchableOpacity>

@@ -52,6 +52,7 @@ import EventScreen from './screens/Board_Detail_Screens/EventScreen';
 import NewsletterScreen from './screens/News_Letter_Screens/NewsletterScreen';
 import CreateNewsletterScreen from './screens/News_Letter_Screens/CreateNewsletterScreen';
 import ContactPickerScreen from './screens/News_Letter_Screens/ContactPickerScreen';
+import RichTextEditorScreen from './screens/News_Letter_Screens/RichTextEditorScreen';
 
 const store = configureStore({
   reducer: {
@@ -73,6 +74,7 @@ const BoardCreationStack = () => {
       <Stack.Screen name="SendNotificationScreen" component={SendNotificationScreen} />
       <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ChatBot" component={ChatBot} />
+      <Stack.Screen name="ContactSupport" component={ContactSupportScreen} />
     </Stack.Navigator>
   );
 };
@@ -98,6 +100,8 @@ const HomeTabStack = () => {
       <Stack.Screen name="EventScreen" component={EventScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ChatBot" component={ChatBot} />
       <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="ContactSupport" component={ContactSupportScreen} />
+      <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 };
@@ -108,6 +112,7 @@ const ContactTabStack = () => {
     <Stack.Navigator initialRouteName="Contacts" screenOptions={{ headerShown: true }}>
       <Stack.Screen name="Contacts" component={ContactsScreen} />
       <Stack.Screen name="ChatBot" component={ChatBot} />
+      <Stack.Screen name="ContactSupport" component={ContactSupportScreen} />
     </Stack.Navigator>
   );
 };
@@ -120,6 +125,9 @@ const NewsTabStack = () => {
       <Stack.Screen name="CreateNewsletter" component={CreateNewsletterScreen} options={{ title: 'New Newsletter' }} />
       <Stack.Screen name="ContactPicker" component={ContactPickerScreen} />
       <Stack.Screen name="ChatBot" component={ChatBot} />
+      <Stack.Screen name="RichTextEditor" component={RichTextEditorScreen} options={{ title: 'Edit Newsletter' }} />
+      <Stack.Screen name="ContactSupport" component={ContactSupportScreen} />
+
     </Stack.Navigator>
   );
 };
@@ -136,6 +144,7 @@ const UserTabStack = () => {
       <Stack.Screen name="FAQ" component={FAQScreen} />
       <Stack.Screen name="ContactSupport" component={ContactSupportScreen} />
       <Stack.Screen name="ChatBot" component={ChatBot} />
+      <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 };

@@ -88,16 +88,16 @@ export const fetchMember = async (id) => {
 export const setUser = createAsyncThunk(
   'user/setUser',
   async (userInfo) => {
-    console.log('Setting user...');
+    // console.log('Setting user...');
     const userId = userInfo.sub; // Logged-in user's ID
-    console.log('User Info:', userInfo);
-    console.log('User ID:', userId);
+    // console.log('User Info:', userInfo);
+    // console.log('User ID:', userId);
 
     const allBoards = await fetchBoards(userId); // Fetch boards for the logged-in user
-    console.log('Fetched Boards:', allBoards);
+    // console.log('Fetched Boards:', allBoards);
 
     const allMembers = await fetchBoardMembers(); // Fetch board members (if needed)
-    console.log('Fetched Members:', allMembers);
+    // console.log('Fetched Members:', allMembers);
 
     return {
       id: userId,
@@ -114,7 +114,9 @@ export const fetchTasksThunk = createAsyncThunk(
   'tasks/fetchTasks',
   async () => {
     const snapshot = await getDocs(collection(db, 'tasks'));
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    console.log('Fetched tasks from backend:', tasks); // Debugging
+    return tasks;
   }
 );
 
@@ -150,11 +152,18 @@ export const completeTaskThunk = createAsyncThunk(
 // Delete a task
 export const deleteTaskThunk = createAsyncThunk(
   'tasks/deleteTask',
-  async (taskId) => {
-    await deleteDoc(doc(db, 'tasks', taskId));
-    return taskId;
+  async (taskId, { rejectWithValue }) => {
+    try {
+      console.log('Deleting task from backend:', taskId); // Debugging
+      await deleteDoc(doc(db, 'tasks', taskId)); // Ensure this is the correct deletion logic
+      return taskId; // Return the deleted task ID
+    } catch (error) {
+      console.error('Error deleting task from backend:', error);
+      return rejectWithValue(error.message);
+    }
   }
 );
+
 export const addBoardThunk = createAsyncThunk(
   'boards/addBoard',
   async (boardData, { rejectWithValue }) => {
@@ -232,6 +241,9 @@ const userSlice = createSlice({
         if (index !== -1) {
           state.tasks[index] = action.payload;
         }
+      })
+      .addCase(deleteTaskThunk.fulfilled, (state, action) => {
+        state.tasks = state.tasks.filter((task) => task.id !== action.payload);
       })
       .addCase(addBoardThunk.fulfilled, (state, action) => {
         state.allBoards.push(action.payload); // Add the new board to the state

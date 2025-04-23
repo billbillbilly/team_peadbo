@@ -35,28 +35,19 @@ const LoginScreen = ({ navigation }) => {
       Alert.alert('Error', 'Please enter both email and password');
       return;
     }
-  
+
     if (!validateEmail(email)) {
       Alert.alert('Error', 'Please enter a valid email address');
       return;
     }
-  
+
     setLoading(true);
-  
+
     try {
-      // Perform login and get user info
-      const user = await handleSignIn({ username: email, password: password });
-  
-      // Ensure the user object contains the required fields
-      if (!user || !user.sub || !user.email || !user.name) {
-        throw new Error('Invalid user data returned from handleSignIn');
-      }
-  
-      // Dispatch setUser with the user info
+      const user = await handleSignIn({username: email, password:password});
       dispatch(setUser(user));
-  
-      // Navigate to HomeScreen
       navigation.navigate('Home');
+      // navigation.replace('Home'); // Redirect to HomeScreen after successful login
     } catch (error) {
       console.error(error);
       Alert.alert('Login failed', error.message || 'Invalid email or password');
