@@ -1,259 +1,271 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Icon } from '@rneui/themed';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, Image, TextInput, Alert } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
-// import {fetchSchemaStructure} from '../../Reducer'
-import RenderEvent from "../../components/RenderEvent";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { useDispatch } from 'react-redux';
+import RenderTask from '../../components/RenderTasks';
+import RenderEvent from '../../components/RenderEvent';
 import BoardMembers from '../../components/BoardMembers';
 import RenderHorizontalCalender from '../../components/RenderHorizontalCalender';
-import { TextBase } from 'react-native';
-import { deleteBoard } from '../../Reducer';
-
+import { deleteBoard, fetchTasks, deleteTask, fetchEvents, deleteEvent } from '../../Reducer';
 
 const BoardDetailsScreen = ({ navigation, route }) => {
     const { board } = route.params;
     const dispatch = useDispatch();
-
     const calendar = useRef(null);
 
-    console.log('Board object:', board);
+    const [tasks, setTasks] = useState([]);
+    const [events, setEvents] = useState([]);
+    const [selectedDate, setSelectedDate] = useState('');
+    const [dateList, setDateList] = useState([]);
+    const [viewAll, setViewAll] = useState(false);
 
-    // Get today's date and weekday
     const weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    let today = new Date();
-    let currentDay = today.getDay();
-    let currentWeekday = weekday[currentDay];
+    const today = new Date();
+    const currentDay = today.getDay();
     const currentYear = today.getFullYear();
     const currentMonth = today.getMonth() + 1;
     const currentDate = today.getDate();
 
     useEffect(() => {
-        // Automatically scroll to the second page after mount
-        setTimeout(() => {
-            calendar.current?.scrollTo({ x: 370, animated: false });
-        }, 100);
-        //navigation.setOptions({ tabBarStyle: () => null }); // Hides back button
-    }, []);
+        setDateList(mapDates(currentDay, currentDate, currentMonth, currentYear, events));
 
-    const mapDates = (cDay, cDate, cMonth, cYear, events) => {
+        const fetchBoardTasks = async () => {
+            try {
+                const fetchedTasks = await fetchTasks(board.id);
+                setTasks(fetchedTasks);
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+                Alert.alert('Error', 'Failed to fetch tasks. Please try again.');
+            }
+        };
+
+        const fetchBoardEvents = async () => {
+            try {
+                const fetchedEvents = await fetchEvents(board.id);
+                const sortedEvents = fetchedEvents.sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime));
+                setEvents(sortedEvents);
+            } catch (error) {
+                console.error('Error fetching events:', error);
+                Alert.alert('Error', 'Failed to fetch events. Please try again.');
+            }
+        };
+
+        fetchBoardEvents();
+        fetchBoardTasks();
+    }, [board.id]);
+
+    const mapDates = (currentDay, currentDate, currentMonth, currentYear, events) => {
         let dates = [];
+        const firstDayOfWeek = currentDate - (currentDay - 1); // Calculate the first day of the week (Monday)
+    
         for (let i = 0; i < 7; i++) {
-            if (i < cDay) {
-                let temp = cDate - (cDay - i)+1;
-                if (cMonth === 1 || cMonth === 3 || cMonth === 5 || cMonth === 7 || cMonth === 8 || cMonth === 10 || cMonth === 12) {
-                    dates.push(temp > 0 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth===1?12:cMonth-1, day:31 + temp, year:cMonth===1?cYear-1:cYear, event:checkEventDate(events, cMonth===1?12:cMonth-1, 31 + temp, cMonth===1?cYear-1:cYear)});
-                } else if (cMonth === 2) {
-                    dates.push(temp > 0 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth-1, day:28 + temp , year:cYear, event:checkEventDate(events, cMonth-1, 28 + temp, cYear)});
-                } else { 
-                    dates.push(temp > 0 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth-1, day:30 + temp , year:cYear, event:checkEventDate(events, cMonth-1, 30 + temp, cYear)});
-                }
-            } else {
-                let temp = cDate + (i - cDay)+1;
-                if (cMonth === 1 || cMonth === 3 || cMonth === 5 || cMonth === 7 || cMonth === 8 || cMonth === 10 || cMonth === 12) {
-                    dates.push(temp < 32 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth===12?1:cMonth+1, day:temp - 31, year:cMonth===12?cYear+1:cYear, event:checkEventDate(events, cMonth===12?1:cMonth+1, temp - 31, cMonth===12?cYear+1:cYear)});
-                } else if (cMonth === 2) {
-                    dates.push(temp < 29 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth-1, day:temp - 28 , year:cYear, event:checkEventDate(events, cMonth-1, temp-28, cYear)});
-                } else { 
-                    dates.push(temp < 31 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth-1, day:temp - 30 , year:cYear, event:checkEventDate(events, cMonth-1, temp-30, cYear)});
-                }
-            }
+            const tempDate = new Date(currentYear, currentMonth - 1, firstDayOfWeek + i); // Adjust for month (0-indexed)
+            const hasEvent = events.some(event => {
+                const eventDate = new Date(event.startDateTime);
+                return (
+                    eventDate.getFullYear() === tempDate.getFullYear() &&
+                    eventDate.getMonth() === tempDate.getMonth() &&
+                    eventDate.getDate() === tempDate.getDate()
+                );
+            });
+    
+            dates.push({
+                month: tempDate.getMonth() + 1, // Convert back to 1-indexed month
+                day: tempDate.getDate(),
+                year: tempDate.getFullYear(),
+                event: hasEvent, // Set to true if an event matches this date
+            });
         }
-        // Add 7 days before the first day in dates
-        const firstDate = dates[0].day;
-        for (let i = 1; i <= 7; i++) {
-            let temp = firstDate - i;
-            if (cMonth === 1 || cMonth === 3 || cMonth === 5 || cMonth === 7 || cMonth === 8 || cMonth === 10 || cMonth === 12) {
-                dates.unshift(temp > 0 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth===1?12:cMonth-1, day:31 + temp, year:cMonth===1?cYear-1:cYear, event:checkEventDate(events, cMonth===1?12:cMonth-1, 31 + temp, cMonth===1?cYear-1:cYear)});
-            } else if (cMonth === 2) {
-                dates.unshift(temp > 0 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth-1, day:28 + temp , year:cYear, event:checkEventDate(events, cMonth-1, 28 + temp, cYear)});
-            } else {
-                dates.unshift(temp > 0 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth-1, day:30 + temp , year:cYear, event:checkEventDate(events, cMonth-1, 30 + temp, cYear)});
-            }
-        }
-
-        // Add 7 days after the last day in dates
-        const lastDate = dates[dates.length - 1].day;
-        for (let i = 1; i <= 7; i++) {
-            let temp = lastDate + i;
-            if (cMonth === 1 || cMonth === 3 || cMonth === 5 || cMonth === 7 || cMonth === 8 || cMonth === 10 || cMonth === 12) {
-                dates.push(temp < 32 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth===12?1:cMonth+1, day:temp - 31, year:cMonth===12?cYear+1:cYear, event:checkEventDate(events, cMonth===12?1:cMonth+1, temp - 31, cMonth===12?cYear+1:cYear)});
-            } else if (cMonth === 2) {
-                dates.push(temp < 29 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth-1, day:temp - 28 , year:cYear, event:checkEventDate(events, cMonth-1, temp-28, cYear)});
-            } else {
-                dates.push(temp < 31 ? {month:cMonth, day:temp, year:cYear, event:checkEventDate(events, cMonth, temp, cYear)}: {month:cMonth-1, day:temp - 30 , year:cYear, event:checkEventDate(events, cMonth-1, temp-30, cYear)});
-            }
-        }
+    
         return dates;
     };
 
-    const checkEventDate = (events, m,d,y) => {
-        let count = 0;
-        for (let index = 0; index < events.length; index++) {
-            const e = events[index];
-            if (`${e.month}-${e.day}-${e.year}` === `${m}-${d}-${y}`) {
-                count++
-            }
-        }
-        if (count > 0) {
-            return true
-        } else {return false}
-    }
+    const checkEventDate = (events, m, d, y) => {
+        return events.some(e => `${e.month}-${e.day}-${e.year}` === `${m}-${d}-${y}`);
+    };
 
-    // need to make sure how this calendar excatly works from the clientß
-    const dragCalendar = (dateList) => {
+    const handleDeleteTask = async (taskId) => {
+        Alert.alert(
+            'Delete Task',
+            'Are you sure you want to delete this task?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await deleteTask(taskId);
+                            setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+                        } catch (error) {
+                            console.error('Error deleting task:', error);
+                            Alert.alert('Error', 'Failed to delete the task. Please try again.');
+                        }
+                    },
+                },
+            ]
+        );
+    };
 
-    }
-
-    // will be replaced with API call
-    const events = [
-        { id: '1', time: '09:00', duration: '50 min', title: 'Meet with Sophia', 
-            description: 'Discuss my graduation plan', participants: ['Lucy', 'Sophia'], 
-            month:3, day:12,year:2025, finished: false, 
-            todos:[{text: 'revise my resume', completed:false}, 
-                {text: 'list all the experience bullet points', completed:false}]},
-        { id: '2', time: '11:00', duration: '60 min', title: 'School Advisor', 
-            description: 'Internship visa', participants: ['Lucy', 'Kay'], 
-            month:3, day:14,year:2025, finished: true,
-            todos:[{text: 'revise my resume', completed:false}, 
-                {text: 'list all the experience bullet points', completed:false}]},
-        { id: '3', time: '11:00', duration: '40 min', title: 'School Advisor', 
-            description: 'Discuss my graduation plan', participants: ['Lucy', 'Kay'], 
-            month:3, day:19,year:2025, finished: false,
-            todos:[{text: 'revise my resume', completed:false}, 
-                {text: 'list all the experience bullet points', completed:false}]},
-        { id: '4', time: '11:00', duration: '30 min', title: 'School Advisor', 
-            description: 'Internship visa', participants: ['Lucy', 'Kay'], 
-            month:3, day:10,year:2025, finished: false, 
-            todos:[{text: 'revise my resume', completed:false}, 
-                {text: 'list all the experience bullet points', completed:false}]}
-    ];
-
-    const eventTemplate = {
-        id: '-1', time: '', duration: '', title: 'Add Event Title', 
-        description: '', participants: [], 
-        month:0, day:0,year:0, finished: false, 
-        todos:[]
-    }
-
-    const [selectedDate, setSelectedDate] = useState('');
-    const [dateList, setDateList] = useState(mapDates( currentDay, currentDate, currentMonth, currentYear, events));
-    const [viewAll, setViewAll] = useState(false);
+    const handleDeleteEvent = async (eventId) => {
+        Alert.alert(
+            'Delete Event',
+            'Are you sure you want to delete this event?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await deleteEvent(eventId);
+                            setEvents(prevEvents => prevEvents.filter(event => event.id !== eventId));
+                        } catch (error) {
+                            console.error('Error deleting event:', error);
+                            Alert.alert('Error', 'Failed to delete the event. Please try again.');
+                        }
+                    },
+                },
+            ]
+        );
+    };
 
     const handleDeleteBoard = () => {
         Alert.alert(
-          'Delete Board',
-          'Are you sure you want to delete this board? This action cannot be undone.',
-          [
-            {
-              text: 'Cancel',
-              style: 'cancel',
-            },
-            {
-              text: 'Delete',
-              style: 'destructive',
-              onPress: () => {
-                // Dispatch the delete action
-                dispatch(deleteBoard(board.id));
-    
-                // Navigate back to the HomeScreen
-                navigation.navigate('HomeScreen');
-              },
-            },
-          ]
+            'Delete Board',
+            'Are you sure you want to delete this board? This action cannot be undone.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: () => {
+                        dispatch(deleteBoard(board.id));
+                        navigation.navigate('HomeScreen');
+                    },
+                },
+            ]
         );
-      };
+    };
 
-    // To evenly distribute all the <TouchableOpacity> buttons into three <View> containers
+    const eventTemplate = {
+        id: '-1',
+        time: '',
+        duration: '',
+        title: 'Add Event Title',
+        description: '',
+        participants: [],
+        month: 0,
+        day: 0,
+        year: 0,
+        finished: false,
+        todos: [],
+    };
+
+    const taskTemplate = {
+        id: '-1',
+        title: 'Add Task Title',
+        description: '',
+        dueDateTime: '',
+        priority: 'Normal',
+        status: 'Pending',
+        boardID: board.id,
+    };
 
     return (
         <View style={styles.container}>
             <View style={styles.headerSection}>
-                <TouchableOpacity onPress={()=>navigation.goBack()}>
-                    <Text style={{fontSize:20}}>&lt;</Text>
-                    {/* <Icon name="left" type="font-awesome" color={'gray'} size={20} /> */}
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                    <Icon name="arrow-left" type="font-awesome" size={20} color="#1E9278" />
                 </TouchableOpacity>
                 <Text style={styles.header}>{board.title}</Text>
                 <TouchableOpacity>
                     <Icon name="edit" type="font-awesome" size={20} />
                 </TouchableOpacity>
             </View>
-            {/* Fixed title and calendar */}
+
             <View>
-                <View style={{flexDirection: 'row', justifyContent: 'space-between', alignContent: 'center',}}>
+                {/* Weekday Labels */}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
                     {weekday.map((day, index) => (
-                        <View key={index} style={{alignItems: 'center', textAlign:'center'}}>
-                            <Text style={[styles.dayText, {paddingLeft:10, paddingRight:10}]}>{weekday[index]}</Text>         
+                        <View key={index} style={{ alignItems: 'center', flex: 1 }}>
+                            <Text style={styles.dayText}>{day}</Text>
                         </View>
                     ))}
                 </View>
-                <ScrollView 
+
+                {/* Dates */}
+                <ScrollView
                     ref={calendar}
                     horizontal
-                    showsHorizontalScrollIndicator={false} 
-                    decelerationRate={"fast"}
-                    pagingEnabled={true}
-                 >
-                    {/* {dateList.map((day, index) => (
-                        <TouchableOpacity 
-                            key={index} 
-                            onPress={() => {setSelectedDate(`${day}`)}}
-                            style={{alignItems:'center', width:53}}
-                        >
-                            <Text style={[styles.dateText, styles.dateItem, selectedDate === `${day}` && styles.selectedDate]}>{day}</Text>
-                            <Text style={[styles.dateEventItem]}>.</Text>
-                        </TouchableOpacity>
-                    ))} */}
-                    <RenderHorizontalCalender 
-                        events={events}
-                        dateList={dateList} 
-                        selectedDate={selectedDate} 
-                        setSelectedDate={setSelectedDate} 
-                        styles={styles} 
-                        m={currentMonth}
-                        d={currentDate}
-                        y={currentYear}
-                    />
+                    showsHorizontalScrollIndicator={false}
+                    decelerationRate="fast"
+                    pagingEnabled
+                    contentContainerStyle={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}
+                >
+                    {dateList.map((date, index) => (
+                        <View key={index} style={{ flex: 1, alignItems: 'center' }}>
+                            <TouchableOpacity
+                                onPress={() => setSelectedDate(`${date.year}-${date.month}-${date.day}`)}
+                                style={[
+                                    styles.dateItem,
+                                    selectedDate === `${date.year}-${date.month}-${date.day}` && styles.selectedDate,
+                                    date.event && styles.eventDate, // Apply green background if an event exists
+                                ]}
+                            >
+                                <Text
+                                    style={[
+                                        styles.dateText,
+                                        selectedDate === `${date.year}-${date.month}-${date.day}` && { color: '#fff' },
+                                    ]}
+                                >
+                                    {date.day}
+                                </Text>
+                                {date.event && <View style={styles.dateEventIndicator} />}
+                            </TouchableOpacity>
+                        </View>
+                    ))}
                 </ScrollView>
-                <View style={{marginBottom: 5, marginTop: 15, flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
-                    <Text style={styles.sectionTitle}>Event</Text>
-                    <TouchableOpacity onPress={()=>{viewAll? setViewAll(false):setViewAll(true)}}>
-                        <Text style={{fontSize:12, marginVertical: 10, color:'gray'}}>{viewAll? "View less":"View all"}</Text>
-                    </TouchableOpacity>
-                </View>
             </View>
 
             <ScrollView style={styles.events}>
                 <FlatList
-                    data={viewAll? events:events.slice(0,2)}
+                    data={viewAll ? events : events.slice(0, 2)}
                     scrollEnabled={false}
-                    renderItem={({ item }) => <RenderEvent item={item} navigation={navigation} />}
+                    renderItem={({ item }) => <RenderEvent item={item} navigation={navigation} onDelete={handleDeleteEvent} />}
                     keyExtractor={(item) => item.id}
                 />
-                <TouchableOpacity 
+                <TouchableOpacity
                     style={styles.createEventButton}
-                    onPress={async() =>  navigation.navigate('EventScreen', {event:eventTemplate})}
+                // Uncomment when you have the EventScreen ready
+                // onPress={() => navigation.navigate('EventScreen', { event: eventTemplate })}
                 >
                     <Text style={styles.createEventText}>+</Text>
                     <Text style={styles.createEventText}>Create a new event</Text>
                 </TouchableOpacity>
             </ScrollView>
-            <BoardMembers members={board.members?.items || []} />
-            {/* <TouchableOpacity 
-                style={styles.searchInput}
-                onPress={()=>{
-                    // fetchSchemaStructure()
-                    console.log('go');
-                    navigation.navigate('DatabaseScreen', {a:board})
-                }}
-            >
-                <Text style={{color:'lightgray'}}>Ask Peadbo AI...</Text>
-            </TouchableOpacity> */}
 
-            {/* Delete Button */}
-      <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteBoard}>
-        <Text style={styles.deleteButtonText}>Delete Board</Text>
-      </TouchableOpacity>
-            
+            <View style={styles.tasksSection}>
+                <View style={styles.tasksHeader}>
+                    <Text style={styles.sectionTitle}>Tasks</Text>
+                </View>
+                <FlatList
+                    data={viewAll ? tasks : tasks.slice(0, 3)}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => <RenderTask item={item} onDelete={handleDeleteTask} />}
+                    ListEmptyComponent={() => <Text style={styles.emptyText}>No tasks available for this board.</Text>}
+                />
+                <TouchableOpacity
+                    style={styles.createTaskButton}
+                    // Uncomment when you have the TaskScreen ready
+                    // onPress={() => navigation.navigate('TaskScreen', { task: taskTemplate })}
+                >
+                    <Text style={styles.createTaskText}>+</Text>
+                    <Text style={styles.createTaskText}>Create a new task</Text>
+                </TouchableOpacity>
+            </View>
+
+            <BoardMembers members={board.members?.items || []} />
         </View>
     );
 };
@@ -269,113 +281,51 @@ const styles = StyleSheet.create({
         marginTop: 50,
         marginBottom: 20,
         justifyContent: 'space-between',
-        alignItems: 'center'
+        alignItems: 'center',
     },
+
     sectionTitle: {
         fontSize: 18,
         fontWeight: '600',
         marginVertical: 10,
     },
-    horizontalCalendar: {
-        flexDirection: 'row',
-        marginBottom: 15,
-        alignContent: 'center',
-        // justifyContent: 'space-between',
+    dayText: {
+        fontSize: 14,
+        color: '#333',
+        textAlign: 'center',
+        marginBottom: 5,
+    },
+    eventDate: {
+        backgroundColor: '#DDF2EF', // Green background for dates with events
     },
     dateItem: {
         alignItems: 'center',
         justifyContent: 'center',
         padding: 10,
-        borderRadius: 100,
-    },
-    dateEventItem: {
-        backgroundColor: '#1E9278',
-        color: '#1E9278',
-        marginTop: 5,
-        padding: 1,
-        borderRadius: 2,
-        fontSize: 1,
+        borderRadius: 50,
+        marginHorizontal: 5,
+        backgroundColor: '#F9F9F9',
+
+
     },
     selectedDate: {
         backgroundColor: '#1E9278',
         color: '#fff',
     },
-    dayText: {
-        fontSize: 14,
-        color: '#999',
-    },
     dateText: {
         fontSize: 16,
         fontWeight: 'bold',
+        color: '#333',
     },
-    scrollContent: {
-        flex: 1,
-        padding: 10,
-        paddingTop: 0,
+    dateEventIndicator: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#1E9278',
+        marginTop: 5,
     },
-    header: {
-        fontSize: 20,
-        fontWeight: 'light',
-    },
-    subText: {
-        fontSize: 16,
-        marginBottom: 10,
-    },
-    status: {
-        color: 'green',
-        fontWeight: 'bold',
-    },
-    subHeader: {
-        fontSize: 18,
-        fontWeight: 'bold',
+    events: {
         marginTop: 20,
-    },
-    eventCard: {
-        backgroundColor: '#fff',
-        padding: 15,
-        marginVertical: 8,
-        borderRadius: 10,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 5,
-        elevation: 3,
-    },
-    eventTime: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#555',
-    },
-    eventTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-    },
-    eventDescription: {
-        fontSize: 14,
-        color: '#666',
-    },
-    collaboratorsContainer: {
-        flexDirection: 'row',
-        marginTop: 10,
-    },
-    collaborator: {
-        alignItems: 'center',
-        marginRight: 10,
-    },
-    avatar: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        marginBottom: 5,
-    },
-    toDoItem: {
-        fontSize: 16,
-        marginVertical: 4,
-    },
-    notesText: {
-        fontSize: 14,
-        color: '#555',
-        marginTop: 10,
     },
     createEventButton: {
         alignItems: 'center',
@@ -390,32 +340,37 @@ const styles = StyleSheet.create({
     createEventText: {
         color: 'lightgrey',
     },
-    searchInput: {
-        backgroundColor: 'white',
-        padding: 10,
-        borderRadius: 20,
-        marginTop: 15,
-        marginBottom: 10,
-        shadowColor: '#000',
-        shadowOpacity: 0.05,
-        shadowRadius: 3,
-        shadowOffset: {
-            width: 0,
-            height: 1,
-        },
-    },
-    deleteButton: {
-        backgroundColor: '#FF715B',
-        padding: 15,
-        borderRadius: 10,
-        alignItems: 'center',
+    tasksSection: {
         marginTop: 20,
-      },
-      deleteButtonText: {
-        color: '#FFF',
+    },
+    tasksHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    createTaskButton: {
+        alignItems: 'center',
+        padding: 25,
+        borderRadius: 15,
+        marginBottom: 15,
+        backgroundColor: '#F9F9F9',
+        borderWidth: 2,
+        borderStyle: 'dashed',
+        borderColor: 'lightgrey',
+    },
+    createTaskText: {
+        color: 'lightgrey',
+    },
+    emptyText: {
+        textAlign: 'center',
+        color: '#999',
         fontSize: 16,
-        fontWeight: 'bold',
-      },
+        marginVertical: 20,
+    },
+    header: {
+        fontSize: 20,
+        fontWeight: 'light',
+    },
 });
 
 export default BoardDetailsScreen;

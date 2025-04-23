@@ -1,63 +1,109 @@
-// Full updated EventScreen.js with reflection modal & removed status dropdown
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   TextInput,
   StyleSheet,
-  Modal,
-  ScrollView
+  ScrollView,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Icon } from '@rneui/themed';
-import BoardMembers from '../../components/BoardMembers';
 import ToDoItem from '../../components/ToDoItem';
 
 const EventScreen = ({ navigation, route }) => {
   const { event } = route.params;
 
-  const [eventTitle, changeTitle] = useState(event.title);
-  const [eventDate, changeDate] = useState(`${event.month}/${event.day}/${event.year}`);
-  const [eventTime, changeTime] = useState(event.time);
-  const [eventDuration, changeDuration] = useState(event.duration);
-  const [eventDescription, changeDescription] = useState(event.description);
+  // State variables
+  const [eventTitle, changeTitle] = useState(event.title || 'Untitled Event');
+  const [eventDate, changeDate] = useState(
+    event.startDateTime
+      ? new Date(event.startDateTime).toLocaleDateString()
+      : 'No Date'
+  );
+  const [eventTime, changeTime] = useState(
+    event.startDateTime
+      ? new Date(event.startDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : 'No Time'
+  );
+  const [eventDuration, changeDuration] = useState(
+    event.endDateTime && event.startDateTime
+      ? `${Math.round(
+          (new Date(event.endDateTime) - new Date(event.startDateTime)) / (1000 * 60)
+        )} minutes`
+      : 'No Duration'
+  );
+  const [eventDescription, changeDescription] = useState(event.descriptionText || 'No Description');
   const [notes, setNotes] = useState('');
-  const [todos, setTodos] = useState(event.todos);
+  const [todos, setTodos] = useState([]);
 
+  // Modal states
+  const [titleModalVisible, setTitleModalVisible] = useState(false);
+  const [dateTimeModalVisible, setDateTimeModalVisible] = useState(false);
+  const [descriptionModalVisible, setDescriptionModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  // Temporary states for editing
+  const [tempTitle, setTempTitle] = useState(event.title || 'Untitled Event');
+  const [tempDate, setTempDate] = useState(eventDate);
+  const [tempTime, setTempTime] = useState(eventTime);
+  const [tempDescription, setTempDescription] = useState(eventDescription);
+  const [newTodo, setNewTodo] = useState('');
+
+  // Load todos from AsyncStorage when the component mounts
+  useEffect(() => {
+    const loadTodos = async () => {
+      try {
+        const storedTodos = await AsyncStorage.getItem(`todos_${event.id}`);
+        if (storedTodos) {
+          setTodos(JSON.parse(storedTodos));
+        } else {
+          setTodos([]);
+        }
+      } catch (error) {
+        console.error('Error loading todos:', error);
+      }
+    };
+
+    loadTodos();
+  }, [event.id]);
+
+  // Save todos to AsyncStorage whenever they are updated
+  useEffect(() => {
+    const saveTodos = async () => {
+      try {
+        await AsyncStorage.setItem(`todos_${event.id}`, JSON.stringify(todos));
+      } catch (error) {
+        console.error('Error saving todos:', error);
+      }
+    };
+
+    saveTodos();
+  }, [todos, event.id]);
+
+  // Functions
   const toggleTodo = (index) => {
     const newTodos = [...todos];
     newTodos[index].completed = !newTodos[index].completed;
     setTodos(newTodos);
   };
 
-  const [tempTitle, setTempTitle] = useState(event.title);
-  const [titleModalVisible, setTitleModalVisible] = useState(false);
   const saveTitle = () => {
     changeTitle(tempTitle);
     setTitleModalVisible(false);
   };
 
-  const [dateTimeModalVisible, setDateTimeModalVisible] = useState(false);
-  const [tempDate, setTempDate] = useState(eventDate);
-  const [tempTime, setTempTime] = useState(eventTime);
-  const [tempDuration, setTempDuration] = useState(eventDuration);
   const saveDateTime = () => {
     changeDate(tempDate);
     changeTime(tempTime);
-    changeDuration(tempDuration);
     setDateTimeModalVisible(false);
   };
 
-  const [descriptionModalVisible, setDescriptionModalVisible] = useState(false);
-  const [tempDescription, setTempDescripton] = useState(eventDescription);
   const saveDescription = () => {
     changeDescription(tempDescription);
     setDescriptionModalVisible(false);
   };
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [newTodo, setNewTodo] = useState('');
   const addTodo = () => {
     if (newTodo.trim().length > 0) {
       setTodos([...todos, { text: newTodo, completed: false }]);
@@ -66,75 +112,44 @@ const EventScreen = ({ navigation, route }) => {
     }
   };
 
-  const [reflectionModalVisible, setReflectionModalVisible] = useState(false);
-  const [meetingOccurred, setMeetingOccurred] = useState(null);
-  const [whatWentWell, setWhatWentWell] = useState('');
-  const [whatCouldBeBetter, setWhatCouldBeBetter] = useState('');
-  const [additionalNotes, setAdditionalNotes] = useState('');
-
   return (
     <ScrollView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={{ fontSize: 20 }}>{'<'}</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Icon name="arrow-left" type="font-awesome" size={20} color="#1E9278" />
         </TouchableOpacity>
+        <Text style={styles.headerText}>{eventTitle}</Text>
         <TouchableOpacity onPress={() => setTitleModalVisible(true)}>
-          <Text style={styles.headerText}>{eventTitle}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setTitleModalVisible(true)}>
-          <Icon name="cog" type="font-awesome" size={20} />
+          <Icon name="edit" type="font-awesome" size={20} color="#1E9278" />
         </TouchableOpacity>
       </View>
 
+      {/* Date and Time Section */}
       <View style={styles.section}>
-        <Text style={styles.label}>Collaborators</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          {/* <BoardMembers members={event.users}></BoardMembers> */}
-          <TouchableOpacity style={styles.addButton} onPress={() => console.log(event.todos)}>
-            <Text style={{ fontSize: 18 }}>+</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View style={styles.sectionHeader}>
           <Text style={styles.label}>Date and Time</Text>
           <TouchableOpacity onPress={() => setDateTimeModalVisible(true)}>
-            <Text style={{ fontSize: 12, marginTop: 10, color: 'gray' }}>Edit</Text>
+            <Text style={styles.editText}>Edit</Text>
           </TouchableOpacity>
         </View>
-        <Text style={{ fontSize: 13, marginBottom: 5, color: 'gray' }}>
+        <Text style={styles.infoText}>
           Date: {eventDate} | Time: {eventTime} | Duration: {eventDuration}
         </Text>
       </View>
 
+      {/* Description Section */}
       <View style={styles.section}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View style={styles.sectionHeader}>
           <Text style={styles.label}>Description</Text>
           <TouchableOpacity onPress={() => setDescriptionModalVisible(true)}>
-            <Text style={{ fontSize: 12, marginTop: 10, color: 'gray' }}>Edit</Text>
+            <Text style={styles.editText}>Edit</Text>
           </TouchableOpacity>
         </View>
-        <Text style={{ fontSize: 13, marginBottom: 5, color: 'gray' }}>{eventDescription}</Text>
+        <Text style={styles.infoText}>{eventDescription}</Text>
       </View>
 
-      <View style={styles.section}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Text style={styles.label}>To-do</Text>
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <Text style={{ fontSize: 12, marginVertical: 10, color: 'gray' }}>Add</Text>
-          </TouchableOpacity>
-        </View>
-        {todos.map((item, index) => (
-          <ToDoItem
-            key={index}
-            text={item.text}
-            completed={item.completed}
-            onToggle={() => toggleTodo(index)}
-          />
-        ))}
-      </View>
-
+      {/* Notes Section */}
       <View style={styles.section}>
         <Text style={styles.label}>Notes</Text>
         <TextInput
@@ -142,76 +157,19 @@ const EventScreen = ({ navigation, route }) => {
           placeholder="Write your notes here..."
           value={notes}
           onChangeText={setNotes}
+          multiline
         />
-        <TouchableOpacity style={styles.addButton} onPress={() => setReflectionModalVisible(true)}>
-          <Text style={{ fontSize: 14, color: '#1E9278', marginTop: 10 }}>+ Add Reflection</Text>
-        </TouchableOpacity>
       </View>
-
-      {/* Reflection Modal */}
-      <Modal visible={reflectionModalVisible} transparent animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Meeting Reflection</Text>
-
-            <Text style={{ alignSelf: 'flex-start', marginBottom: 5 }}>Did the meeting happen?</Text>
-            <View style={{ flexDirection: 'row', marginBottom: 15 }}>
-              <TouchableOpacity
-                style={[styles.reflectionOption, meetingOccurred === true && styles.selectedOption]}
-                onPress={() => setMeetingOccurred(true)}
-              >
-                <Text style={meetingOccurred === true && { color: 'white' }}>Yes</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.reflectionOption, meetingOccurred === false && styles.selectedOption]}
-                onPress={() => setMeetingOccurred(false)}
-              >
-                <Text style={meetingOccurred === false && { color: 'white' }}>No</Text>
-              </TouchableOpacity>
-            </View>
-
-            <TextInput
-              style={styles.modalInput}
-              placeholder="What went well?"
-              value={whatWentWell}
-              onChangeText={setWhatWentWell}
-            />
-            <TextInput
-              style={styles.modalInput}
-              placeholder="What could be improved?"
-              value={whatCouldBeBetter}
-              onChangeText={setWhatCouldBeBetter}
-            />
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Any additional notes?"
-              value={additionalNotes}
-              onChangeText={setAdditionalNotes}
-            />
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.cancelButton} onPress={() => setReflectionModalVisible(false)}>
-                <Text style={{ color: 'gray' }}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.addTaskButton}
-                onPress={() => {
-                  console.log({ meetingOccurred, whatWentWell, whatCouldBeBetter, additionalNotes });
-                  setReflectionModalVisible(false);
-                }}
-              >
-                <Text style={{ color: 'white' }}>Save</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9F9F9', padding: 20 },
+  container: {
+    flex: 1,
+    backgroundColor: '#F9F9F9',
+    padding: 20,
+  },
   header: {
     marginTop: 50,
     flexDirection: 'row',
@@ -219,84 +177,57 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  headerText: { fontSize: 18, fontWeight: 'bold' },
-  section: { marginBottom: 15 },
-  label: { fontWeight: 'bold', marginBottom: 5 },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'gray',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  notesInput: {
-    backgroundColor: '#FFF',
+  backButton: {
     padding: 10,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: 'lightgray',
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  headerText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1E9278',
   },
-  modalContent: {
-    backgroundColor: 'white',
-    width: '80%',
-    padding: 20,
+  section: {
+    marginBottom: 20,
+    padding: 15,
+    backgroundColor: '#FFFFFF',
     borderRadius: 10,
-    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
-  modalTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 10 },
-  modalInput: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: 'lightgray',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 15,
-  },
-  modalButtons: {
+  sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%',
-  },
-  cancelButton: {
-    padding: 10,
-    borderRadius: 5,
-    backgroundColor: 'white',
-    flex: 1,
     alignItems: 'center',
-    marginRight: 5,
+    marginBottom: 10,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  editText: {
+    fontSize: 14,
+    color: '#1E9278',
+    fontWeight: '500',
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 20,
+  },
+  notesInput: {
+    backgroundColor: '#F9F9F9',
+    padding: 10,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'gray',
-  },
-  addTaskButton: {
-    padding: 10,
-    borderRadius: 5,
-    backgroundColor: '#1E9278',
-    flex: 1,
-    alignItems: 'center',
-    marginLeft: 5,
-  },
-  reflectionOption: {
-    flex: 1,
-    padding: 10,
-    marginHorizontal: 5,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: 'gray',
-    alignItems: 'center',
-  },
-  selectedOption: {
-    backgroundColor: '#1E9278',
-    borderColor: '#1E9278',
+    borderColor: '#E0E0E0',
+    fontSize: 14,
+    color: '#333',
+    textAlignVertical: 'top',
+    minHeight: 100,
   },
 });
 
 export default EventScreen;
-

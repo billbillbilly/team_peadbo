@@ -1,29 +1,11 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { Auth } from 'aws-amplify';
-
-import { initializeApp, getApps } from 'firebase/app';
-import { 
-  setDoc, getDocs, addDoc, doc, getFirestore, collection, 
-  onSnapshot, getDoc, deleteDoc, updateDoc 
-} from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
-import { firebaseConfig } from "./Secrets";
-
+import { API, graphqlOperation } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/api';
 import * as queries from './src/graphql/queriesCopy';
 import * as mutations from './src/graphql/mutations';
 import { createPeadboBoard } from './src/graphql/mutations';
 
-// ---------------------- Set up firebase ------------------------
-let app;
-const apps = getApps();
-if (apps.length === 0) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = apps[0];
-}
-const db = getFirestore(app);
-const storage = getStorage(app);
+
 
 // ---------------------- fetch data ------------------------
 const client = generateClient();
@@ -109,60 +91,165 @@ export const setUser = createAsyncThunk(
   }
 );
 
-// Fetch tasks
-export const fetchTasksThunk = createAsyncThunk(
-  'tasks/fetchTasks',
-  async () => {
-    const snapshot = await getDocs(collection(db, 'tasks'));
-    const tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    console.log('Fetched tasks from backend:', tasks); // Debugging
-    return tasks;
+export const fetchEvents = async (boardId) => {
+  try {
+    const result = await client.graphql({
+      query: queries.listPeadboEvents,
+      variables: {
+        filter: {
+          boardID: { eq: boardId }, // Filter events by the board ID
+        },
+      },
+    });
+    return result.data.listPeadboEvents.items;
+  } catch (error) {
+    console.error('Error fetching events:', error);
   }
-);
+};
 
-// Add a task
-export const addTaskThunk = createAsyncThunk(
-  'tasks/addTask',
-  async (task) => {
-    const ref = await addDoc(collection(db, 'tasks'), { ...task, completed: false });
-    return { id: ref.id, ...task, completed: false };
+export const fetchEvent = async (eventId) => {
+  try {
+    const result = await client.graphql({
+      query: queries.getPeadboEvent,
+      variables: { id: eventId },
+    });
+    return result.data.getPeadboEvent;
+  } catch (error) {
+    console.error('Error fetching event:', error);
   }
-);
+};
 
-export const updateTaskThunk = createAsyncThunk(
-  'tasks/updateTask',
-  async (updatedTask) => {
-    const { id, ...dataToUpdate } = updatedTask;
-    console.log('Updating task:', id, dataToUpdate); // For debugging
-    const taskRef = doc(db, 'tasks', id);
-    await updateDoc(taskRef, dataToUpdate);
-    return updatedTask; // Return the updated task
+export const addEvent = async (event) => {
+  try {
+    const result = await client.graphql({
+      query: mutations.createPeadboEvent,
+      variables: { input: event },
+    });
+    return result.data.createPeadboEvent;
+  } catch (error) {
+    console.error('Error adding event:', error);
   }
-);
+};
 
-// Mark a task complete (this one is already there)
-export const completeTaskThunk = createAsyncThunk(
-  'tasks/completeTask',
-  async (taskId) => {
-    await updateDoc(doc(db, 'tasks', taskId), { completed: true });
-    return taskId;
+export const updateEvent = async (event) => {
+  try {
+    const result = await client.graphql({
+      query: mutations.updatePeadboEvent,
+      variables: { input: event },
+    });
+    return result.data.updatePeadboEvent;
+  } catch (error) {
+    console.error('Error updating event:', error);
   }
-);
+};
 
-// Delete a task
-export const deleteTaskThunk = createAsyncThunk(
-  'tasks/deleteTask',
-  async (taskId, { rejectWithValue }) => {
-    try {
-      console.log('Deleting task from backend:', taskId); // Debugging
-      await deleteDoc(doc(db, 'tasks', taskId)); // Ensure this is the correct deletion logic
-      return taskId; // Return the deleted task ID
-    } catch (error) {
-      console.error('Error deleting task from backend:', error);
-      return rejectWithValue(error.message);
-    }
+export const deleteEvent = async (eventId) => {
+  try {
+    const result = await client.graphql({
+      query: mutations.deletePeadboEvent,
+      variables: { input: { id: eventId } },
+    });
+    return result.data.deletePeadboEvent;
+  } catch (error) {
+    console.error('Error deleting event:', error);
   }
-);
+};
+
+export const fetchUserContacts = async (userId) => {
+  try {
+    const result = await client.graphql({
+      query: queries.listPeadboContacts,
+      variables: {
+        filter: {
+          peadboUserID: { eq: userId }, // Filter contacts by the user's ID
+        },
+      },
+    });
+    return result.data.listPeadboContacts.items;
+  } catch (error) {
+    console.error('Error fetching user contacts:', error);
+  }
+};
+
+export const fetchTasks = async (boardId) => {
+  try {
+    const result = await client.graphql({
+      query: queries.listPeadboTasks,
+      variables: {
+        filter: {
+          boardID: { eq: boardId }, // Filter tasks by the board ID
+        },
+      },
+    });
+    return result.data.listPeadboTasks.items;
+  }
+  catch (error) {
+    console.error('Error fetching tasks:', error);
+  }
+};
+
+export const fetchTask = async (taskId) => {
+  try {
+    const result = await client.graphql({
+      query: queries.getPeadboTask,
+      variables: { id: taskId },
+    });
+    return result.data.getPeadboTask;
+  } catch (error) {
+    console.error('Error fetching task:', error);
+  }
+};
+
+export const addTask = async (task) => {
+  try {
+    const result = await client.graphql({
+      query: mutations.createPeadboTask,
+      variables: { input: task },
+    });
+    return result.data.createPeadboTask;
+  } catch (error) {
+    console.error('Error adding task:', error);
+  }
+};
+
+export const updateTask = async (task) => {
+  try {
+    const result = await client.graphql({
+      query: mutations.updatePeadboTask,
+      variables: { input: task },
+    });
+    return result.data.updatePeadboTask;
+  } catch (error) {
+    console.error('Error updating task:', error);
+  }
+};
+
+export const completeTask = async (taskId) => {
+  try {
+    const result = await client.graphql({
+      query: mutations.updatePeadboTask,
+      variables: {
+        input: { id: taskId, completed: true },
+      },
+    });
+    return result.data.updatePeadboTask;
+  } catch (error) {
+    console.error('Error completing task:', error);
+  }
+};
+
+export const deleteTask = async (taskId) => {
+  try {
+    const result = await client.graphql({
+      query: mutations.deletePeadboTask,
+      variables: { input: { id: taskId } },
+    });
+    return result.data.deletePeadboTask;
+  } catch (error) {
+    console.error('Error deleting task:', error);
+  }
+};
+
 
 export const addBoardThunk = createAsyncThunk(
   'boards/addBoard',
@@ -223,27 +310,6 @@ const userSlice = createSlice({
         state.name = name;
         state.allBoards = boards;
         state.allMembers = members;
-      })
-      .addCase(fetchTasksThunk.fulfilled, (state, action) => {
-        state.tasks = action.payload;
-      })
-      .addCase(addTaskThunk.fulfilled, (state, action) => {
-        state.tasks.push(action.payload);
-      })
-      .addCase(completeTaskThunk.fulfilled, (state, action) => {
-        const index = state.tasks.findIndex(task => task.id === action.payload);
-        if (index !== -1) {
-          state.tasks[index].completed = true;
-        }
-      })
-      .addCase(updateTaskThunk.fulfilled, (state, action) => {
-        const index = state.tasks.findIndex(task => task.id === action.payload.id);
-        if (index !== -1) {
-          state.tasks[index] = action.payload;
-        }
-      })
-      .addCase(deleteTaskThunk.fulfilled, (state, action) => {
-        state.tasks = state.tasks.filter((task) => task.id !== action.payload);
       })
       .addCase(addBoardThunk.fulfilled, (state, action) => {
         state.allBoards.push(action.payload); // Add the new board to the state
