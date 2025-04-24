@@ -57,6 +57,8 @@ export const generateText = async () => {
 
 /**
  * Generates a response message based on user input using OpenAI.
+ * By providing more details on the processes of the app, you can achieve a more accurate
+ * response from the model that is more relevant to the user's needs.
  * @param {string} input - The user's input message.
  * @returns {string} - The generated response message.
  * @throws {Error} - Throws an error if the request fails or rate limit is hit.
@@ -100,7 +102,9 @@ export const generateMessage = async (input) => {
 };
 
 /**
- * Generates a professional email template in JSON format using OpenAI.
+ * Generates a professional email template in JSON format using OpenAI. Because response comes as a string,
+ * it must be specified in request that response should be in strict JSON format.
+ * This will allow it to be parsed so that the information can be extracted and used in the newsletter.
  * @returns {Object} - The generated email template with `title`, `subject`, and `body` fields.
  * @throws {Error} - Throws an error if the request fails, rate limit is hit, or the response is invalid JSON.
  */
