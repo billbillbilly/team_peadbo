@@ -115,9 +115,9 @@ export default function CreateNewsletterScreen({ navigation, route }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        {/* <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} color={PEADBO_COLORS.text} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <Text style={styles.headerTitle}>
           {route.params?.newsletter ? 'Edit Newsletter' : 'New Newsletter'}
         </Text>
@@ -209,7 +209,7 @@ export default function CreateNewsletterScreen({ navigation, route }) {
           style={styles.contentButton}
           onPress={handleEditContent}
         >
-          <Text style={styles.contentButtonText}>Edit Newsletter Content</Text>
+          <Text style={styles.contentButtonText}>Edit Newsletter Message</Text>
         </TouchableOpacity>
 
         <View style={styles.buttonRow}>
@@ -235,12 +235,12 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: PEADBO_COLORS.background },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     padding: 16,
     backgroundColor: PEADBO_COLORS.white,
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: PEADBO_COLORS.border
+    borderBottomColor: PEADBO_COLORS.border,
   },
   headerTitle: { fontSize: 20, fontWeight: 'bold', color: PEADBO_COLORS.text },
   generateButton: {

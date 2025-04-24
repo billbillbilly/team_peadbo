@@ -9,7 +9,8 @@ export default function ResumeSection({ currentUser }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchResumes();
+    // uncomment this line to fetch resumes when the component mounts
+    // fetchResumes();
   }, []);
 
   const fetchResumes = async () => {

@@ -76,7 +76,7 @@ const CommunicationStyleScreen = () => {
     } else {
       console.log('All responses:', responses);
       // Navigate to next onboarding screen or home
-      navigation.navigate('Home'); // or wherever you want next
+      navigation.navigate('Main', { screen: 'Home' }) // or wherever you want next
     }
   };
 

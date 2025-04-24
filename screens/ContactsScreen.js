@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, FlatList, TouchableOpacity, Text, TextInput, StyleSheet, Modal, Alert } from "react-native";
 import * as Contacts from 'expo-contacts';
+import { fetchUserContacts, addUserContact } from '../Reducer';
+import { useSelector } from 'react-redux';
+
 
 function ContactsScreen({ navigation }) {
   // State for contacts and search
@@ -11,7 +14,8 @@ function ContactsScreen({ navigation }) {
   const [showPhoneContactsModal, setShowPhoneContactsModal] = useState(false);
   const [phoneContacts, setPhoneContacts] = useState([]); // Phone contacts for the modal
   const [filteredPhoneContacts, setFilteredPhoneContacts] = useState([]); // Filtered phone contacts for the modal
-
+  const [loading, setLoading] = useState(true); // Loading state
+  const currentUser = useSelector((state) => state.user.currentUser); // Get current user from Redux
   // Request permission and load phone contacts
   useEffect(() => {
     const requestPermission = async () => {
@@ -23,8 +27,27 @@ function ContactsScreen({ navigation }) {
       }
     };
 
+    const loadContacts = async () => {
+      try {
+        if (!currentUser || !currentUser.id) {
+          throw new Error('User ID is not available.');
+        }
+    
+        const userId = currentUser.id; // Get the user ID from Redux
+        const fetchedContacts = await fetchUserContacts(userId); // Fetch contacts
+        console.log('Fetched Contacts:', fetchedContacts); // Log fetched contacts
+        setContacts(fetchedContacts || []); // Ensure contacts is always an array
+      } catch (error) {
+        console.error('Error fetching user contacts:', error);
+        Alert.alert('Error', 'Failed to load contacts. Please try again.');
+      } finally {
+        setLoading(false); // Set loading to false after fetching
+      }
+    };
+
     requestPermission();
-  }, []);
+    loadContacts(); // Load contacts when the component mounts
+  }, [currentUser.id]);
 
   const loadPhoneContacts = async () => {
     const { data } = await Contacts.getContactsAsync({
@@ -117,19 +140,27 @@ function ContactsScreen({ navigation }) {
 
       {/* Contact List */}
       {contacts.length > 0 ? (
-        <FlatList
-          data={contacts} // Use contacts here
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.contactItem}>
-              <Text style={styles.contactName}>{item.name}</Text>
-              <Text style={styles.contactEmail}>
-                {item.email ? item.email : 'No Email'}
-              </Text>
-            </View>
-          )}
-          contentContainerStyle={styles.listContent}
-        />
+        <View style={styles.container}>
+        {loading ? (
+          <Text style={styles.loadingText}>Loading contacts...</Text> // Show a loading message
+        ) : contacts.length > 0 ? (
+          <FlatList
+            data={contacts} // Use contacts here
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => (
+              <View style={styles.contactItem}>
+                <Text style={styles.contactName}>{item.name}</Text>
+                <Text style={styles.contactEmail}>
+                  {item.email ? item.email : 'No Email'}
+                </Text>
+              </View>
+            )}
+            contentContainerStyle={styles.listContent}
+          />
+        ) : (
+          <Text style={styles.emptyStateText}>No contacts found. Add a new contact to get started!</Text>
+        )}
+      </View>
       ) : (
         <Text style={styles.emptyStateText}>No contacts found. Add a new contact to get started!</Text>
       )}

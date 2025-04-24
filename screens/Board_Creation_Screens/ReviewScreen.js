@@ -13,29 +13,33 @@ export default function ReviewScreen({ navigation, route }) {
   const dispatch = useDispatch();
 
   const handleConfirm = async () => {
-    // Create the new board object
     const newBoard = {
       name: boardName,
       description: boardDescription,
       focus: focus,
-      advisor: advisors.length > 0 ? advisors[0].name : 'No Advisor', // Use the first advisor or a default value
+      advisor: advisors.length > 0 ? advisors[0].name : 'No Advisor',
       duration: boardDuration,
       frequency: boardFrequency,
-      author: currentUser.id, // Replace with the logged-in user's ID
+      author: currentUser.id,
     };
   
     try {
-      // Dispatch the thunk to add the board to the database
       await dispatch(addBoardThunk(newBoard));
       console.log('Board added successfully');
-  
-      // Navigate to the HomeScreen
-      navigation.navigate('HomeScreen');
     } catch (error) {
       console.error('Error adding board:', error);
       Alert.alert('Error', 'Failed to create the board. Please try again.');
+    } finally {
+      // Reset the navigation stack and navigate to the Home screen
+      console.log('Navigating to Home');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Main', params: { screen: 'Home' } }],
+      });
     }
   };
+
+
 
   const handleBack = () => {
     navigation.goBack();
@@ -56,27 +60,27 @@ export default function ReviewScreen({ navigation, route }) {
       nine: 9,
       ten: 10,
     };
-  
+
     // Convert the duration to lowercase for easier matching
     const lowerDuration = duration.toLowerCase();
-  
+
     // Check if the duration contains a word number (e.g., "one")
     const wordMatch = lowerDuration.match(/one|two|three|four|five|six|seven|eight|nine|ten/);
     const numericValue = wordMatch ? wordToNumber[wordMatch[0]] : parseInt(duration, 10);
-  
+
     if (lowerDuration.includes('year')) {
       return numericValue * 12; // Convert years to months
     } else if (lowerDuration.includes('month')) {
       return numericValue; // Return months directly
     }
-  
+
     return 0; // Default to 0 if the format is invalid
   };
 
   // Parse frequency (e.g., "once a month" -> 1 month)
   const parseFrequency = (frequency) => {
     const lowerFrequency = frequency.toLowerCase();
-  
+
     if (lowerFrequency.includes('bi-weekly')) {
       return 0.5; // Bi-weekly = 0.5 months (2 weeks)
     } else if (lowerFrequency.includes('once a month')) {
@@ -87,7 +91,7 @@ export default function ReviewScreen({ navigation, route }) {
     } else if (lowerFrequency.includes('once per year')) {
       return 12; // Once per year = 12 months
     }
-  
+
     return 0; // Default to 0 if the format is invalid
   };
 

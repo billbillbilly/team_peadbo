@@ -17,8 +17,8 @@ export default function NewsletterPreviewScreen({ navigation, route }) {
   const { newsletter, onSave } = route.params;
 
   const handleContinue = () => {
-    const updatedNewsletter = {...newsletter, status: 'sent'};
-    onSave(updatedNewsletter);
+    const updatedNewsletter = { ...newsletter, status: 'sent' };
+    onSave(updatedNewsletter); // Call the onSave callback
   };
 
   const handleSaveDraft = () => {
@@ -37,21 +37,28 @@ export default function NewsletterPreviewScreen({ navigation, route }) {
 
       <ScrollView style={styles.scrollContainer}>
         <View style={styles.recipientSection}>
-          <Text style={styles.sectionTitle}>Recipients ({newsletter.recipients.length})</Text>
-          {newsletter.recipients.map((recipient, index) => (
-            <View key={index} style={styles.recipientItem}>
-              <Text style={styles.recipientName}>
-                {recipient.name || `${recipient.firstName} ${recipient.lastName}`}
-              </Text>
-              <Text style={styles.recipientEmail}>{recipient.email}</Text>
-            </View>
-          ))}
+          <Text style={styles.sectionTitle}>
+            Recipients ({newsletter.recipients?.length || 0})
+          </Text>
+          {newsletter.recipients && newsletter.recipients.length > 0 ? (
+            newsletter.recipients.map((recipient, index) => (
+              <View key={index} style={styles.recipientItem}>
+                <Text style={styles.recipientName}>
+                  {recipient.name || `${recipient.firstName} ${recipient.lastName}`}
+                </Text>
+                <Text style={styles.recipientEmail}>{recipient.email}</Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.noRecipientsText}>No recipients added yet.</Text>
+          )}
         </View>
 
         <View style={styles.previewContainer}>
           <WebView
             originWhitelist={['*']}
-            source={{ html: `
+            source={{
+              html: `
               <!DOCTYPE html>
               <html>
                 <head>
@@ -78,32 +85,28 @@ export default function NewsletterPreviewScreen({ navigation, route }) {
                   <h1>${newsletter.title}</h1>
                   <h2>${newsletter.subject}</h2>
                   ${newsletter.content}
-                  ${newsletter.schedule ? `<p><strong>Scheduled:</strong> ${newsletter.schedule}</p>` : ''}
+                  ${
+                    newsletter.schedule
+                      ? `<p><strong>Scheduled:</strong> ${newsletter.schedule}</p>`
+                      : ''
+                  }
                 </body>
               </html>
-            ` }}
+            `,
+            }}
             style={styles.preview}
           />
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity 
-          style={styles.editButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.editButton} onPress={() => navigation.goBack()}>
           <Text style={styles.editButtonText}>Edit</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.draftButton}
-          onPress={handleSaveDraft}
-        >
+        <TouchableOpacity style={styles.draftButton} onPress={handleSaveDraft}>
           <Text style={styles.draftButtonText}>Save Draft</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.sendButton}
-          onPress={handleContinue}
-        >
+        <TouchableOpacity style={styles.sendButton} onPress={handleContinue}>
           <Text style={styles.sendButtonText}>Send Now</Text>
         </TouchableOpacity>
       </View>

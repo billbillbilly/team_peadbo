@@ -46,7 +46,7 @@ const LoginScreen = ({ navigation }) => {
     try {
       const user = await handleSignIn({username: email, password:password});
       dispatch(setUser(user));
-      navigation.navigate('Home');
+      navigation.navigate('Main', { screen: 'Home' });
       // navigation.replace('Home'); // Redirect to HomeScreen after successful login
     } catch (error) {
       console.error(error);
@@ -61,7 +61,7 @@ const LoginScreen = ({ navigation }) => {
       <View style={styles.backgroundOverlay} />
 
       {/* App Logo */}
-      <Image source={require('../assets/Peadbo_Standard_Logo.png')} style={styles.logo} />
+      <Image source={require('../assets/Peadbo_Logo_Alternate1.png')} style={styles.logo} />
 
       {/* Login Form */}
       <View style={styles.loginBox}>
@@ -144,18 +144,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#1EA896', // green
     padding: 20,
   },
   backgroundOverlay: {
     position: 'absolute',
     width: '100%',
     height: '100%',
-    backgroundColor: 'rgba(240, 240, 240, 0.8)',
+    backgroundColor: '#1EA896',
   },
   logo: {
-    width: 320,
-    height: 110,
+    width: '40%',
+    height: '25%',
     resizeMode: 'contain',
     marginBottom: 50,
   },

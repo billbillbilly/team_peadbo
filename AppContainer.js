@@ -43,6 +43,7 @@ import UpgradePlanScreen from './screens/ProfileScreens/UpgradePlanScreen';
 import BillingScreen from './screens/ProfileScreens/BillingScreen';
 import FAQScreen from './screens/ProfileScreens/FAQScreen';
 import ContactSupportScreen from './screens/ProfileScreens/ContactSupportScreen';
+import MyResumeSection from './screens/ProfileScreens/MyResumeSection';
 
 // Board Detail Screens
 import BoardDetailScreen from './screens/Board_Detail_Screens/BoardDetailScreen';
@@ -50,9 +51,9 @@ import EventScreen from './screens/Board_Detail_Screens/EventScreen';
 
 // Newsletter Screens
 import NewsletterScreen from './screens/News_Letter_Screens/NewsletterScreen';
-import CreateNewsletterScreen from './screens/News_Letter_Screens/CreateNewsletterScreen';
 import ContactPickerScreen from './screens/News_Letter_Screens/ContactPickerScreen';
 import RichTextEditorScreen from './screens/News_Letter_Screens/RichTextEditorScreen';
+import NewsletterPreviewScreen from './screens/News_Letter_Screens/NewsletterPreviewScreen';
 
 const store = configureStore({
   reducer: {
@@ -72,7 +73,6 @@ const BoardCreationStack = () => {
       <Stack.Screen name="TimeAvailabilityScreen" component={TimeAvailabilityScreen} />
       <Stack.Screen name="ReviewScreen" component={Review} />
       <Stack.Screen name="SendNotificationScreen" component={SendNotificationScreen} />
-      <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ChatBot" component={ChatBot} />
       <Stack.Screen name="ContactSupport" component={ContactSupportScreen} />
     </Stack.Navigator>
@@ -93,13 +93,12 @@ const OnboardingStack = () => {
 const HomeTabStack = () => {
   const Stack = createNativeStackNavigator();
   return (
-    <Stack.Navigator initialRouteName="Home" screenOptions={{ headerShown: true }}>
-      <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+    <Stack.Navigator initialRouteName="HomeScreen" screenOptions={{ headerShown: true }}>
+      <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }} />
       <Stack.Screen name="BoardCreation" component={BoardCreationStack} />
       <Stack.Screen name="BoardDetail" component={BoardDetailScreen} options={{ headerShown: false }} />
       <Stack.Screen name="EventScreen" component={EventScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ChatBot" component={ChatBot} />
-      <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ContactSupport" component={ContactSupportScreen} />
       <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
@@ -121,13 +120,12 @@ const NewsTabStack = () => {
   const Stack = createNativeStackNavigator();
   return (
     <Stack.Navigator initialRouteName="Newsletter" screenOptions={{ headerShown: true }}>
-      <Stack.Screen name="Newsletter" component={NewsletterScreen} />
-      <Stack.Screen name="CreateNewsletter" component={CreateNewsletterScreen} options={{ title: 'New Newsletter' }} />
-      <Stack.Screen name="ContactPicker" component={ContactPickerScreen} />
+      <Stack.Screen name="Newsletter" component={NewsletterScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="ContactPicker" component={ContactPickerScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ChatBot" component={ChatBot} />
-      <Stack.Screen name="RichTextEditor" component={RichTextEditorScreen} options={{ title: 'Edit Newsletter' }} />
+      <Stack.Screen name="RichTextEditor" component={RichTextEditorScreen} options={{ title: 'Edit Newsletter', headerShown: false }} />
       <Stack.Screen name="ContactSupport" component={ContactSupportScreen} />
-
+      <Stack.Screen name="NewsletterPreview" component={NewsletterPreviewScreen} options={{ title: 'Preview Newsletter', headerShown: false }} />
     </Stack.Navigator>
   );
 };
@@ -145,29 +143,25 @@ const UserTabStack = () => {
       <Stack.Screen name="ContactSupport" component={ContactSupportScreen} />
       <Stack.Screen name="ChatBot" component={ChatBot} />
       <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="ResumeLibrary" component={MyResumeSection} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 };
 
+const RootStack = createNativeStackNavigator();
+const Tabs = createBottomTabNavigator();
+
 const DynamicTabsNavigator = () => {
-  const Tabs = createBottomTabNavigator();
   return (
     <Tabs.Navigator
-      initialRouteName="Login"
+      initialRouteName="Home"
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: { display: route.name === 'Login' || route.name === 'Signup' ? 'none' : 'flex' },
+        tabBarActiveTintColor: '#1EA896',
+        tabBarInactiveTintColor: '#B0B0B0',
       })}
     >
-      <Tabs.Screen name="Login" component={LoginScreen} options={{
-        tabBarIcon: ({ color, size }) => <Icon name="home" type="font-awesome" color={color} size={size} />,
-      }} />
-      <Tabs.Screen name="Signup" component={SignupScreen} options={{
-        tabBarIcon: ({ color, size }) => <Icon name="home" type="font-awesome" color={color} size={size} />,
-      }} />
-      <Tabs.Screen name="NewUserOnboarding" component={OnboardingStack} options={{
-        tabBarIcon: ({ color, size }) => <Icon name="home" type="font-awesome" color={color} size={size} />,
-      }} />
       <Tabs.Screen name="Home" component={HomeTabStack} options={{
         tabBarIcon: ({ color, size }) => <Icon name="home" type="font-awesome" color={color} size={size} />,
       }} />
@@ -196,23 +190,33 @@ const AppContainer = () => {
   return (
     <Provider store={store}>
       <ThemeProvider>
-        <NavigationContainer 
-        ref={navigationRef}
-        onStateChange={() => {
-          const route = navigationRef.current?.getCurrentRoute();
-          setCurrentRouteName(route?.name || ''); // Update the current route name
-          console.log('Updated Route:', route?.name); // Debugging
-        }}
-        onReady={() => {
-          const route = navigationRef.current?.getCurrentRoute();
-          setCurrentRouteName(route?.name || ''); // Update the current route name
-          console.log('Initial Route:', route?.name); // Debugging
-        }}
+        <NavigationContainer
+          ref={navigationRef}
+          onStateChange={() => {
+            const route = navigationRef.current?.getCurrentRoute();
+            setCurrentRouteName(route?.name || ''); // Update the current route name
+            console.log('Updated Route:', route?.name); // Debugging
+          }}
+          onReady={() => {
+            const route = navigationRef.current?.getCurrentRoute();
+            setCurrentRouteName(route?.name || ''); // Update the current route name
+            console.log('Initial Route:', route?.name); // Debugging
+          }}
         >
-          <DynamicTabsNavigator />
+          <RootStack.Navigator screenOptions={{ headerShown: false }}>
+            {/* Screens not part of the tab bar */}
+            <RootStack.Screen name="Login" component={LoginScreen} />
+            <RootStack.Screen name="Signup" component={SignupScreen} />
+            <RootStack.Screen name="NewUserOnboarding" component={OnboardingStack} />
+
+            {/* Tab Navigator */}
+            <RootStack.Screen name="Main" component={DynamicTabsNavigator} />
+          </RootStack.Navigator>
+
+          {/* Floating Button */}
           {!excludedScreens.includes(currentRouteName) && (
-          <FloatingButton onPress={() => navigationRef.current?.navigate('ChatBot')} />
-        )}
+            <FloatingButton onPress={() => navigationRef.current?.navigate('ChatBot')} />
+          )}
         </NavigationContainer>
       </ThemeProvider>
     </Provider>

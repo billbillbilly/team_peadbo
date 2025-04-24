@@ -20,15 +20,16 @@ function ProfileScreen({ navigation }) {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity onPress={() => setIsDarkMode(!isDarkMode)} style={{ marginRight: 15 }}>
-          <Icon 
-            name={isDarkMode ? 'sun' : 'moon'} 
-            type="feather" 
-            color={isDarkMode ? '#FFD700' : '#333'} 
-          />
-        </TouchableOpacity>
-      ),
+      // uncomment to see preview of dark mode toggle
+      // headerRight: () => (
+      //   <TouchableOpacity onPress={() => setIsDarkMode(!isDarkMode)} style={{ marginRight: 15 }}>
+      //     <Icon 
+      //       name={isDarkMode ? 'sun' : 'moon'} 
+      //       type="feather" 
+      //       color={isDarkMode ? '#FFD700' : '#333'} 
+      //     />
+      //   </TouchableOpacity>
+      // ),
     });
   }, [navigation, isDarkMode]);
 
@@ -125,7 +126,8 @@ function ProfileScreen({ navigation }) {
       <View style={styles.menuList}>
         <MenuItem title="Upgrade the Plan" iconName="trending-up" onPress={() => navigation.navigate('UpgradePlan')} />
         <MenuItem title="My Peadbo" iconName="user" />
-        <MenuItem title="My Resume" iconName="file-text" onPress={() => navigation.navigate('ResumeLibrary')} />
+        {/* Uncomment this line to enable navigation to ResumeLibrary when resumes are set up}
+        {/* <MenuItem title="My Resume" iconName="file-text" onPress={() => navigation.navigate('ResumeLibrary')} /> */}
         <MenuItem title="Settings" iconName="settings" onPress={() => navigation.navigate('Settings')} />
         <MenuItem title="Billing" iconName="credit-card" onPress={() => navigation.navigate('Billing')} />
         <MenuItem title="Notifications" iconName="bell" onPress={() => navigation.navigate('Notifications')} />

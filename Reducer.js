@@ -157,17 +157,39 @@ export const deleteEvent = async (eventId) => {
 
 export const fetchUserContacts = async (userId) => {
   try {
+    if (!userId) {
+      throw new Error('Invalid userId');
+    }
+
     const result = await client.graphql({
-      query: queries.listPeadboContacts,
+      query: queries.listPeadboUserContacts,
       variables: {
         filter: {
           peadboUserID: { eq: userId }, // Filter contacts by the user's ID
         },
       },
     });
-    return result.data.listPeadboContacts.items;
+
+    if (!result.data || !result.data.listPeadboUserContacts) {
+      throw new Error('Invalid response from server');
+    }
+
+    return result.data.listPeadboUserContacts.items || [];
   } catch (error) {
     console.error('Error fetching user contacts:', error);
+    throw error;
+  }
+};
+
+export const addUserContact = async (contact) => {
+  try {
+    const result = await client.graphql({
+      query: mutations.createPeadboUserContact,
+      variables: { input: contact },
+    });
+    return result.data.createPeadboUserContact;
+  } catch (error) {
+    console.error('Error adding user contact:', error);
   }
 };
 

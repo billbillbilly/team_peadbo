@@ -51,17 +51,19 @@ const SignupScreen = ({ navigation }) => {
     }
 
     setLoading(true);
-
-    try {
-      await signUp(name, email, password);
-      Alert.alert('Success', 'Account created successfully');
-      navigation.replace('Home'); // Redirect to HomeScreen
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Signup failed', error.message || 'Something went wrong');
-    } finally {
-      setLoading(false);
-    }
+    // Uncomment the following lines to enable signup functionality
+    // this will be replaced with proper signup logic
+    // try {
+    //   await signUp(name, email, password);
+    //   Alert.alert('Success', 'Account created successfully');
+    //   navigation.replace('Home'); // Redirect to HomeScreen
+    // } catch (error) {
+    //   console.error(error);
+    //   Alert.alert('Signup failed', error.message || 'Something went wrong');
+    // } finally {
+    //   setLoading(false);
+    // }
+    navigation.navigate('NewUserOnboarding', { screen: 'PersonalInformationScreen' });
   };
 
   return (
@@ -69,7 +71,7 @@ const SignupScreen = ({ navigation }) => {
       <View style={styles.backgroundOverlay} />
 
       {/* Logo */}
-      <Image source={require('../assets/Peadbo_Standard_Logo.png')} style={styles.logo} />
+      <Image source={require('../assets/Peadbo_Logo_Alternate1.png')} style={styles.logo} />
 
       {/* Signup Form */}
       <View style={styles.signupBox}>
@@ -163,18 +165,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#1EA896',
     padding: 20,
   },
   backgroundOverlay: {
     position: 'absolute',
     width: '100%',
     height: '100%',
-    backgroundColor: 'rgba(240, 240, 240, 0.8)',
+    backgroundColor: '#1EA896',
   },
   logo: {
-    width: 320,
-    height: 110,
+    width: '40%',
+    height: '25%',
     resizeMode: 'contain',
     marginBottom: 50,
   },
@@ -217,6 +219,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 5,
     backgroundColor: '#F9F9F9',
+    marginBottom: 10,
   },
   passwordInput: {
     flex: 1,
