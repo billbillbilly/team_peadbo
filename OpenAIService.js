@@ -1,43 +1,50 @@
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
-import { openAIPublicKey } from './Secrets';
+import { openAIPublicKey } from './Secrets'; // Import the OpenAI API key from a secrets file
 
 // Set up retry logic for exponential backoff
 axiosRetry(axios, {
-  retries: 5,  // Number of retries before giving up
+  retries: 5, // Number of retries before giving up
   retryDelay: (retryCount) => {
     // Exponential backoff: 1s, 2s, 4s, 8s, etc.
     return Math.pow(2, retryCount) * 1000;
   },
-  retryCondition: (error) => error.response && error.response.status === 429,  // Retry on 429 status
+  retryCondition: (error) => error.response && error.response.status === 429, // Retry on HTTP 429 (rate limit exceeded)
 });
 
-const API_KEY = openAIPublicKey;
-const openAIUrl = 'https://api.openai.com/v1/chat/completions';
+// OpenAI API configuration
+const API_KEY = openAIPublicKey; // API key for OpenAI
+const openAIUrl = 'https://api.openai.com/v1/chat/completions'; // OpenAI API endpoint
 
+// Axios instance for OpenAI requests
 const openAI = axios.create({
   baseURL: openAIUrl,
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${API_KEY}`,
+    'Authorization': `Bearer ${API_KEY}`, // Authorization header with the API key
   },
 });
 
+/**
+ * Generates a professional email invitation template using OpenAI.
+ * @returns {string} - The generated email content.
+ * @throws {Error} - Throws an error if the request fails or rate limit is hit.
+ */
 export const generateText = async () => {
   try {
     const response = await openAI.post('', {
-      model: 'gpt-4o-mini',  // Using gpt-4o-mini model
+      model: 'gpt-4o-mini', // Using the gpt-4o-mini model
       messages: [
         {
           role: 'user',
           content: 'Generate a professional template for an email invitation to a Personal Advisory Board. This can include why you want this professional to join, what the agenda will be, etc. Keep the invitation brief and to the point.',
         },
       ],
-      max_tokens: 500,  // Adjust as needed
-      temperature: 0.7,  // Adjust for creativity/variability (optional)
+      max_tokens: 500, // Maximum number of tokens in the response
+      temperature: 0.7, // Controls creativity/variability in the response
     });
 
-    return response.data.choices[0].message.content.trim();
+    return response.data.choices[0].message.content.trim(); // Return the generated text
   } catch (error) {
     if (error.response && error.response.status === 429) {
       console.error('Rate limit hit, retrying...');
@@ -48,10 +55,16 @@ export const generateText = async () => {
   }
 };
 
+/**
+ * Generates a response message based on user input using OpenAI.
+ * @param {string} input - The user's input message.
+ * @returns {string} - The generated response message.
+ * @throws {Error} - Throws an error if the request fails or rate limit is hit.
+ */
 export const generateMessage = async (input) => {
   try {
     const response = await openAI.post('', {
-      model: 'gpt-4o-mini', // Using gpt-4o-mini model
+      model: 'gpt-4o-mini', // Using the gpt-4o-mini model
       messages: [
         {
           role: 'system',
@@ -64,18 +77,18 @@ export const generateMessage = async (input) => {
           - Send notifications and invitations.
           - View and edit board details.
 
-          Always provide concise and app-specific responses. Additionally, try to address the promp that is given: ${input}`,
+          Always provide concise and app-specific responses. Additionally, try to address the prompt that is given: ${input}`,
         },
         {
           role: 'user',
           content: input, // User's input message
         },
       ],
-      max_tokens: 500, // Adjust as needed
-      temperature: 0.7, // Adjust for creativity/variability (optional)
+      max_tokens: 500, // Maximum number of tokens in the response
+      temperature: 0.7, // Controls creativity/variability in the response
     });
 
-    return response.data.choices[0].message.content.trim();
+    return response.data.choices[0].message.content.trim(); // Return the generated message
   } catch (error) {
     if (error.response && error.response.status === 429) {
       console.error('Rate limit hit, retrying...');
@@ -86,10 +99,15 @@ export const generateMessage = async (input) => {
   }
 };
 
+/**
+ * Generates a professional email template in JSON format using OpenAI.
+ * @returns {Object} - The generated email template with `title`, `subject`, and `body` fields.
+ * @throws {Error} - Throws an error if the request fails, rate limit is hit, or the response is invalid JSON.
+ */
 export const generateTemplate = async () => {
   try {
     const response = await openAI.post('', {
-      model: 'gpt-4o-mini', // Using gpt-4o-mini model
+      model: 'gpt-4o-mini', // Using the gpt-4o-mini model
       messages: [
         {
           role: 'user',
@@ -103,8 +121,8 @@ export const generateTemplate = async () => {
           Ensure the response is valid JSON and does not include any additional text or formatting outside of the JSON object.`,
         },
       ],
-      max_tokens: 500, // Adjust as needed
-      temperature: 0.7, // Adjust for creativity/variability (optional)
+      max_tokens: 500, // Maximum number of tokens in the response
+      temperature: 0.7, // Controls creativity/variability in the response
     });
 
     // Parse the AI response

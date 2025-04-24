@@ -11,25 +11,28 @@ import {
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../Reducer';
-
 import { useGoogleAuth } from '../auth/GoogleAuth';
-import { Icon } from '@rneui/themed'; 
+import { Icon } from '@rneui/themed';
 import { handleSignIn } from '../AuthManager';
+import { TEAM_PEADBO_PASSWORD, TEAM_PEADBO_USERNAME } from '../Secrets';
 
 const LoginScreen = ({ navigation }) => {
-  const [email, setEmail] = useState('team-peadbo@umich.edu');
-  const [password, setPassword] = useState('UMsi-699');
-  const [loading, setLoading] = useState(false);
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const { promptAsync, request } = useGoogleAuth(navigation);
+  // State variables for managing user input and UI behavior
+  const [email, setEmail] = useState(TEAM_PEADBO_USERNAME || ''); // Default email for testing
+  const [password, setPassword] = useState(TEAM_PEADBO_PASSWORD || ''); // Default password for testing
+  const [loading, setLoading] = useState(false); // Loading state for login button
+  const [passwordVisible, setPasswordVisible] = useState(false); // Toggle password visibility
+  const { promptAsync, request } = useGoogleAuth(navigation); // Google Sign-In hooks
 
-  const dispatch = useDispatch();
-  
+  const dispatch = useDispatch(); // Redux dispatch function
+
+  // Function to validate email format
   const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Regex for email validation
     return emailRegex.test(email);
   };
 
+  // Function to handle login
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Please enter both email and password');
@@ -41,23 +44,23 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
-    setLoading(true);
+    setLoading(true); // Show loading indicator
 
     try {
-      const user = await handleSignIn({username: email, password:password});
-      dispatch(setUser(user));
-      navigation.navigate('Main', { screen: 'Home' });
-      // navigation.replace('Home'); // Redirect to HomeScreen after successful login
+      const user = await handleSignIn({ username: email, password }); // Authenticate user
+      dispatch(setUser(user)); // Save user data to Redux
+      navigation.navigate('Main', { screen: 'Home' }); // Navigate to Home screen
     } catch (error) {
       console.error(error);
       Alert.alert('Login failed', error.message || 'Invalid email or password');
     } finally {
-      setLoading(false);
+      setLoading(false); // Hide loading indicator
     }
   };
 
   return (
     <View style={styles.container}>
+      {/* Background Overlay */}
       <View style={styles.backgroundOverlay} />
 
       {/* App Logo */}
@@ -67,6 +70,7 @@ const LoginScreen = ({ navigation }) => {
       <View style={styles.loginBox}>
         <Text style={styles.title}>Login</Text>
 
+        {/* Email Input */}
         <TextInput
           style={styles.input}
           placeholder="Email"
@@ -76,11 +80,12 @@ const LoginScreen = ({ navigation }) => {
           autoCapitalize="none"
         />
 
+        {/* Password Input */}
         <View style={styles.passwordContainer}>
           <TextInput
             style={styles.passwordInput}
             placeholder="Password"
-            secureTextEntry={!passwordVisible}
+            secureTextEntry={!passwordVisible} // Toggle password visibility
             value={password}
             onChangeText={setPassword}
             autoCapitalize="none"
@@ -95,7 +100,7 @@ const LoginScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Forgot Password */}
+        {/* Forgot Password Link */}
         <View style={styles.forgotPasswordContainer}>
           <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
             <Text style={styles.link}>Forgot Password?</Text>
@@ -111,16 +116,16 @@ const LoginScreen = ({ navigation }) => {
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Login</Text>}
         </TouchableOpacity>
 
-        {/* Google Sign-in Button */}
+        {/* Google Sign-In Button */}
         <TouchableOpacity
           style={styles.googleButton}
           onPress={() => {
             if (request) {
-              promptAsync();
+              promptAsync(); // Trigger Google Sign-In
             } else {
               Alert.alert(
-                "Google Sign-In not configured",
-                "Please set up your Google client ID to enable this feature."
+                'Google Sign-In not configured',
+                'Please set up your Google client ID to enable this feature.'
               );
             }
           }}
@@ -132,7 +137,9 @@ const LoginScreen = ({ navigation }) => {
 
         {/* Sign Up Navigation */}
         <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-          <Text style={styles.signUpText}>Don't have an account? <Text style={styles.link}>Sign Up</Text></Text>
+          <Text style={styles.signUpText}>
+            Don't have an account? <Text style={styles.link}>Sign Up</Text>
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -144,7 +151,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1EA896', // green
+    backgroundColor: '#1EA896', // Green background
     padding: 20,
   },
   backgroundOverlay: {
@@ -154,10 +161,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#1EA896',
   },
   logo: {
-    width: '40%',
-    height: '25%',
-    resizeMode: 'contain',
-    marginBottom: 50,
+    width: '40%', // Logo width as a percentage of screen width
+    height: '25%', // Logo height as a percentage of screen height
+    resizeMode: 'contain', // Maintain aspect ratio
+    marginBottom: 50, // Space below the logo
   },
   loginBox: {
     width: '90%',
@@ -200,11 +207,6 @@ const styles = StyleSheet.create({
   },
   passwordInput: {
     flex: 1,
-  },
-  togglePassword: {
-    fontSize: 18,
-    marginLeft: 10,
-    color: '#777',
   },
   forgotPasswordContainer: {
     width: '100%',

@@ -1,21 +1,24 @@
+// This screen successfully fetches contacts from the users device, but for some reason, does not fetch the contacts
+// from the database. There may be an issue with the format of the request
+
 import React, { useState, useEffect } from 'react';
 import { View, FlatList, TouchableOpacity, Text, TextInput, StyleSheet, Modal, Alert } from "react-native";
 import * as Contacts from 'expo-contacts';
 import { fetchUserContacts, addUserContact } from '../Reducer';
 import { useSelector } from 'react-redux';
 
-
 function ContactsScreen({ navigation }) {
-  // State for contacts and search
+  // State for managing contacts and UI
   const [contacts, setContacts] = useState([]); // Main contact list (manually added or selected)
-  const [filteredContacts, setFilteredContacts] = useState([]); // For filtered results
+  const [filteredContacts, setFilteredContacts] = useState([]); // Filtered contacts for search
   const [searchQuery, setSearchQuery] = useState(''); // Search query for phone contacts
-  const [showAddContactModal, setShowAddContactModal] = useState(false);
-  const [showPhoneContactsModal, setShowPhoneContactsModal] = useState(false);
-  const [phoneContacts, setPhoneContacts] = useState([]); // Phone contacts for the modal
-  const [filteredPhoneContacts, setFilteredPhoneContacts] = useState([]); // Filtered phone contacts for the modal
-  const [loading, setLoading] = useState(true); // Loading state
-  const currentUser = useSelector((state) => state.user.currentUser); // Get current user from Redux
+  const [showAddContactModal, setShowAddContactModal] = useState(false); // Modal visibility for adding a new contact
+  const [showPhoneContactsModal, setShowPhoneContactsModal] = useState(false); // Modal visibility for phone contacts
+  const [phoneContacts, setPhoneContacts] = useState([]); // Phone contacts fetched from the device
+  const [filteredPhoneContacts, setFilteredPhoneContacts] = useState([]); // Filtered phone contacts for search
+  const [loading, setLoading] = useState(true); // Loading state for fetching contacts
+  const currentUser = useSelector((state) => state.user.currentUser); // Current user data from Redux
+
   // Request permission and load phone contacts
   useEffect(() => {
     const requestPermission = async () => {
@@ -27,15 +30,14 @@ function ContactsScreen({ navigation }) {
       }
     };
 
+    // function attempting to fetch contacts from the database
     const loadContacts = async () => {
       try {
         if (!currentUser || !currentUser.id) {
           throw new Error('User ID is not available.');
         }
-    
         const userId = currentUser.id; // Get the user ID from Redux
-        const fetchedContacts = await fetchUserContacts(userId); // Fetch contacts
-        console.log('Fetched Contacts:', fetchedContacts); // Log fetched contacts
+        const fetchedContacts = await fetchUserContacts(userId); // Fetch contacts from the database
         setContacts(fetchedContacts || []); // Ensure contacts is always an array
       } catch (error) {
         console.error('Error fetching user contacts:', error);
@@ -49,6 +51,7 @@ function ContactsScreen({ navigation }) {
     loadContacts(); // Load contacts when the component mounts
   }, [currentUser.id]);
 
+  // Load phone contacts from the device
   const loadPhoneContacts = async () => {
     const { data } = await Contacts.getContactsAsync({
       fields: [Contacts.Fields.Emails],
@@ -139,28 +142,22 @@ function ContactsScreen({ navigation }) {
       </TouchableOpacity>
 
       {/* Contact List */}
-      {contacts.length > 0 ? (
-        <View style={styles.container}>
-        {loading ? (
-          <Text style={styles.loadingText}>Loading contacts...</Text> // Show a loading message
-        ) : contacts.length > 0 ? (
-          <FlatList
-            data={contacts} // Use contacts here
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={({ item }) => (
-              <View style={styles.contactItem}>
-                <Text style={styles.contactName}>{item.name}</Text>
-                <Text style={styles.contactEmail}>
-                  {item.email ? item.email : 'No Email'}
-                </Text>
-              </View>
-            )}
-            contentContainerStyle={styles.listContent}
-          />
-        ) : (
-          <Text style={styles.emptyStateText}>No contacts found. Add a new contact to get started!</Text>
-        )}
-      </View>
+      {loading ? (
+        <Text style={styles.loadingText}>Loading contacts...</Text>
+      ) : contacts.length > 0 ? (
+        <FlatList
+          data={contacts}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.contactItem}>
+              <Text style={styles.contactName}>{item.name}</Text>
+              <Text style={styles.contactEmail}>
+                {item.email ? item.email : 'No Email'}
+              </Text>
+            </View>
+          )}
+          contentContainerStyle={styles.listContent}
+        />
       ) : (
         <Text style={styles.emptyStateText}>No contacts found. Add a new contact to get started!</Text>
       )}
@@ -190,10 +187,10 @@ function ContactsScreen({ navigation }) {
             style={styles.searchInput}
             placeholder="Search phone contacts..."
             value={searchQuery}
-            onChangeText={handlePhoneContactsSearch} // Call handlePhoneContactsSearch on text change
+            onChangeText={handlePhoneContactsSearch}
           />
           <FlatList
-            data={filteredPhoneContacts} // Use filteredPhoneContacts for the modal
+            data={filteredPhoneContacts}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
               <TouchableOpacity
@@ -227,7 +224,7 @@ function AddContactForm({ onAddContact, onClose }) {
 
   const handleSubmit = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  
+
     if (firstName.trim() === '' || lastName.trim() === '') {
       Alert.alert('Missing Information', 'First name and last name are required.');
       return;
@@ -240,7 +237,7 @@ function AddContactForm({ onAddContact, onClose }) {
       Alert.alert('Invalid Email', 'Please enter a valid email address.');
       return;
     }
-  
+
     const fullName = `${firstName.trim()} ${lastName.trim()}`;
     onAddContact({ name: fullName, email: email.trim() });
     setFirstName('');

@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import * as Contacts from 'expo-contacts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Define color constants for consistent styling
 const PEADBO_COLORS = {
   primary: '#1EA896',
   secondary: '#FF715B',
@@ -11,47 +12,54 @@ const PEADBO_COLORS = {
   text: '#333333',
   lightText: '#777777',
   border: '#DDDDDD',
-  white: '#FFFFFF'
+  white: '#FFFFFF',
 };
 
+// Key for storing manually added contacts in AsyncStorage
 const STORAGE_KEY = 'manualContacts';
 
 export default function ContactPickerScreen({ navigation, route }) {
-  const [contacts, setContacts] = useState([]);
-  const [filteredContacts, setFilteredContacts] = useState([]);
-  const [selectedContacts, setSelectedContacts] = useState(route.params?.initialSelected || []);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  // State variables for managing contacts and user interactions
+  const [contacts, setContacts] = useState([]); // All available contacts
+  const [filteredContacts, setFilteredContacts] = useState([]); // Filtered contacts based on search query
+  const [selectedContacts, setSelectedContacts] = useState(route.params?.initialSelected || []); // Contacts selected by the user
+  const [searchQuery, setSearchQuery] = useState(''); // Search query for filtering contacts
+  const [isModalVisible, setIsModalVisible] = useState(false); // Modal visibility for adding a new contact
   const [newContact, setNewContact] = useState({
     firstName: '',
     lastName: '',
-    email: ''
-  });
+    email: '',
+  }); // State for storing new contact details
 
+  // Load contacts from the device and AsyncStorage when the component mounts
   useEffect(() => {
     const loadContacts = async () => {
       const { status } = await Contacts.requestPermissionsAsync();
       let deviceContacts = [];
 
+      // If permission is granted, fetch contacts from the device
       if (status === 'granted') {
         const { data } = await Contacts.getContactsAsync({
           fields: [Contacts.Fields.Emails],
         });
 
+        // Filter contacts with valid names and emails
         if (data.length > 0) {
           deviceContacts = data
-            .filter(c => c.name && c.emails?.[0]?.email)
-            .map(c => ({
+            .filter((c) => c.name && c.emails?.[0]?.email)
+            .map((c) => ({
               id: c.id,
               name: c.name,
-              email: c.emails[0].email
+              email: c.emails[0].email,
             }));
         }
       }
 
+      // Load manually added contacts from AsyncStorage
       const stored = await AsyncStorage.getItem(STORAGE_KEY);
       const manualContacts = stored ? JSON.parse(stored) : [];
 
+      // Combine device and manually added contacts
       const allContacts = [...deviceContacts, ...manualContacts];
       setContacts(allContacts);
       setFilteredContacts(allContacts);
@@ -60,11 +68,13 @@ export default function ContactPickerScreen({ navigation, route }) {
     loadContacts();
   }, []);
 
+  // Filter contacts based on the search query
   useEffect(() => {
     if (searchQuery) {
-      const filtered = contacts.filter(contact =>
-        contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        contact.email.toLowerCase().includes(searchQuery.toLowerCase())
+      const filtered = contacts.filter(
+        (contact) =>
+          contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          contact.email.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredContacts(filtered);
     } else {
@@ -72,24 +82,30 @@ export default function ContactPickerScreen({ navigation, route }) {
     }
   }, [searchQuery, contacts]);
 
+  // Toggle the selection of a contact
   const toggleContactSelection = (contact) => {
-    setSelectedContacts(prev => {
-      const isSelected = prev.some(c => c.id === contact.id);
-      return isSelected ? prev.filter(c => c.id !== contact.id) : [...prev, contact];
+    setSelectedContacts((prev) => {
+      const isSelected = prev.some((c) => c.id === contact.id);
+      return isSelected ? prev.filter((c) => c.id !== contact.id) : [...prev, contact];
     });
   };
 
+  // Handle the "Done" button press to return selected contacts
   const handleDone = () => {
     route.params?.onSelectContacts(selectedContacts);
     navigation.goBack();
   };
 
+  // Open the modal for adding a new contact
   const handleAddContact = () => {
     setIsModalVisible(true);
   };
 
+  // Save a new contact to the list and AsyncStorage
   const handleSaveNewContact = async () => {
     const { firstName, lastName, email } = newContact;
+
+    // Validate input fields
     if (!firstName.trim() || !lastName.trim() || !email.trim()) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
@@ -99,47 +115,57 @@ export default function ContactPickerScreen({ navigation, route }) {
       return;
     }
 
-    const isDuplicate = contacts.concat(selectedContacts).some(c => c.email.toLowerCase() === email.toLowerCase());
+    // Check for duplicate contacts
+    const isDuplicate = contacts.concat(selectedContacts).some((c) => c.email.toLowerCase() === email.toLowerCase());
     if (isDuplicate) {
       Alert.alert('Error', 'Contact already exists');
       return;
     }
 
+    // Create a new contact object
     const contact = {
-      id: `manual-${Date.now()}`,
+      id: `manual-${Date.now()}`, // Generate a unique ID for the contact
       name: `${firstName} ${lastName}`,
       email,
     };
 
+    // Update the contact lists and save manually added contacts to AsyncStorage
     const updated = [...contacts, contact];
-    const manualOnly = [...updated.filter(c => c.id.startsWith('manual-'))];
+    const manualOnly = [...updated.filter((c) => c.id.startsWith('manual-'))];
 
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(manualOnly));
     setContacts(updated);
     setFilteredContacts(updated);
-    setSelectedContacts(prev => [...prev, contact]);
+    setSelectedContacts((prev) => [...prev, contact]);
     setNewContact({ firstName: '', lastName: '', email: '' });
     setIsModalVisible(false);
   };
 
+  // Remove a contact from the selected list
   const removeSelectedContact = (contactId) => {
-    setSelectedContacts(prev => prev.filter(c => c.id !== contactId));
+    setSelectedContacts((prev) => prev.filter((c) => c.id !== contactId));
   };
 
+  // Render a single contact item
   const renderContactItem = ({ item }) => (
     <TouchableOpacity
-      style={[styles.contactItem, selectedContacts.some(c => c.id === item.id) && styles.selectedContactItem]}
-      onPress={() => toggleContactSelection(item)}>
+      style={[
+        styles.contactItem,
+        selectedContacts.some((c) => c.id === item.id) && styles.selectedContactItem,
+      ]}
+      onPress={() => toggleContactSelection(item)}
+    >
       <View style={styles.contactInfo}>
         <Text style={styles.contactName}>{item.name}</Text>
         <Text style={styles.contactEmail}>{item.email}</Text>
       </View>
-      {selectedContacts.some(c => c.id === item.id) && (
+      {selectedContacts.some((c) => c.id === item.id) && (
         <Icon name="check" size={24} color={PEADBO_COLORS.primary} />
       )}
     </TouchableOpacity>
   );
 
+  // Render the list of selected contacts
   const renderSelectedContacts = () => (
     <View style={styles.selectedContactsContainer}>
       <Text style={styles.sectionTitle}>Selected Contacts ({selectedContacts.length})</Text>
@@ -159,6 +185,7 @@ export default function ContactPickerScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
+      {/* Header Section */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} color={PEADBO_COLORS.text} />
@@ -169,6 +196,7 @@ export default function ContactPickerScreen({ navigation, route }) {
         </TouchableOpacity>
       </View>
 
+      {/* Search Bar */}
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
@@ -181,8 +209,10 @@ export default function ContactPickerScreen({ navigation, route }) {
         </TouchableOpacity>
       </View>
 
+      {/* Selected Contacts */}
       {selectedContacts.length > 0 && renderSelectedContacts()}
 
+      {/* All Contacts */}
       <Text style={styles.sectionTitle}>All Contacts</Text>
       <FlatList
         data={filteredContacts}
@@ -192,6 +222,7 @@ export default function ContactPickerScreen({ navigation, route }) {
         keyboardShouldPersistTaps="handled"
       />
 
+      {/* Modal for Adding New Contact */}
       <Modal
         visible={isModalVisible}
         animationType="slide"

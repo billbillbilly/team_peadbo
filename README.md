@@ -26,7 +26,7 @@ This is a React Native application built with Expo, leveraging Apollo GraphQL (v
 ├── App.js                    # Entry point, connects to database
 ├── AppContainer.js           # App wrapper, manages global state
 ├── AuthManager.js            # Handles signout and user session
-├── OpenAIService.js          # Newsletter AI template logic
+├── OpenAIService.js          # AI template logic
 ├── ThemeContext.js           # Theme state and toggling logic
 ├── Reducer.js                # App state reducer
 ├── app.json                  # Expo configuration

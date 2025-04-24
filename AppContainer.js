@@ -14,6 +14,7 @@ import FloatingButton from './components/FloatingButton';
 // Auth Screens
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
+import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
 
 // Onboarding Screens
 import CommunicationStyleScreen from './screens/Onboarding_Screens/CommunicationStyleScreen';
@@ -208,6 +209,7 @@ const AppContainer = () => {
             <RootStack.Screen name="Login" component={LoginScreen} />
             <RootStack.Screen name="Signup" component={SignupScreen} />
             <RootStack.Screen name="NewUserOnboarding" component={OnboardingStack} />
+            <RootStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
 
             {/* Tab Navigator */}
             <RootStack.Screen name="Main" component={DynamicTabsNavigator} />

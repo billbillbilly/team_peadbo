@@ -4,14 +4,19 @@ import { RichEditor, RichToolbar } from 'react-native-pell-rich-editor';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 export default function RichTextEditorScreen({ navigation, route }) {
+  // Reference to the RichEditor component
   const richText = useRef();
-  const [content, setContent] = useState(route.params?.content || '');
 
+  // State to manage the content of the editor
+  const [content, setContent] = useState(route.params?.content || ''); // Initialize with content passed via route.params or an empty string
+
+  // Function to handle the "Preview" button press
   const handlePreview = () => {
-    const newsletter = route.params?.newsletter || {}; // Get the newsletter from route.params
+    const newsletter = route.params?.newsletter || {}; // Retrieve the newsletter object from route.params
     navigation.navigate('NewsletterPreview', {
-      newsletter: { ...newsletter, content }, // Include all fields and the updated content
+      newsletter: { ...newsletter, content }, // Pass the updated content along with the newsletter object
       onSave: (updatedNewsletter) => {
+        // Callback to handle saving the updated newsletter
         navigation.navigate('Newsletter', { newNewsletter: updatedNewsletter });
       },
     });
@@ -19,33 +24,36 @@ export default function RichTextEditorScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header Section */}
       <View style={styles.header}>
+        {/* Back Button */}
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
+
+        {/* Header Title */}
         <Text style={styles.headerTitle}>Newsletter Editor</Text>
-        {/* <TouchableOpacity onPress={handlePreview} style={styles.previewButtonContainer}>
-          <Text style={styles.previewButton}>Preview</Text>
-        </TouchableOpacity> */}
       </View>
 
+      {/* Rich Text Toolbar */}
       <RichToolbar
-        editor={richText}
+        editor={richText} // Link the toolbar to the RichEditor
         actions={[
-          'bold', 'italic', 'underline', 'strikethrough',
-          'insertBulletsList', 'insertOrderedList',
-          'insertLink', 'insertImage',
-          'setHeading', 'fontSize',
+          'bold', 'italic', 'underline', 'strikethrough', // Text formatting actions
+          'insertBulletsList', 'insertOrderedList', // List actions
+          'insertLink', 'insertImage', // Insert actions
+          'setHeading', 'fontSize', // Heading and font size actions
         ]}
         style={styles.toolbar}
       />
 
+      {/* Rich Text Editor */}
       <RichEditor
-        ref={richText}
+        ref={richText} // Reference to the editor
         style={styles.editor}
-        initialContentHTML={content}
-        onChange={html => setContent(html)}
-        placeholder="Write your newsletter content here..."
+        initialContentHTML={content} // Set the initial content of the editor
+        onChange={html => setContent(html)} // Update the content state whenever the editor content changes
+        placeholder="Write your newsletter content here..." // Placeholder text for the editor
       />
     </SafeAreaView>
   );
@@ -54,15 +62,15 @@ export default function RichTextEditorScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF',
+    backgroundColor: '#FFF', // White background for the editor screen
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'row', // Align items in a row
+    alignItems: 'center', // Vertically center items
     justifyContent: 'space-between', // Space between back button, title, and preview button
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEE',
+    padding: 16, // Padding around the header
+    borderBottomWidth: 1, // Add a bottom border
+    borderBottomColor: '#EEE', // Light gray border color
   },
   backButton: {
     position: 'absolute',
@@ -71,24 +79,24 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     textAlign: 'center', // Center the title
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 18, // Font size for the title
+    fontWeight: '600', // Semi-bold font weight
   },
   previewButtonContainer: {
     position: 'absolute',
     right: 16, // Align preview button to the right
   },
   previewButton: {
-    color: '#007AFF',
-    fontSize: 16,
+    color: '#007AFF', // Blue color for the preview button
+    fontSize: 16, // Font size for the preview button
   },
   toolbar: {
-    backgroundColor: '#F5F5F5',
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEE',
+    backgroundColor: '#F5F5F5', // Light gray background for the toolbar
+    borderBottomWidth: 1, // Add a bottom border
+    borderBottomColor: '#EEE', // Light gray border color
   },
   editor: {
-    flex: 1,
-    paddingHorizontal: 16,
+    flex: 1, // Take up the remaining space
+    paddingHorizontal: 16, // Horizontal padding for the editor
   },
 });

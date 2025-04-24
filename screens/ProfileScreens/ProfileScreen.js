@@ -10,17 +10,25 @@ import { handleSignOut } from '../../AuthManager';
 
 function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
+
+  // Retrieve profile settings and current user data from Redux
   const profileSettings = useSelector((state) => state.user.profileSettings);
   const currentUser = useSelector((state) => state.user.currentUser);
+
+  // Theme context for dark mode and theming
   const { theme, isDarkMode, setIsDarkMode } = useTheme();
 
+  // Local state for profile image, bio, and edit mode
   const [profileImage, setProfileImage] = useState(null);
-  const [bio, setBio] = useState("I am a student at the University of Michigan, Ann Arbor. Passionate about technology, design, and project management. Always looking to collaborate on exciting new projects that challenge my skills and creativity.");
+  const [bio, setBio] = useState(
+    "I am a student at the University of Michigan, Ann Arbor. Passionate about technology, design, and project management. Always looking to collaborate on exciting new projects that challenge my skills and creativity."
+  );
   const [editMode, setEditMode] = useState(false);
 
+  // Configure navigation options (e.g., dark mode toggle)
   useLayoutEffect(() => {
     navigation.setOptions({
-      // uncomment to see preview of dark mode toggle
+      // Uncomment to enable a dark mode toggle in the header
       // headerRight: () => (
       //   <TouchableOpacity onPress={() => setIsDarkMode(!isDarkMode)} style={{ marginRight: 15 }}>
       //     <Icon 
@@ -33,6 +41,7 @@ function ProfileScreen({ navigation }) {
     });
   }, [navigation, isDarkMode]);
 
+  // Function to pick a profile image from the user's gallery
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -52,6 +61,7 @@ function ProfileScreen({ navigation }) {
     }
   };
 
+  // Menu item component for rendering navigation options
   const MenuItem = ({ title, iconName, iconType = 'feather', onPress, isLogout }) => (
     <TouchableOpacity 
       style={[styles.menuItem, isLogout && styles.logout]} 
@@ -126,15 +136,16 @@ function ProfileScreen({ navigation }) {
       <View style={styles.menuList}>
         <MenuItem title="Upgrade the Plan" iconName="trending-up" onPress={() => navigation.navigate('UpgradePlan')} />
         <MenuItem title="My Peadbo" iconName="user" />
-        {/* Uncomment this line to enable navigation to ResumeLibrary when resumes are set up}
+        {/* Uncomment this line to enable navigation to ResumeLibrary when resumes are set up */}
         {/* <MenuItem title="My Resume" iconName="file-text" onPress={() => navigation.navigate('ResumeLibrary')} /> */}
         <MenuItem title="Settings" iconName="settings" onPress={() => navigation.navigate('Settings')} />
         <MenuItem title="Billing" iconName="credit-card" onPress={() => navigation.navigate('Billing')} />
-        <MenuItem title="Notifications" iconName="bell" onPress={() => navigation.navigate('Notifications')} />
+        {/* Notifications are not configured yet, uncomment when ready */}
+        {/* <MenuItem title="Notifications" iconName="bell" onPress={() => navigation.navigate('Notifications')} /> */}
         <MenuItem title="Contact Support" iconName="help-circle" onPress={() => navigation.navigate('ContactSupport')} />
         <MenuItem title="Logout" iconName="log-out" isLogout onPress={async() => {
-          await handleSignOut()
-          navigation.navigate('Login')
+          await handleSignOut();
+          navigation.navigate('Login');
         }}/>
       </View>
     </ScrollView>

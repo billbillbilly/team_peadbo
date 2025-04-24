@@ -1,3 +1,8 @@
+// Newsletter funcitonality not implemented yet
+// There is the ability to fill out details for a newsletter, but the letter cannot be sent or saved yet
+// configuration with database schema will be required to implement this further.
+
+
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView, ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react-native';
 import { Icon } from '@rneui/themed';
@@ -14,9 +19,11 @@ const PEADBO_COLORS = {
   white: '#FFFFFF'
 };
 
+// Key for storing newsletters in AsyncStorage
 const STORAGE_KEY = 'newsletters';
 
 export default function CreateNewsletterScreen({ navigation, route }) {
+  // Initialize newsletter data from route parameters or default values
   const newsletterData = route.params?.newsletter || {
     title: '',
     subject: '',
@@ -35,89 +42,93 @@ export default function CreateNewsletterScreen({ navigation, route }) {
     status: 'draft',
     createdAt: new Date().toISOString()
   };
-
+  // State variables for managing newsletter data and loading state
   const [newsletter, setNewsletter] = useState(newsletterData);
   const [loading, setLoading] = useState(false);
 
+  // Effect to update newsletter content when returning from the RichTextEditor screen
   useEffect(() => {
     if (route.params?.content) {
-      setNewsletter(prev => ({...prev, content: route.params.content}));
+      setNewsletter(prev => ({ ...prev, content: route.params.content }));
     }
   }, [route.params?.content]);
 
+  // Navigate to the ContactPicker screen to select recipients
   const handleSelectContacts = () => {
     navigation.navigate('ContactPicker', {
       onSelectContacts: (contacts) => {
-        
+        // Merge selected contacts with existing recipients, ensuring uniqueness by email
         const uniqueContacts = [
           ...new Map([...newsletter.recipients, ...contacts].map(c => [c.email, c])).values()
         ];
-        setNewsletter({...newsletter, recipients: uniqueContacts});
+        setNewsletter({ ...newsletter, recipients: uniqueContacts });
       },
-      initialSelected: newsletter.recipients
+      initialSelected: newsletter.recipients // Pass currently selected recipients
     });
   };
 
   const handleEditContent = () => {
     navigation.navigate('RichTextEditor', {
       content: newsletter.content,
-      onSave: (newContent) => setNewsletter({...newsletter, content: newContent})
+      onSave: (newContent) => setNewsletter({ ...newsletter, content: newContent })
     });
   };
 
+  // Save the newsletter as a draft in AsyncStorage
   const handleSaveDraft = async () => {
     try {
-      const updatedNewsletter = {...newsletter, status: 'draft'};
-      const saved = await AsyncStorage.getItem(STORAGE_KEY);
+      const updatedNewsletter = { ...newsletter, status: 'draft' }; // Mark as draft
+      const saved = await AsyncStorage.getItem(STORAGE_KEY); // Retrieve existing newsletters
       const allNewsletters = saved ? JSON.parse(saved) : [];
       const index = allNewsletters.findIndex(n => n.id === updatedNewsletter.id);
+
       if (index > -1) {
-        allNewsletters[index] = updatedNewsletter;
+        allNewsletters[index] = updatedNewsletter; // Update existing newsletter
       } else {
-        updatedNewsletter.id = Date.now().toString();
-        allNewsletters.push(updatedNewsletter);
+        updatedNewsletter.id = Date.now().toString(); // Assign a unique ID
+        allNewsletters.push(updatedNewsletter); // Add new newsletter
       }
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(allNewsletters));
-      navigation.navigate('Newsletter', { newNewsletter: updatedNewsletter });
+
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(allNewsletters)); // Save to AsyncStorage
+      navigation.navigate('Newsletter', { newNewsletter: updatedNewsletter }); // Navigate back to the newsletter list
     } catch (error) {
-      console.error('Error saving draft:', error);
+      console.error('Error saving draft:', error); // Log any errors
     }
   };
 
+  // Navigate to the NewsletterPreview screen to preview the newsletter
   const handlePreview = () => {
     navigation.navigate('NewsletterPreview', {
-      newsletter: newsletter,
+      newsletter: newsletter, // Pass the current newsletter for preview
       onSave: (updatedNewsletter) => {
-        setNewsletter(updatedNewsletter);
-        navigation.navigate('Newsletter', { newNewsletter: updatedNewsletter });
+        setNewsletter(updatedNewsletter); // Update newsletter after preview
+        navigation.navigate('Newsletter', { newNewsletter: updatedNewsletter }); // Navigate back to the newsletter list
       }
     });
   };
 
+  // Generate a newsletter using AI and update the state
   const handleGenerateAINewsletter = async () => {
-    setLoading(true);
+    setLoading(true); // Set loading state to true
     try {
-      const { title, subject, body } = await generateTemplate();
+      const { title, subject, body } = await generateTemplate(); // Call AI service to generate content
       setNewsletter((prev) => ({
         ...prev,
-        title,
-        subject,
-        content: body,
+        title, // Update title
+        subject, // Update subject
+        content: body // Update content
       }));
     } catch (error) {
-      console.error('Error generating AI newsletter:', error);
-      Alert.alert('Error', 'Failed to generate AI newsletter. Please try again.');
+      console.error('Error generating AI newsletter:', error); // Log any errors
+      Alert.alert('Error', 'Failed to generate AI newsletter. Please try again.'); // Show error alert
     } finally {
-      setLoading(false);
+      setLoading(false); // Set loading state to false
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        {/* <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="arrow-back" size={24} color={PEADBO_COLORS.text} />
-        </TouchableOpacity> */}
         <Text style={styles.headerTitle}>
           {route.params?.newsletter ? 'Edit Newsletter' : 'New Newsletter'}
         </Text>
@@ -141,14 +152,14 @@ export default function CreateNewsletterScreen({ navigation, route }) {
           style={styles.input}
           placeholder="Title"
           value={newsletter.title}
-          onChangeText={(text) => setNewsletter({...newsletter, title: text})}
+          onChangeText={(text) => setNewsletter({ ...newsletter, title: text })}
         />
 
         <TextInput
           style={styles.input}
           placeholder="Subject"
           value={newsletter.subject}
-          onChangeText={(text) => setNewsletter({...newsletter, subject: text})}
+          onChangeText={(text) => setNewsletter({ ...newsletter, subject: text })}
         />
 
         <TouchableOpacity
@@ -173,7 +184,7 @@ export default function CreateNewsletterScreen({ navigation, route }) {
           </Text>
         </TouchableOpacity>
 
-        {}
+        { }
         {newsletter.recipients.length > 0 && (
           <TouchableOpacity
             onPress={() => setNewsletter({ ...newsletter, recipients: [] })}

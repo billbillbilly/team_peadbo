@@ -9,27 +9,29 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
-import { signUp } from '../AuthManager'; // Ensure this handles user creation
-import { useGoogleAuth } from '../auth/GoogleAuth';
+import { signUp } from '../AuthManager'; // Function to handle user signup
+import { useGoogleAuth } from '../auth/GoogleAuth'; // Google Sign-Up functionality
 import { Icon } from '@rneui/themed';
 
-
 const SignupScreen = ({ navigation }) => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const { promptAsync, request } = useGoogleAuth(navigation);
+  // State variables for managing user input and UI behavior
+  const [name, setName] = useState(''); // Full name input
+  const [email, setEmail] = useState(''); // Email input
+  const [password, setPassword] = useState(''); // Password input
+  const [confirmPassword, setConfirmPassword] = useState(''); // Confirm password input
+  const [loading, setLoading] = useState(false); // Loading state for signup button
+  const [passwordVisible, setPasswordVisible] = useState(false); // Toggle password visibility
+  const { promptAsync, request } = useGoogleAuth(navigation); // Google Sign-Up hooks
 
-
+  // Function to validate email format
   const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Regex for email validation
     return emailRegex.test(email);
   };
 
+  // Function to handle the signup process
   const handleSignup = async () => {
+    // Validate input fields
     if (!name || !email || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
@@ -50,24 +52,27 @@ const SignupScreen = ({ navigation }) => {
       return;
     }
 
-    setLoading(true);
+    setLoading(true); // Show loading indicator
+
     // Uncomment the following lines to enable signup functionality
-    // this will be replaced with proper signup logic
     // try {
-    //   await signUp(name, email, password);
+    //   await signUp(name, email, password); // Call the signup function
     //   Alert.alert('Success', 'Account created successfully');
     //   navigation.replace('Home'); // Redirect to HomeScreen
     // } catch (error) {
     //   console.error(error);
     //   Alert.alert('Signup failed', error.message || 'Something went wrong');
     // } finally {
-    //   setLoading(false);
+    //   setLoading(false); // Hide loading indicator
     // }
+
+    // Temporary navigation for onboarding
     navigation.navigate('NewUserOnboarding', { screen: 'PersonalInformationScreen' });
   };
 
   return (
     <View style={styles.container}>
+      {/* Background Overlay */}
       <View style={styles.backgroundOverlay} />
 
       {/* Logo */}
@@ -77,6 +82,7 @@ const SignupScreen = ({ navigation }) => {
       <View style={styles.signupBox}>
         <Text style={styles.title}>Create A New Peadbo Account</Text>
 
+        {/* Full Name Input */}
         <TextInput
           style={styles.input}
           placeholder="Full Name"
@@ -85,6 +91,7 @@ const SignupScreen = ({ navigation }) => {
           autoCapitalize="words"
         />
 
+        {/* Email Input */}
         <TextInput
           style={styles.input}
           placeholder="Email"
@@ -94,11 +101,12 @@ const SignupScreen = ({ navigation }) => {
           autoCapitalize="none"
         />
 
+        {/* Password Input */}
         <View style={styles.passwordContainer}>
           <TextInput
             style={styles.passwordInput}
             placeholder="Password"
-            secureTextEntry={!passwordVisible}
+            secureTextEntry={!passwordVisible} // Toggle password visibility
             value={password}
             onChangeText={setPassword}
             autoCapitalize="none"
@@ -113,6 +121,7 @@ const SignupScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
+        {/* Confirm Password Input */}
         <TextInput
           style={styles.input}
           placeholder="Confirm Password"
@@ -131,15 +140,16 @@ const SignupScreen = ({ navigation }) => {
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign Up</Text>}
         </TouchableOpacity>
 
+        {/* Google Sign-Up Button */}
         <TouchableOpacity
           style={styles.googleButton}
           onPress={() => {
             if (request) {
-              promptAsync();
+              promptAsync(); // Trigger Google Sign-Up
             } else {
               Alert.alert(
-                "Google Sign-Up not configured",
-                "Please set up your Google client ID to enable this feature."
+                'Google Sign-Up not configured',
+                'Please set up your Google client ID to enable this feature.'
               );
             }
           }}
@@ -149,11 +159,11 @@ const SignupScreen = ({ navigation }) => {
           <Text style={styles.googleButtonText}>Sign up with Google</Text>
         </TouchableOpacity>
 
-
-
         {/* Back to Login */}
         <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.loginText}>Already have an account? <Text style={styles.link}>Login</Text></Text>
+          <Text style={styles.loginText}>
+            Already have an account? <Text style={styles.link}>Login</Text>
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -165,7 +175,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1EA896',
+    backgroundColor: '#1EA896', // Green background
     padding: 20,
   },
   backgroundOverlay: {
@@ -175,10 +185,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#1EA896',
   },
   logo: {
-    width: '40%',
-    height: '25%',
-    resizeMode: 'contain',
-    marginBottom: 50,
+    width: '40%', // Logo width as a percentage of screen width
+    height: '25%', // Logo height as a percentage of screen height
+    resizeMode: 'contain', // Maintain aspect ratio
+    marginBottom: 50, // Space below the logo
   },
   signupBox: {
     width: '90%',
@@ -223,11 +233,6 @@ const styles = StyleSheet.create({
   },
   passwordInput: {
     flex: 1,
-  },
-  togglePassword: {
-    fontSize: 18,
-    marginLeft: 10,
-    color: '#777',
   },
   button: {
     width: '100%',

@@ -3,15 +3,22 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Keyboard
 import DropDownPicker from 'react-native-dropdown-picker';
 
 const BoardDetailsScreen = ({ navigation, route }) => {
+  // Destructure the `focus` parameter passed from the previous screen
   const { focus } = route.params;
-  const [boardName, setBoardName] = useState('');
-  const [boardDescription, setBoardDescription] = useState('');
-  const [boardDuration, setBoardDuration] = useState('');
-  const [boardFrequency, setBoardFrequency] = useState('');
-  const [openDuration, setOpenDuration] = useState(false);
-  const [valueDuration, setValueDuration] = useState(null);
-  const [openFrequency, setOpenFrequency] = useState(false);
-  const [valueFrequency, setValueFrequency] = useState(null);
+
+  // State variables for managing form inputs
+  const [boardName, setBoardName] = useState(''); // Board name input
+  const [boardDescription, setBoardDescription] = useState(''); // Board description input
+  const [boardDuration, setBoardDuration] = useState(''); // Selected board duration
+  const [boardFrequency, setBoardFrequency] = useState(''); // Selected board frequency
+
+  // State variables for managing dropdowns
+  const [openDuration, setOpenDuration] = useState(false); // Dropdown state for duration
+  const [valueDuration, setValueDuration] = useState(null); // Selected value for duration
+  const [openFrequency, setOpenFrequency] = useState(false); // Dropdown state for frequency
+  const [valueFrequency, setValueFrequency] = useState(null); // Selected value for frequency
+
+  // Dropdown options for duration and frequency
   const [durations, setDurations] = useState([
     { label: 'One Year (Most Common)', value: 'One Year' },
     { label: '3 Months', value: '3 Months' },
@@ -26,6 +33,7 @@ const BoardDetailsScreen = ({ navigation, route }) => {
     { label: 'Once Per Year', value: 'Once Per Year' },
   ]);
 
+  // Navigate to the AdvisorSelectionScreen with the form data
   const handleContinue = () => {
     navigation.navigate('AdvisorSelectionScreen', { 
       focus,
@@ -36,14 +44,17 @@ const BoardDetailsScreen = ({ navigation, route }) => {
     });
   };
 
+  // Navigate back to the previous screen
   const handleBack = () => {
     navigation.goBack();
   };
 
+  // Dynamically style input fields based on whether they have a value
   const getInputStyle = (value) => ({
     borderColor: value ? '#1EA896' : '#CCC',
   });
 
+  // Form data configuration for rendering inputs and dropdowns
   const formData = [
     {
       label: 'Board Name',
@@ -118,6 +129,7 @@ const BoardDetailsScreen = ({ navigation, route }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
+      {/* Header Section */}
       <View style={styles.header}>
         <Text style={styles.title}>Add Board Details</Text>
         <View style={styles.stepIndicator}>
@@ -163,18 +175,21 @@ const BoardDetailsScreen = ({ navigation, route }) => {
       >
         <Text style={styles.continueButtonText}>Continue</Text>
       </TouchableOpacity>
+
+      {/* Back Button */}
       <TouchableOpacity
-              style={styles.backButton}
-              onPress={handleBack}
-            >
-              <Text style={styles.backButtonText}>Back</Text>
-            </TouchableOpacity>
+        style={styles.backButton}
+        onPress={handleBack}
+      >
+        <Text style={styles.backButtonText}>Back</Text>
+      </TouchableOpacity>
     </KeyboardAvoidingView>
   );
 };
 
 const circleSize = 40;
 
+// Styles for the screen
 const styles = StyleSheet.create({
   container: {
     flex: 1,

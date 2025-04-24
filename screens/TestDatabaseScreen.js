@@ -1,3 +1,5 @@
+// A test screen not used in the application.
+
 import React from 'react';
 import { Text, View, TouchableOpacity } from 'react-native';
 import { generateClient } from 'aws-amplify/api';

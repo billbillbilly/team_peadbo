@@ -1,18 +1,40 @@
+// This screen will store all of the data that is collected from the board creation process.
+// As of now, the data that is being passed to the create board query is causing an error.
+// The error is likely due to the data not being in a format that matches the current schema.
+// The next step will be to check the schema and make the necessary changes to the 'newBoard' object being
+// created to make sure that all of the data it is trying to pass is in the correct format
+
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import moment from 'moment';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addBoardThunk } from '../../Reducer';
-import { useSelector } from 'react-redux';
 
 export default function ReviewScreen({ navigation, route }) {
-  const { focus = '', boardName = '', boardDescription = '', boardDuration = '', boardFrequency = '', advisors = [], selectedDate = '', selectedTime = '' } = route.params || {};
+  // Destructure parameters passed from the previous screen
+  const {
+    focus = '',
+    boardName = '',
+    boardDescription = '',
+    boardDuration = '',
+    boardFrequency = '',
+    advisors = [],
+    selectedDate = '',
+    selectedTime = '',
+  } = route.params || {};
+
+  // State to track acknowledgment checkbox
   const [acknowledged, setAcknowledged] = useState(false);
+
+  // Get the current user from the Redux store
   const currentUser = useSelector((state) => state.user.currentUser);
 
+  // Redux dispatch function
   const dispatch = useDispatch();
 
+  // Handle the "Confirm" button press
   const handleConfirm = async () => {
+    // Create a new board object with the provided data
     const newBoard = {
       name: boardName,
       description: boardDescription,
@@ -22,8 +44,9 @@ export default function ReviewScreen({ navigation, route }) {
       frequency: boardFrequency,
       author: currentUser.id,
     };
-  
+
     try {
+      // Dispatch the action to add the board
       await dispatch(addBoardThunk(newBoard));
       console.log('Board added successfully');
     } catch (error) {
@@ -39,15 +62,13 @@ export default function ReviewScreen({ navigation, route }) {
     }
   };
 
-
-
+  // Handle the "Back" button press
   const handleBack = () => {
-    navigation.goBack();
+    navigation.goBack(); // Navigate back to the previous screen
   };
 
   // Parse duration (e.g., "1 year" -> 12 months)
   const parseDuration = (duration) => {
-    // Map words to numbers
     const wordToNumber = {
       one: 1,
       two: 2,
@@ -61,10 +82,7 @@ export default function ReviewScreen({ navigation, route }) {
       ten: 10,
     };
 
-    // Convert the duration to lowercase for easier matching
     const lowerDuration = duration.toLowerCase();
-
-    // Check if the duration contains a word number (e.g., "one")
     const wordMatch = lowerDuration.match(/one|two|three|four|five|six|seven|eight|nine|ten/);
     const numericValue = wordMatch ? wordToNumber[wordMatch[0]] : parseInt(duration, 10);
 
@@ -117,17 +135,10 @@ export default function ReviewScreen({ navigation, route }) {
 
   // Get recurring meeting dates
   const recurringDates = generateRecurringDates(selectedDate, selectedTime, boardDuration, boardFrequency);
-  console.log('Inputs to generateRecurringDates:', {
-    selectedDate,
-    selectedTime,
-    boardDuration,
-    boardFrequency,
-  });
-  console.log('Parsed Duration:', parseDuration(boardDuration));
-  console.log('Parsed Frequency:', parseFrequency(boardFrequency));
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      {/* Header Section */}
       <View style={styles.header}>
         <Text style={styles.title}>Review</Text>
         <View style={styles.stepIndicator}>
@@ -136,13 +147,13 @@ export default function ReviewScreen({ navigation, route }) {
               key={step}
               style={[
                 styles.stepCircle,
-                step === 5 && styles.activeStepCircle,
+                step === 5 && styles.activeStepCircle, // Highlight the current step
               ]}
             >
               <Text
                 style={[
                   styles.stepNumber,
-                  step === 5 && styles.activeStepNumber,
+                  step === 5 && styles.activeStepNumber, // Highlight the current step number
                 ]}
               >
                 {step}
@@ -152,21 +163,18 @@ export default function ReviewScreen({ navigation, route }) {
         </View>
       </View>
 
+      {/* Subtitle */}
       <Text style={styles.subtitle}>Let's review your board settings before we create it.</Text>
 
-      {/* Board Name */}
+      {/* Board Details */}
       <View style={styles.detailSection}>
         <Text style={styles.sectionLabel}>Name</Text>
         <Text style={styles.sectionContent}>{boardName}</Text>
       </View>
-
-      {/* Board Description */}
       <View style={styles.detailSection}>
         <Text style={styles.sectionLabel}>Description</Text>
         <Text style={styles.sectionContent}>{boardDescription}</Text>
       </View>
-
-      {/* Board Focus */}
       <View style={styles.detailSection}>
         <Text style={styles.sectionLabel}>Focus</Text>
         <Text style={styles.sectionContent}>{focus}</Text>
@@ -209,7 +217,7 @@ export default function ReviewScreen({ navigation, route }) {
 
       {/* Confirm Button */}
       <TouchableOpacity
-        style={[styles.confirmButton, !acknowledged && styles.disabledButton]}
+        style={[styles.confirmButton, !acknowledged && styles.disabledButton]} // Disable button if not acknowledged
         onPress={handleConfirm}
         disabled={!acknowledged}
       >
@@ -229,6 +237,7 @@ export default function ReviewScreen({ navigation, route }) {
 
 const circleSize = 40;
 
+// Styles for the screen
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,

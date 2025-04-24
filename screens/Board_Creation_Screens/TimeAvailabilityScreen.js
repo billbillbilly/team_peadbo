@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import * as Notifications from 'expo-notifications';
@@ -7,73 +7,83 @@ import * as ExpoCalendar from 'expo-calendar';
 import moment from 'moment';
 
 export default function TimeAvailabilityScreen({ navigation, route }) {
+  // Destructure parameters passed from the previous screen
   const {
     focus = '',
     boardName = '',
     boardDescription = '',
-    boardDuration = '', // Add default value for boardDuration
-    boardFrequency = '', // Add default value for boardFrequency
+    boardDuration = '',
+    boardFrequency = '',
     advisors = [],
     message = '',
   } = route.params || {};
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedTime, setSelectedTime] = useState(null);
-  const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
-  const [timeError, setTimeError] = useState('');
-  const [tasks, setTasks] = useState([]);
-  const [calendarVisible, setCalendarVisible] = useState(true);
-  const [notificationPermission, setNotificationPermission] = useState(null);
-  const [calendarPermission, setCalendarPermission] = useState(null);
 
-  // Define markedDates based on tasks
+  // State variables for managing date and time selection
+  const [selectedDate, setSelectedDate] = useState(null); // Selected date
+  const [selectedTime, setSelectedTime] = useState(null); // Selected time
+  const [isTimePickerVisible, setTimePickerVisibility] = useState(false); // Time picker visibility
+  const [timeError, setTimeError] = useState(''); // Error message for time selection
+
+  // State variables for managing tasks and calendar visibility
+  const [tasks, setTasks] = useState([]); // List of tasks
+  const [calendarVisible, setCalendarVisible] = useState(true); // Calendar visibility toggle
+
+  // State variables for permissions
+  const [notificationPermission, setNotificationPermission] = useState(null); // Notification permission status
+  const [calendarPermission, setCalendarPermission] = useState(null); // Calendar permission status
+
+  // Define marked dates based on tasks
   const markedDates = tasks.reduce((acc, task) => {
-    acc[task.date] = { marked: true, dotColor: '#1EA896' };
+    acc[task.date] = { marked: true, dotColor: '#1EA896' }; // Mark task dates with a dot
     return acc;
   }, {});
 
+  // Highlight the selected date
   if (selectedDate) {
     markedDates[selectedDate] = { selected: true, marked: true, dotColor: '#1EA896' };
   }
 
-  // Show time picker
+  // Show the time picker modal
   const showTimePicker = () => {
     setTimePickerVisibility(true);
   };
 
-  // Hide time picker
+  // Hide the time picker modal
   const hideTimePicker = () => {
     setTimePickerVisibility(false);
   };
 
-  // Handle time selection
+  // Handle time selection from the time picker
   const handleTimeConfirm = (time) => {
-    const formattedTime = moment(time).format('h:mm A');
-    setSelectedTime(formattedTime);
-    setTimeError('');
-    hideTimePicker();
+    const formattedTime = moment(time).format('h:mm A'); // Format time as "12:00 PM"
+    setSelectedTime(formattedTime); // Update selected time
+    setTimeError(''); // Clear any existing error
+    hideTimePicker(); // Hide the time picker
   };
 
-  // Handle continue button press
+  // Handle the "Continue" button press
   const handleContinue = async () => {
+    // Validate that both date and time are selected
     if (!selectedDate || !selectedTime) {
       setTimeError('Please select a date and time before continuing.');
       return;
     }
-  
+
     try {
       console.log('Selected Date:', selectedDate);
       console.log('Selected Time:', selectedTime);
-  
+
+      // Navigate to the ReviewScreen with the selected data
       navigation.navigate('ReviewScreen', {
         focus,
         boardName,
-        boardDescription, // Use the correct parameter name
+        boardDescription,
         boardDuration,
         boardFrequency,
         advisors,
         message,
         selectedDate,
-        selectedTime
+        selectedTime,
       });
     } catch (error) {
       console.error('Error during handleContinue:', error);
@@ -81,14 +91,14 @@ export default function TimeAvailabilityScreen({ navigation, route }) {
     }
   };
 
+  // Handle the "Back" button press
   const handleBack = () => {
-    navigation.goBack();
+    navigation.goBack(); // Navigate back to the previous screen
   };
-
-  // Rest of the existing code (e.g., handleCreateTask, scheduleNotification, addEventToCalendar, etc.) remains unchanged...
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      {/* Header Section */}
       <View style={styles.header}>
         <Text style={styles.title}>Set Time Availability</Text>
         <View style={styles.stepIndicator}>
@@ -97,13 +107,13 @@ export default function TimeAvailabilityScreen({ navigation, route }) {
               key={step}
               style={[
                 styles.stepCircle,
-                step === 4 && styles.activeStepCircle,
+                step === 4 && styles.activeStepCircle, // Highlight the current step
               ]}
             >
               <Text
                 style={[
                   styles.stepNumber,
-                  step === 4 && styles.activeStepNumber,
+                  step === 4 && styles.activeStepNumber, // Highlight the current step number
                 ]}
               >
                 {step}
@@ -113,24 +123,27 @@ export default function TimeAvailabilityScreen({ navigation, route }) {
         </View>
       </View>
 
-      <Text style={styles.subtitle}>Let's pick a date and time for your first meeting. You can always change it later.</Text>
+      {/* Subtitle Section */}
+      <Text style={styles.subtitle}>
+        Let's pick a date and time for your first meeting. You can always change it later.
+      </Text>
 
       {/* Toggle Calendar Visibility */}
       <View style={styles.toggleContainer}>
         <Text style={styles.toggleText}>Show Calendar</Text>
         <Switch
           value={calendarVisible}
-          onValueChange={(value) => setCalendarVisible(value)}
+          onValueChange={(value) => setCalendarVisible(value)} // Toggle calendar visibility
           trackColor={{ false: '#ccc', true: '#1EA896' }}
         />
       </View>
 
-      {/* Calendar */}
+      {/* Calendar Section */}
       {calendarVisible && (
         <View style={styles.calendar}>
           <Calendar
-            onDayPress={(day) => setSelectedDate(day.dateString)}
-            markedDates={markedDates}
+            onDayPress={(day) => setSelectedDate(day.dateString)} // Handle date selection
+            markedDates={markedDates} // Highlight marked dates
             theme={{
               selectedDayBackgroundColor: '#1EA896',
               selectedDayTextColor: '#fff',
@@ -141,7 +154,7 @@ export default function TimeAvailabilityScreen({ navigation, route }) {
         </View>
       )}
 
-      {/* Time Selection */}
+      {/* Time Selection Button */}
       <TouchableOpacity style={styles.timePickerButton} onPress={showTimePicker}>
         <Text style={styles.timePickerButtonText}>
           {selectedTime ? `Selected Time: ${selectedTime}` : 'Select Time'}
@@ -155,33 +168,32 @@ export default function TimeAvailabilityScreen({ navigation, route }) {
       <DateTimePickerModal
         isVisible={isTimePickerVisible}
         mode="time"
-        onConfirm={handleTimeConfirm}
-        onCancel={hideTimePicker}
-        is24Hour={false} // Ensure 12-hour format with AM/PM
-        textColor="black" // Change text color to match your theme
-        
+        onConfirm={handleTimeConfirm} // Handle time selection
+        onCancel={hideTimePicker} // Handle cancel action
+        is24Hour={false} // Use 12-hour format with AM/PM
+        textColor="black" // Set text color
       />
 
       {/* Continue Button */}
       <TouchableOpacity
-        style={[styles.continueButton, (!selectedDate || !selectedTime) && styles.disabledButton]}
+        style={[styles.continueButton, (!selectedDate || !selectedTime) && styles.disabledButton]} // Disable button if date or time is not selected
         onPress={handleContinue}
-        disabled={!selectedDate || !selectedTime}
+        disabled={!selectedDate || !selectedTime} // Disable button if date or time is not selected
       >
         <Text style={styles.continueButtonText}>Continue</Text>
       </TouchableOpacity>
-      <TouchableOpacity
-              style={styles.backButton}
-              onPress={handleBack}
-            >
-              <Text style={styles.backButtonText}>Back</Text>
-            </TouchableOpacity>
+
+      {/* Back Button */}
+      <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+        <Text style={styles.backButtonText}>Back</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
 
 const circleSize = 40;
 
+// Styles for the screen
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,

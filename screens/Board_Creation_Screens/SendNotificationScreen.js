@@ -1,4 +1,8 @@
 // SendNotificationScreen.js
+// This screen will be used to send notifications to the advisors
+// We ran out of time to implement this screen, and were unsure how to configure email notificaitons
+// with the provided database.
+
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import * as MailComposer from 'expo-mail-composer';

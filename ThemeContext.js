@@ -1,3 +1,5 @@
+// File that will handle the theme context (light and dark mode) when fully implemented
+
 import React, { createContext, useContext, useState } from 'react';
 
 const lightTheme = {

@@ -1,3 +1,7 @@
+// This screen shows users details of an event when they click on it.
+// At the moment, navigation to this screen is disabled due to issues with matching the information on this
+// screen with the structure of the data in the database.
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -12,43 +16,44 @@ import { Icon } from '@rneui/themed';
 import ToDoItem from '../../components/ToDoItem';
 
 const EventScreen = ({ navigation, route }) => {
+  // Destructure the `event` object passed from the previous screen
   const { event } = route.params;
 
-  // State variables
-  const [eventTitle, changeTitle] = useState(event.title || 'Untitled Event');
+  // State variables for managing event details
+  const [eventTitle, changeTitle] = useState(event.title || 'Untitled Event'); // Event title
   const [eventDate, changeDate] = useState(
     event.startDateTime
       ? new Date(event.startDateTime).toLocaleDateString()
-      : 'No Date'
+      : 'No Date' // Event date
   );
   const [eventTime, changeTime] = useState(
     event.startDateTime
       ? new Date(event.startDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      : 'No Time'
+      : 'No Time' // Event time
   );
   const [eventDuration, changeDuration] = useState(
     event.endDateTime && event.startDateTime
       ? `${Math.round(
           (new Date(event.endDateTime) - new Date(event.startDateTime)) / (1000 * 60)
-        )} minutes`
+        )} minutes` // Event duration in minutes
       : 'No Duration'
   );
-  const [eventDescription, changeDescription] = useState(event.descriptionText || 'No Description');
-  const [notes, setNotes] = useState('');
-  const [todos, setTodos] = useState([]);
+  const [eventDescription, changeDescription] = useState(event.descriptionText || 'No Description'); // Event description
+  const [notes, setNotes] = useState(''); // Notes for the event
+  const [todos, setTodos] = useState([]); // List of todos for the event
 
-  // Modal states
-  const [titleModalVisible, setTitleModalVisible] = useState(false);
-  const [dateTimeModalVisible, setDateTimeModalVisible] = useState(false);
-  const [descriptionModalVisible, setDescriptionModalVisible] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
+  // Modal states for editing event details
+  const [titleModalVisible, setTitleModalVisible] = useState(false); // Title edit modal visibility
+  const [dateTimeModalVisible, setDateTimeModalVisible] = useState(false); // Date/time edit modal visibility
+  const [descriptionModalVisible, setDescriptionModalVisible] = useState(false); // Description edit modal visibility
+  const [modalVisible, setModalVisible] = useState(false); // Todo creation modal visibility
 
-  // Temporary states for editing
-  const [tempTitle, setTempTitle] = useState(event.title || 'Untitled Event');
-  const [tempDate, setTempDate] = useState(eventDate);
-  const [tempTime, setTempTime] = useState(eventTime);
-  const [tempDescription, setTempDescription] = useState(eventDescription);
-  const [newTodo, setNewTodo] = useState('');
+  // Temporary states for editing event details
+  const [tempTitle, setTempTitle] = useState(event.title || 'Untitled Event'); // Temporary title for editing
+  const [tempDate, setTempDate] = useState(eventDate); // Temporary date for editing
+  const [tempTime, setTempTime] = useState(eventTime); // Temporary time for editing
+  const [tempDescription, setTempDescription] = useState(eventDescription); // Temporary description for editing
+  const [newTodo, setNewTodo] = useState(''); // New todo text
 
   // Load todos from AsyncStorage when the component mounts
   useEffect(() => {
@@ -56,9 +61,9 @@ const EventScreen = ({ navigation, route }) => {
       try {
         const storedTodos = await AsyncStorage.getItem(`todos_${event.id}`);
         if (storedTodos) {
-          setTodos(JSON.parse(storedTodos));
+          setTodos(JSON.parse(storedTodos)); // Load todos from storage
         } else {
-          setTodos([]);
+          setTodos([]); // Initialize with an empty list if no todos are found
         }
       } catch (error) {
         console.error('Error loading todos:', error);
@@ -72,7 +77,7 @@ const EventScreen = ({ navigation, route }) => {
   useEffect(() => {
     const saveTodos = async () => {
       try {
-        await AsyncStorage.setItem(`todos_${event.id}`, JSON.stringify(todos));
+        await AsyncStorage.setItem(`todos_${event.id}`, JSON.stringify(todos)); // Save todos to storage
       } catch (error) {
         console.error('Error saving todos:', error);
       }
@@ -81,40 +86,44 @@ const EventScreen = ({ navigation, route }) => {
     saveTodos();
   }, [todos, event.id]);
 
-  // Functions
+  // Toggle the completion status of a todo
   const toggleTodo = (index) => {
     const newTodos = [...todos];
-    newTodos[index].completed = !newTodos[index].completed;
+    newTodos[index].completed = !newTodos[index].completed; // Toggle the `completed` status
     setTodos(newTodos);
   };
 
+  // Save the edited title
   const saveTitle = () => {
-    changeTitle(tempTitle);
-    setTitleModalVisible(false);
+    changeTitle(tempTitle); // Update the event title
+    setTitleModalVisible(false); // Close the title edit modal
   };
 
+  // Save the edited date and time
   const saveDateTime = () => {
-    changeDate(tempDate);
-    changeTime(tempTime);
-    setDateTimeModalVisible(false);
+    changeDate(tempDate); // Update the event date
+    changeTime(tempTime); // Update the event time
+    setDateTimeModalVisible(false); // Close the date/time edit modal
   };
 
+  // Save the edited description
   const saveDescription = () => {
-    changeDescription(tempDescription);
-    setDescriptionModalVisible(false);
+    changeDescription(tempDescription); // Update the event description
+    setDescriptionModalVisible(false); // Close the description edit modal
   };
 
+  // Add a new todo to the list
   const addTodo = () => {
     if (newTodo.trim().length > 0) {
-      setTodos([...todos, { text: newTodo, completed: false }]);
-      setNewTodo('');
-      setModalVisible(false);
+      setTodos([...todos, { text: newTodo, completed: false }]); // Add the new todo
+      setNewTodo(''); // Clear the input field
+      setModalVisible(false); // Close the todo creation modal
     }
   };
 
   return (
     <ScrollView style={styles.container}>
-      {/* Header */}
+      {/* Header Section */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="arrow-left" type="font-awesome" size={20} color="#1E9278" />

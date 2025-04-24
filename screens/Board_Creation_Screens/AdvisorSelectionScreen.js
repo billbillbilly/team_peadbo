@@ -4,7 +4,10 @@ import * as Contacts from 'expo-contacts';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 export default function PickAdvisorsScreen({ navigation, route }) {
+  // Destructure parameters passed from the previous screen
   const { focus, boardName, boardDescription, boardDuration, boardFrequency } = route.params;
+
+  // State variables for managing selected advisors and contacts
   const [selectedAdvisors, setSelectedAdvisors] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [filteredContacts, setFilteredContacts] = useState([]);
@@ -12,20 +15,22 @@ export default function PickAdvisorsScreen({ navigation, route }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
-  // Modal for adding email
+  // State variables for managing the email modal
   const [emailModalVisible, setEmailModalVisible] = useState(false);
   const [currentContact, setCurrentContact] = useState(null);
   const [newEmail, setNewEmail] = useState('');
 
+  // Refs for manual input fields
   const firstNameRef = useRef('');
   const lastNameRef = useRef('');
   const emailRef = useRef('');
 
+  // Request permission to access contacts on component mount
   useEffect(() => {
     const requestPermission = async () => {
       const { status } = await Contacts.requestPermissionsAsync();
       if (status === 'granted') {
-        loadContacts();
+        loadContacts(); // Load contacts if permission is granted
       } else {
         console.log('Permission denied');
       }
@@ -34,17 +39,19 @@ export default function PickAdvisorsScreen({ navigation, route }) {
     requestPermission();
   }, []);
 
+  // Load contacts from the device
   const loadContacts = async () => {
     const { data } = await Contacts.getContactsAsync({
-      fields: [Contacts.Fields.Emails],
+      fields: [Contacts.Fields.Emails], // Fetch contacts with email addresses
     });
 
     if (data.length > 0) {
-      setContacts(data);
+      setContacts(data); // Store all contacts
       setFilteredContacts(data); // Initialize filteredContacts with all contacts
     }
   };
 
+  // Handle search functionality for filtering contacts
   const handleSearch = (query) => {
     setSearchQuery(query);
     const filtered = contacts.filter((contact) => {
@@ -54,6 +61,7 @@ export default function PickAdvisorsScreen({ navigation, route }) {
     setFilteredContacts(filtered);
   };
 
+  // Handle selecting a contact from the list
   const selectContact = (contact) => {
     if (!contact.emails || contact.emails.length === 0) {
       // Prompt the user to add an email if the contact has none
@@ -97,44 +105,46 @@ export default function PickAdvisorsScreen({ navigation, route }) {
     }
   };
 
+  // Navigate back to the previous screen
   const handleBack = () => {
     navigation.goBack();
   };
-  
 
+  // Handle adding a new advisor manually
   const handleAddAdvisor = () => {
     const firstName = firstNameRef.current.trim();
     const lastName = lastNameRef.current.trim();
     const email = emailRef.current.trim();
-  
+
     // Validate that all fields are filled
     if (!firstName || !lastName || !email) {
       Alert.alert('Missing Information', 'Please enter a first name, last name, and a valid email address.');
       return;
     }
-  
+
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       Alert.alert('Invalid Email', 'Please enter a valid email address.');
       return;
     }
-  
+
     // Add the new advisor with a unique id
     const newAdvisor = {
       id: Date.now().toString(), // Generate a unique id
       name: `${firstName} ${lastName}`,
       emails: [{ email }],
     };
-  
+
     setSelectedAdvisors([...selectedAdvisors, newAdvisor]);
-  
+
     // Clear the input fields
     firstNameRef.current = '';
     lastNameRef.current = '';
     emailRef.current = '';
   };
 
+  // Render the header section
   const renderHeader = () => (
     <View>
       <View style={styles.header}>
@@ -193,25 +203,26 @@ export default function PickAdvisorsScreen({ navigation, route }) {
     </View>
   );
 
+  // Render the footer section
   const renderFooter = () => (
     <View>
-        <TouchableOpacity
-          style={[styles.continueButton, selectedAdvisors.length === 0 && styles.disabledButton]}
-          onPress={() =>
-            navigation.navigate('CreateInvitationScreen', {
-              focus,
-              boardName,
-              boardDescription,
-              boardDuration,
-              boardFrequency,
-              advisors: selectedAdvisors,
-            })
-          }
-          disabled={selectedAdvisors.length === 0}
-        >
-          <Text style={styles.continueButtonText}>Continue</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+      <TouchableOpacity
+        style={[styles.continueButton, selectedAdvisors.length === 0 && styles.disabledButton]}
+        onPress={() =>
+          navigation.navigate('CreateInvitationScreen', {
+            focus,
+            boardName,
+            boardDescription,
+            boardDuration,
+            boardFrequency,
+            advisors: selectedAdvisors,
+          })
+        }
+        disabled={selectedAdvisors.length === 0}
+      >
+        <Text style={styles.continueButtonText}>Continue</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
         style={styles.backButton}
         onPress={handleBack}
       >

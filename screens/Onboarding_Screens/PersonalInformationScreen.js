@@ -16,19 +16,22 @@ import { Storage } from 'aws-amplify';
 // import { ResumeData } from '../../models';
 // import { DataStore } from 'aws-amplify';
 
+// Default user ID for testing purposes
 const defaultUserId = 'user1';
 
 export default function PersonalInformationScreen({ navigation }) {
-  const [resumeUrls, setResumeUrls] = useState([]);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [city, setCity] = useState('');
-  const [stateVal, setStateVal] = useState('');
+  // State variables for managing user input and uploaded resumes
+  const [resumeUrls, setResumeUrls] = useState([]); // Stores uploaded resume URLs
+  const [firstName, setFirstName] = useState(''); // User's first name
+  const [lastName, setLastName] = useState(''); // User's last name
+  const [phone, setPhone] = useState(''); // User's phone number
+  const [email, setEmail] = useState(''); // User's email address
+  const [city, setCity] = useState(''); // User's city
+  const [stateVal, setStateVal] = useState(''); // User's state
 
-  const [openEducation, setOpenEducation] = useState(false);
-  const [valueEducation, setValueEducation] = useState(null);
+  // State variables for managing the education dropdown
+  const [openEducation, setOpenEducation] = useState(false); // Controls dropdown visibility
+  const [valueEducation, setValueEducation] = useState(null); // Selected education level
   const [educationItems, setEducationItems] = useState([
     { label: 'Select Education Level', value: null },
     { label: 'Associate', value: 'associate' },
@@ -37,24 +40,29 @@ export default function PersonalInformationScreen({ navigation }) {
     { label: 'PhD', value: 'phd' },
   ]);
 
+  // Function to handle resume uploads
   const handleResumeUpload = async () => {
     try {
+      // Limit the number of resumes to 5
       if (resumeUrls.length >= 5) {
         Alert.alert('Limit reached', 'You can only upload up to 5 resumes.');
         return;
       }
 
+      // Open the document picker to select a PDF file
       const result = await DocumentPicker.getDocumentAsync({ type: 'application/pdf' });
       if (result.type === 'success') {
-        const response = await fetch(result.uri);
-        const blob = await response.blob();
+        const response = await fetch(result.uri); // Fetch the file from the URI
+        const blob = await response.blob(); // Convert the file to a blob
 
+        // Generate a unique file name
         const fileName = `${defaultUserId}_${Date.now()}_${result.name}`;
         await Storage.put(`resumes/${fileName}`, blob, {
-          contentType: 'application/pdf',
+          contentType: 'application/pdf', // Set the content type to PDF
         });
-        const downloadUrl = await Storage.get(`resumes/${fileName}`);
+        const downloadUrl = await Storage.get(`resumes/${fileName}`); // Get the download URL
 
+        // Update the list of uploaded resumes
         const updatedResumes = [...resumeUrls, downloadUrl];
         setResumeUrls(updatedResumes);
 
@@ -66,7 +74,9 @@ export default function PersonalInformationScreen({ navigation }) {
     }
   };
 
+  // Function to handle the "Next" button press
   const handleNext = async () => {
+    // Validate that all fields are filled
     if (!firstName || !lastName || !phone || !email || !city || !stateVal || !valueEducation) {
       Alert.alert('Error', 'Please fill all personal information fields');
       return;
@@ -90,7 +100,7 @@ export default function PersonalInformationScreen({ navigation }) {
       // );
 
       Alert.alert('Success', 'Personal information saved');
-      navigation.navigate('CommunicationStyleScreen');
+      navigation.navigate('CommunicationStyleScreen'); // Navigate to the next screen
     } catch (error) {
       console.error('Save error:', error);
       Alert.alert('Error', 'Could not save personal information');
@@ -109,6 +119,7 @@ export default function PersonalInformationScreen({ navigation }) {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.container}>
+          {/* Step Indicator */}
           <View style={styles.stepIndicatorContainer}>
             <View style={[styles.dotBase, styles.filledDot]} />
             <View style={[styles.dotBase, styles.partialDot]} />
@@ -117,6 +128,7 @@ export default function PersonalInformationScreen({ navigation }) {
             <View style={styles.dotBase} />
           </View>
 
+          {/* Resume Upload Section */}
           <Text style={styles.headerTitle}>Resume Input</Text>
           <TouchableOpacity style={styles.resumeUpload} onPress={handleResumeUpload}>
             <Text style={styles.uploadText}>
@@ -124,8 +136,10 @@ export default function PersonalInformationScreen({ navigation }) {
             </Text>
           </TouchableOpacity>
 
+          {/* Personal Information Section */}
           <Text style={styles.subHeaderTitle}>Personal Information</Text>
 
+          {/* First Name and Last Name Inputs */}
           <View style={styles.inputRow}>
             <View style={styles.inputContainer}>
               <TextInput
@@ -146,6 +160,7 @@ export default function PersonalInformationScreen({ navigation }) {
             </View>
           </View>
 
+          {/* City and State Inputs */}
           <View style={styles.inputRow}>
             <View style={styles.inputContainer}>
               <TextInput
@@ -165,6 +180,7 @@ export default function PersonalInformationScreen({ navigation }) {
             </View>
           </View>
 
+          {/* Phone Number Input */}
           <TextInput
             style={styles.input}
             placeholder="Phone Number"
@@ -173,6 +189,7 @@ export default function PersonalInformationScreen({ navigation }) {
             onChangeText={setPhone}
           />
 
+          {/* Email Address Input */}
           <TextInput
             style={styles.input}
             placeholder="Email Address"
@@ -181,6 +198,7 @@ export default function PersonalInformationScreen({ navigation }) {
             onChangeText={setEmail}
           />
 
+          {/* Education Dropdown */}
           <Text style={styles.subHeaderTitle}>Education</Text>
           <DropDownPicker
             listMode="SCROLLVIEW"
@@ -195,6 +213,7 @@ export default function PersonalInformationScreen({ navigation }) {
             dropDownContainerStyle={styles.dropDownContainer}
           />
 
+          {/* Next Button */}
           <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
             <Text style={styles.nextButtonText}>Next</Text>
           </TouchableOpacity>

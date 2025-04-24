@@ -1,3 +1,5 @@
+// For now, this screen has been excluded from the profile screen, can be added later if FAQs are added
+
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 

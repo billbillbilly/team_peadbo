@@ -3,6 +3,7 @@ import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet, ScrollView } fr
 import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
+// Define color constants for consistent styling
 const PEADBO_COLORS = {
   primary: '#1EA896',
   secondary: '#FF715B',
@@ -10,23 +11,27 @@ const PEADBO_COLORS = {
   text: '#333333',
   lightText: '#777777',
   border: '#DDDDDD',
-  white: '#FFFFFF'
+  white: '#FFFFFF',
 };
 
 export default function NewsletterPreviewScreen({ navigation, route }) {
+  // Destructure the `newsletter` object and `onSave` callback from route parameters
   const { newsletter, onSave } = route.params;
 
+  // Handle the "Send Now" button press
   const handleContinue = () => {
-    const updatedNewsletter = { ...newsletter, status: 'sent' };
-    onSave(updatedNewsletter); // Call the onSave callback
+    const updatedNewsletter = { ...newsletter, status: 'sent' }; // Mark the newsletter as sent
+    onSave(updatedNewsletter); // Call the onSave callback with the updated newsletter
   };
 
+  // Handle the "Save Draft" button press
   const handleSaveDraft = () => {
-    onSave(newsletter);
+    onSave(newsletter); // Save the current newsletter as a draft
   };
 
   return (
     <SafeAreaView style={styles.container}>
+
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} color={PEADBO_COLORS.text} />
@@ -35,7 +40,9 @@ export default function NewsletterPreviewScreen({ navigation, route }) {
         <View style={{ width: 24 }} />
       </View>
 
+
       <ScrollView style={styles.scrollContainer}>
+
         <View style={styles.recipientSection}>
           <Text style={styles.sectionTitle}>
             Recipients ({newsletter.recipients?.length || 0})
@@ -53,6 +60,7 @@ export default function NewsletterPreviewScreen({ navigation, route }) {
             <Text style={styles.noRecipientsText}>No recipients added yet.</Text>
           )}
         </View>
+
 
         <View style={styles.previewContainer}>
           <WebView
@@ -85,11 +93,10 @@ export default function NewsletterPreviewScreen({ navigation, route }) {
                   <h1>${newsletter.title}</h1>
                   <h2>${newsletter.subject}</h2>
                   ${newsletter.content}
-                  ${
-                    newsletter.schedule
-                      ? `<p><strong>Scheduled:</strong> ${newsletter.schedule}</p>`
-                      : ''
-                  }
+                  ${newsletter.schedule
+                  ? `<p><strong>Scheduled:</strong> ${newsletter.schedule}</p>`
+                  : ''
+                }
                 </body>
               </html>
             `,
@@ -98,6 +105,7 @@ export default function NewsletterPreviewScreen({ navigation, route }) {
           />
         </View>
       </ScrollView>
+
 
       <View style={styles.footer}>
         <TouchableOpacity style={styles.editButton} onPress={() => navigation.goBack()}>
@@ -114,6 +122,7 @@ export default function NewsletterPreviewScreen({ navigation, route }) {
   );
 }
 
+// Styles for the screen
 const styles = StyleSheet.create({
   container: {
     flex: 1,

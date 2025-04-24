@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 
+// Predefined focus options for the board
 const focuses = [
   { id: 1, name: 'Professional' },
   { id: 2, name: 'Personal' },
@@ -11,8 +12,10 @@ const focuses = [
 ];
 
 export default function SetFocusScreen({ navigation }) {
+  // State to track the selected focus
   const [selectedFocus, setSelectedFocus] = useState(null);
 
+  // Navigate to the BoardDetailsScreen with the selected focus
   const handleContinue = () => {
     if (selectedFocus) {
       navigation.navigate('BoardDetailsScreen', { focus: selectedFocus });
@@ -21,6 +24,7 @@ export default function SetFocusScreen({ navigation }) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      {/* Header Section */}
       <Text style={styles.title}>Choose your focus</Text>
       <View style={styles.stepIndicator}>
         {[1, 2, 3, 4, 5].map((step) => (
@@ -28,13 +32,13 @@ export default function SetFocusScreen({ navigation }) {
             key={step}
             style={[
               styles.stepCircle,
-              step === 1 && styles.activeStepCircle,
+              step === 1 && styles.activeStepCircle, // Highlight the current step
             ]}
           >
             <Text
               style={[
                 styles.stepNumber,
-                step === 1 && styles.activeStepNumber,
+                step === 1 && styles.activeStepNumber, // Highlight the current step number
               ]}
             >
               {step}
@@ -42,24 +46,33 @@ export default function SetFocusScreen({ navigation }) {
           </View>
         ))}
       </View>
+
+      {/* Subtitle Section */}
       <Text style={styles.subtitle}>
         Giving your board a focus gives members a better idea of what to expect. You can change this later.
       </Text>
+
+      {/* Focus Options */}
       <View style={styles.focusContainer}>
         {focuses.map((focus) => (
           <TouchableOpacity
             key={focus.id}
-            style={[styles.focusItem, selectedFocus === focus.name && styles.selectedFocus]}
-            onPress={() => setSelectedFocus(focus.name)}
+            style={[
+              styles.focusItem,
+              selectedFocus === focus.name && styles.selectedFocus, // Highlight the selected focus
+            ]}
+            onPress={() => setSelectedFocus(focus.name)} // Set the selected focus
           >
             <Text style={styles.focusText}>{focus.name}</Text>
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* Continue Button */}
       <TouchableOpacity
-        style={[styles.continueButton, !selectedFocus && styles.disabledButton]}
+        style={[styles.continueButton, !selectedFocus && styles.disabledButton]} // Disable button if no focus is selected
         onPress={handleContinue}
-        disabled={!selectedFocus}
+        disabled={!selectedFocus} // Disable button if no focus is selected
       >
         <Text style={styles.continueButtonText}>Continue</Text>
       </TouchableOpacity>
@@ -69,6 +82,7 @@ export default function SetFocusScreen({ navigation }) {
 
 const circleSize = 40;
 
+// Styles for the screen
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
@@ -105,7 +119,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   selectedFocus: {
-    backgroundColor: 'rgba(30, 168, 150, 0.2)',
+    backgroundColor: 'rgba(30, 168, 150, 0.2)', // Highlight selected focus
     borderColor: '#1EA896',
   },
   focusText: {
@@ -126,7 +140,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeStepCircle: {
-    backgroundColor: '#1EA896',
+    backgroundColor: '#1EA896', // Highlight the current step
   },
   stepNumber: {
     fontSize: 16,
@@ -134,7 +148,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   activeStepNumber: {
-    color: '#fff',
+    color: '#fff', // Highlight the current step number
   },
   continueButton: {
     backgroundColor: '#1EA896',
@@ -145,7 +159,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   disabledButton: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#ccc', // Style for disabled button
   },
   continueButtonText: {
     color: '#fff',

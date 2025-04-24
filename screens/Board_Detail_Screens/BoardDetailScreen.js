@@ -1,3 +1,8 @@
+// This screen successfully fetches and displays tasks and events for a specific board.
+// When a task/event is created on the web interface, it will appear on this screen on refresh.
+// As of now, the ability to create tasks and events has been disabled due to the inability to match the passed data
+// with the expected data structure in the database.
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Icon } from '@rneui/themed';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
@@ -9,16 +14,23 @@ import RenderHorizontalCalender from '../../components/RenderHorizontalCalender'
 import { deleteBoard, fetchTasks, deleteTask, fetchEvents, deleteEvent } from '../../Reducer';
 
 const BoardDetailsScreen = ({ navigation, route }) => {
+    // Destructure the `board` object passed from the previous screen
     const { board } = route.params;
+
+    // Redux dispatch function
     const dispatch = useDispatch();
+
+    // Reference for the horizontal calendar scroll view
     const calendar = useRef(null);
 
-    const [tasks, setTasks] = useState([]);
-    const [events, setEvents] = useState([]);
-    const [selectedDate, setSelectedDate] = useState('');
-    const [dateList, setDateList] = useState([]);
-    const [viewAll, setViewAll] = useState(false);
+    // State variables for managing tasks, events, and selected dates
+    const [tasks, setTasks] = useState([]); // List of tasks for the board
+    const [events, setEvents] = useState([]); // List of events for the board
+    const [selectedDate, setSelectedDate] = useState(''); // Currently selected date
+    const [dateList, setDateList] = useState([]); // List of dates for the calendar
+    const [viewAll, setViewAll] = useState(false); // Toggle to view all tasks/events
 
+    // Constants for the current date
     const weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const today = new Date();
     const currentDay = today.getDay();
@@ -26,6 +38,7 @@ const BoardDetailsScreen = ({ navigation, route }) => {
     const currentMonth = today.getMonth() + 1;
     const currentDate = today.getDate();
 
+    // Fetch tasks and events when the component mounts or the board ID changes
     useEffect(() => {
         setDateList(mapDates(currentDay, currentDate, currentMonth, currentYear, events));
 
@@ -54,6 +67,7 @@ const BoardDetailsScreen = ({ navigation, route }) => {
         fetchBoardTasks();
     }, [board.id]);
 
+    // Map dates for the horizontal calendar
     const mapDates = (currentDay, currentDate, currentMonth, currentYear, events) => {
         let dates = [];
         const firstDayOfWeek = currentDate - (currentDay - 1); // Calculate the first day of the week (Monday)
@@ -80,10 +94,7 @@ const BoardDetailsScreen = ({ navigation, route }) => {
         return dates;
     };
 
-    const checkEventDate = (events, m, d, y) => {
-        return events.some(e => `${e.month}-${e.day}-${e.year}` === `${m}-${d}-${y}`);
-    };
-
+    // Handle deleting a task
     const handleDeleteTask = async (taskId) => {
         Alert.alert(
             'Delete Task',
@@ -107,6 +118,7 @@ const BoardDetailsScreen = ({ navigation, route }) => {
         );
     };
 
+    // Handle deleting an event
     const handleDeleteEvent = async (eventId) => {
         Alert.alert(
             'Delete Event',
@@ -130,24 +142,27 @@ const BoardDetailsScreen = ({ navigation, route }) => {
         );
     };
 
-    const handleDeleteBoard = () => {
-        Alert.alert(
-            'Delete Board',
-            'Are you sure you want to delete this board? This action cannot be undone.',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Delete',
-                    style: 'destructive',
-                    onPress: () => {
-                        dispatch(deleteBoard(board.id));
-                        navigation.navigate('HomeScreen');
-                    },
-                },
-            ]
-        );
-    };
+    // Handle deleting the board
+    // this function could be used if the ability to delete a board is wanted in the future
+    // const handleDeleteBoard = () => {
+    //     Alert.alert(
+    //         'Delete Board',
+    //         'Are you sure you want to delete this board? This action cannot be undone.',
+    //         [
+    //             { text: 'Cancel', style: 'cancel' },
+    //             {
+    //                 text: 'Delete',
+    //                 style: 'destructive',
+    //                 onPress: () => {
+    //                     dispatch(deleteBoard(board.id));
+    //                     navigation.navigate('HomeScreen');
+    //                 },
+    //             },
+    //         ]
+    //     );
+    // };
 
+    // Templates for creating new events and tasks
     const eventTemplate = {
         id: '-1',
         time: '',
@@ -174,6 +189,7 @@ const BoardDetailsScreen = ({ navigation, route }) => {
 
     return (
         <View style={styles.container}>
+            {/* Header Section */}
             <View style={styles.headerSection}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <Icon name="arrow-left" type="font-awesome" size={20} color="#1E9278" />
@@ -184,8 +200,8 @@ const BoardDetailsScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
             </View>
 
+            {/* Weekday Labels */}
             <View>
-                {/* Weekday Labels */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
                     {weekday.map((day, index) => (
                         <View key={index} style={{ alignItems: 'center', flex: 1 }}>
@@ -194,7 +210,7 @@ const BoardDetailsScreen = ({ navigation, route }) => {
                     ))}
                 </View>
 
-                {/* Dates */}
+                {/* Horizontal Calendar */}
                 <ScrollView
                     ref={calendar}
                     horizontal
@@ -210,7 +226,7 @@ const BoardDetailsScreen = ({ navigation, route }) => {
                                 style={[
                                     styles.dateItem,
                                     selectedDate === `${date.year}-${date.month}-${date.day}` && styles.selectedDate,
-                                    date.event && styles.eventDate, // Apply green background if an event exists
+                                    date.event && styles.eventDate, // Highlight dates with events
                                 ]}
                             >
                                 <Text
@@ -228,6 +244,7 @@ const BoardDetailsScreen = ({ navigation, route }) => {
                 </ScrollView>
             </View>
 
+            {/* Events Section */}
             <ScrollView style={styles.events}>
                 <FlatList
                     data={viewAll ? events : events.slice(0, 2)}
@@ -237,14 +254,15 @@ const BoardDetailsScreen = ({ navigation, route }) => {
                 />
                 <TouchableOpacity
                     style={styles.createEventButton}
-                // Uncomment when you have the EventScreen ready
-                // onPress={() => navigation.navigate('EventScreen', { event: eventTemplate })}
+                    // Uncomment when you have the EventScreen ready
+                    // onPress={() => navigation.navigate('EventScreen', { event: eventTemplate })}
                 >
                     <Text style={styles.createEventText}>+</Text>
                     <Text style={styles.createEventText}>Create a new event</Text>
                 </TouchableOpacity>
             </ScrollView>
 
+            {/* Tasks Section */}
             <View style={styles.tasksSection}>
                 <View style={styles.tasksHeader}>
                     <Text style={styles.sectionTitle}>Tasks</Text>
@@ -257,7 +275,7 @@ const BoardDetailsScreen = ({ navigation, route }) => {
                 />
                 <TouchableOpacity
                     style={styles.createTaskButton}
-                    // Uncomment when you have the TaskScreen ready
+                    // Uncomment when you have a task creation screen ready
                     // onPress={() => navigation.navigate('TaskScreen', { task: taskTemplate })}
                 >
                     <Text style={styles.createTaskText}>+</Text>
@@ -265,6 +283,8 @@ const BoardDetailsScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
             </View>
 
+            {/* Board Members Section */}
+            {/*No board members are being fetched at the moment, but this is where they would show up*/}
             <BoardMembers members={board.members?.items || []} />
         </View>
     );
@@ -283,7 +303,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
     },
-
     sectionTitle: {
         fontSize: 18,
         fontWeight: '600',
@@ -305,8 +324,6 @@ const styles = StyleSheet.create({
         borderRadius: 50,
         marginHorizontal: 5,
         backgroundColor: '#F9F9F9',
-
-
     },
     selectedDate: {
         backgroundColor: '#1E9278',
