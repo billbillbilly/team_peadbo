@@ -106,6 +106,87 @@ export const fetchEvents = async (boardId) => {
   }
 };
 
+
+export const fetchTasks = async (boardId) => {
+  try {
+    const result = await client.graphql({
+      query: queries.listPeadboTasks,
+      variables: {
+        filter: {
+          boardID: { eq: boardId }, // Filter tasks by the board ID
+        },
+      },
+    });
+    return result.data.listPeadboTasks.items;
+  }
+  catch (error) {
+    console.error('Error fetching tasks:', error);
+  }
+};
+
+export const fetchTask = async (taskId) => {
+  try {
+    const result = await client.graphql({
+      query: queries.getPeadboTask,
+      variables: { id: taskId },
+    });
+    return result.data.getPeadboTask;
+  } catch (error) {
+    console.error('Error fetching task:', error);
+  }
+};
+
+export const addTask = async (task) => {
+  try {
+    const result = await client.graphql({
+      query: mutations.createPeadboTask,
+      variables: { input: task },
+    });
+    return result.data.createPeadboTask;
+  } catch (error) {
+    console.error('Error adding task:', error);
+  }
+};
+
+export const updateTask = async (task) => {
+  try {
+    const result = await client.graphql({
+      query: mutations.updatePeadboTask,
+      variables: { input: task },
+    });
+    return result.data.updatePeadboTask;
+  } catch (error) {
+    console.error('Error updating task:', error);
+  }
+};
+
+export const completeTask = async (taskId) => {
+  try {
+    const result = await client.graphql({
+      query: mutations.updatePeadboTask,
+      variables: {
+        input: { id: taskId, completed: true },
+      },
+    });
+    return result.data.updatePeadboTask;
+  } catch (error) {
+    console.error('Error completing task:', error);
+  }
+};
+
+export const deleteTask = async (taskId) => {
+  try {
+    const result = await client.graphql({
+      query: mutations.deletePeadboTask,
+      variables: { input: { id: taskId } },
+    });
+    return result.data.deletePeadboTask;
+  } catch (error) {
+    console.error('Error deleting task:', error);
+  }
+};
+
+
 // Fetch a specific event by its ID
 export const fetchEvent = async (eventId) => {
   try {
